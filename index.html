@@ -792,7 +792,7 @@
         <span style="font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Manuel de l'opérateur</span>
         <span style="font-weight:700;font-size:12px;color:#B8B7B2;white-space:nowrap">Page {{ manual.page }} / {{ manual.total }}</span>
         <div style="flex:1"></div>
-        <a href="{{ manual.pdfHref }}" target="_blank" rel="noopener" style="font-weight:700;font-size:10.5px;letter-spacing:.06em;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:7px 11px;white-space:nowrap" style-hover="border-color:#D92624;color:#FFFFFF">PDF COMPLET ↗</a>
+        <a href="{{ manual.pdfHref }}" target="_blank" rel="noopener" title="Ouvre le vrai PDF directement à cette page (idéal sur ordinateur)" style="font-weight:700;font-size:10.5px;letter-spacing:.06em;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:7px 11px;white-space:nowrap" style-hover="border-color:#D92624;color:#FFFFFF">PDF · PAGE {{ manual.page }} ↗</a>
         <button onClick="{{ manual.close }}" style="flex:none;background:#D92624;color:#FFFFFF;border:none;width:38px;height:38px;font-size:18px;font-weight:800;cursor:pointer" style-hover="background:#B71F1D">✕</button>
       </div>
       <div style="flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px">
