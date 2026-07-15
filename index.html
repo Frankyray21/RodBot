@@ -9,6 +9,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#141413">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RodBot LP">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 </head>
 <body>
 <div id="app"></div>
@@ -125,6 +133,20 @@
           </div>
         </div>
       </section>
+
+      <!-- INSTALLER L'APP (PWA) -->
+      <sc-if value="{{ showInstall }}" hint-placeholder-val="{{ true }}">
+      <section style="background:#1D1E1B;color:#FAF9F5">
+        <div style="max-width:1180px;margin:0 auto;padding:20px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <span style="font-size:30px;flex:none">📲</span>
+          <div style="flex:1;min-width:220px">
+            <div style="font-weight:900;font-size:16px;letter-spacing:.01em;text-transform:uppercase;margin-bottom:3px">Installer l'application</div>
+            <div style="font-size:13.5px;color:#B8B7B2;line-height:1.45">Ajoutez la formation à votre écran d'accueil : elle s'ouvre comme une vraie app et fonctionne <strong style="color:#FAF9F5">hors-ligne</strong> sur tablette et téléphone — idéal sur le terrain.</div>
+          </div>
+          <button onClick="{{ installApp }}" style="flex:none;background:#D92624;color:#FFFFFF;border:none;padding:14px 24px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">Installer ↓</button>
+        </div>
+      </section>
+      </sc-if>
 
       <!-- PARCOURS -->
       <section class="mr-ghost" data-ghost="Parcours" style="max-width:1180px;margin:0 auto;padding:54px 28px 24px">
@@ -329,7 +351,7 @@
                 <div style="position:absolute;inset:0;background:rgba(217,38,36,.15);border:4px solid #D92624;pointer-events:none;animation:rbPulse 1s ease-in-out infinite"></div>
               </sc-if>
               <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
-                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;transition:transform .15s;border:2px solid {{ s.ring }};background: {{ s.bg }};color: {{ s.fg }};box-shadow:0 0 0 4px {{ s.halo }}" style-hover="transform:translate(-50%,-50%) scale(1.25)">{{ s.n }}</button>
+                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;transition:transform .15s;border:2px solid {{ s.ring }};background: {{ s.bg }};color: {{ s.fg }};box-shadow:0 2px 7px rgba(0,0,0,.5),0 0 0 3px {{ s.halo }}" style-hover="transform:translate(-50%,-50%) scale(1.28)">{{ s.n }}</button>
               </sc-for>
             </div>
             <div style="margin-top:12px;font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898;text-align:center">Photo du manuel, p. 21 — cliquez sur les pastilles pour identifier chaque commande</div>
@@ -350,7 +372,7 @@
                 <span style="font-weight:800;font-size:17px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
               </div>
               <div style="font-size:14px;line-height:1.6;color:#3A3B38;margin-bottom:14px">{{ rrcSelDesc }}</div>
-              <a href="{{ rrcSelHref }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:11px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:7px 12px" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:9.5px;background:#D92624;color:#FFFFFF;padding:2px 5px">PDF</span>Manuel, p. {{ rrcSelPage }} ↗</a>
+              <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:12px">📖</span>Voir la page {{ rrcSelPage }} du manuel</button>
             </div>
             <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 La pastille <strong style="color:#1D1E1B">4</strong> (champignon rouge) est fonctionnelle : appuyez dessus pour vivre un arrêt d'urgence.</div>
           </div>
@@ -801,6 +823,37 @@
       <div style="flex:none;background:#141413;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.12)">
         <button onClick="{{ manual.prev }}" style="background:none;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:11px 18px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FFFFFF">‹ Page précédente</button>
         <button onClick="{{ manual.next }}" style="background:#D92624;color:#FFFFFF;border:none;padding:11px 20px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="background:#B71F1D">Page suivante ›</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ AIDE INSTALLATION ============ -->
+    <sc-if value="{{ showInstallHelp }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:210;background:rgba(20,20,19,.92);display:flex;align-items:center;justify-content:center;padding:20px;animation:rbFade .2s ease both">
+      <div style="background:#FAF9F5;max-width:460px;width:100%;border-top:5px solid #D92624">
+        <div style="display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid rgba(29,30,27,.12)">
+          <span style="font-size:22px">📲</span>
+          <span style="font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.02em;color:#1D1E1B;flex:1">Installer l'application</span>
+          <button onClick="{{ closeInstallHelp }}" style="background:#1D1E1B;color:#FFFFFF;border:none;width:32px;height:32px;font-size:16px;font-weight:800;cursor:pointer">✕</button>
+        </div>
+        <div style="padding:20px 22px;font-size:14px;line-height:1.55;color:#2A2B28">
+          <sc-if value="{{ isIOS }}" hint-placeholder-val="{{ false }}">
+            <div style="font-weight:800;margin-bottom:8px;color:#1D1E1B">Sur iPhone / iPad (Safari) :</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div>1. Touchez l'icône <strong>Partager</strong> ⬆️ en bas de Safari.</div>
+              <div>2. Choisissez <strong>« Sur l'écran d'accueil »</strong>.</div>
+              <div>3. Touchez <strong>Ajouter</strong> — l'app apparaît sur l'écran d'accueil.</div>
+            </div>
+          </sc-if>
+          <div style="margin-top:14px">
+            <div style="font-weight:800;margin-bottom:8px;color:#1D1E1B">Sur Android / ordinateur (Chrome, Edge) :</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div>1. Ouvrez le menu <strong>⋮</strong> du navigateur.</div>
+              <div>2. Choisissez <strong>« Installer l'application »</strong> (ou « Ajouter à l'écran d'accueil »).</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;background:rgba(55,99,168,.09);border-left:5px solid #3763A8;padding:12px 14px;font-size:13px;color:#2F4F83">ℹ️ Une fois installée, la formation fonctionne <strong>hors-ligne</strong>.</div>
+        </div>
       </div>
     </div>
     </sc-if>

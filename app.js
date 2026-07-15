@@ -583,6 +583,7 @@ class Component extends DCLogic {
       view:"home", activeId:null, openKey:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null,
+      canInstall:false, showInstallHelp:false,
       completed: saved.completed || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
@@ -611,6 +612,14 @@ class Component extends DCLogic {
   manualImg(pg){ return "img/manual/p"+(pg<10?"0"+pg:pg)+".jpg"; }
   openManual = (n)=>{ this.setState({ mpage: Math.max(1, Math.min(87, n||1)) }); window.scrollTo(0,0); };
   closeManual = ()=> this.setState({ mpage:null });
+  installApp = ()=>{
+    if(typeof __deferredPrompt!=="undefined" && __deferredPrompt){
+      __deferredPrompt.prompt();
+      var self=this;
+      __deferredPrompt.userChoice.then(function(){ __deferredPrompt=null; self.setState({ canInstall:false }); }).catch(function(){});
+    } else { this.setState({ showInstallHelp:true }); }
+  };
+  closeInstallHelp = ()=> this.setState({ showInstallHelp:false });
   manualPrev = ()=> this.setState(s=>({ mpage: Math.max(1, (s.mpage||1)-1) }));
   manualNext = ()=> this.setState(s=>({ mpage: Math.min(87, (s.mpage||1)+1) }));
   manualPagesFor(idx){
@@ -864,10 +873,10 @@ class Component extends DCLogic {
       const isE = !!sp.estop;
       return {
         n:i+1, x:sp.x, y:sp.y, name:sp.name, pick:()=>this.pickSpot(i),
-        bg: sel ? (isE?"#D92624":"#1D1E1B") : "rgba(20,20,19,.82)",
-        fg: sel ? (isE?"#fff":"#FFFFFF") : "#FAF9F5",
-        ring: isE ? "#D92624" : "#1D1E1B",
-        halo: sel ? (isE?"rgba(217,38,36,.32)":"rgba(29,30,27,.24)") : "rgba(29,30,27,.12)"
+        bg: isE ? "#D92624" : (sel ? "#1D1E1B" : "#FAF9F5"),
+        fg: isE ? "#FFFFFF" : (sel ? "#FFFFFF" : "#1D1E1B"),
+        ring: sel ? "#D92624" : (isE ? "#FFFFFF" : "rgba(29,30,27,.55)"),
+        halo: sel ? "rgba(217,38,36,.4)" : "rgba(20,20,19,.5)"
       };
     });
     const selSp = this.RRC_SPOTS[S.rrcSel] || this.RRC_SPOTS[0];
@@ -876,6 +885,7 @@ class Component extends DCLogic {
     base.rrcSelDesc = selSp.desc;
     base.rrcSelPage = selSp.page;
     base.rrcSelHref = this.pdfAt(selSp.page);
+    base.rrcSelOpen = ()=>this.openManual(selSp.page);
 
     // MÂT
     base.slew=S.slew; base.hoist=S.hoist; base.ext=S.ext; base.tilt=S.tilt;
@@ -929,6 +939,15 @@ class Component extends DCLogic {
       hasPrev:S.mpage>1, hasNext:S.mpage<87, noop:function(e){ if(e&&e.stopPropagation) e.stopPropagation(); }
     } : null;
 
+    // ===== Installation de l'app (PWA) =====
+    var standalone=false;
+    try { standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; } catch(e){}
+    base.showInstall = !standalone;
+    base.installApp = this.installApp;
+    base.showInstallHelp = S.showInstallHelp;
+    base.closeInstallHelp = this.closeInstallHelp;
+    base.isIOS = /iP(hone|ad|od)/.test(navigator.userAgent||"");
+
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
     const scores=M.map((m,i)=>this.moduleScore(i));
     base.overallScore= scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
@@ -939,6 +958,19 @@ class Component extends DCLogic {
 
 
 /* --------- Démarrage --------- */
+var __deferredPrompt = null;
+try {
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    __deferredPrompt = e;
+    try { if (COMP) COMP.setState({ canInstall: true }); } catch (_) {}
+  });
+  window.addEventListener('appinstalled', function () {
+    __deferredPrompt = null;
+    try { if (COMP) COMP.setState({ canInstall: false, showInstallHelp: false }); } catch (_) {}
+  });
+} catch (e) {}
+
 function bootRodbot() {
   ROOT = document.getElementById('app');
   var tplSrc = document.getElementById('rb-template').textContent;
@@ -946,6 +978,12 @@ function bootRodbot() {
   TPL_ROOT = doc.getElementById('rb-wrap');
   COMP = new Component({});
   fullRender();
+  // PWA : installation + usage hors-ligne (service worker)
+  try {
+    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+  } catch (e) {}
   // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
   document.addEventListener('keydown', function(e){
     if(!COMP || COMP.state.mpage==null) return;
