@@ -911,9 +911,10 @@ class Component extends DCLogic {
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             blocks: allBlocks.map(b=>{
-              const o={ isP:b.t==="p", isUl:b.t==="ul", isSteps:b.t==="steps", isSpecs:b.t==="specs", isWarn:b.t==="warn", isImg:b.t==="img", text:b.text||"" };
+              const o={ isP:b.t==="p", isUl:b.t==="ul", isSteps:b.t==="steps", isSpecs:b.t==="specs", isWarn:b.t==="warn", isImg:b.t==="img", isSub:b.t==="sub", text:b.text||"" };
               if(b.t==="p") o.lines=this.splitSentences(b.text);
-              if(b.t==="ul") o.items=b.items;
+              // Puces sur deux niveaux : un item peut être une chaîne, ou {text, sub:[...]}
+              if(b.t==="ul") o.items=(b.items||[]).map(function(it){ return (typeof it==="string") ? { text:it, sub:[], hasSub:false } : { text:it.text||"", sub:it.sub||[], hasSub:!!(it.sub&&it.sub.length) }; });
               if(b.t==="steps") o.steps=b.items.map((tx,ix)=>({ n:ix+1, text:tx }));
               if(b.t==="specs") o.rows=b.rows.map(r=>({ k:r[0], v:r[1] }));
               if(b.t==="warn") Object.assign(o, this.warnStyle(b.w));

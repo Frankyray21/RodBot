@@ -554,10 +554,11 @@
                           </sc-for>
                         </div>
                       </sc-if>
+                      <sc-if value="{{ b.isSub }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:9px;margin-top:4px"><span style="width:4px;height:17px;background:#D92624;flex:none"></span><span sc-html="{{ b.text }}" style="font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#1D1E1B"></span></div></sc-if>
                       <sc-if value="{{ b.isUl }}" hint-placeholder-val="{{ false }}">
                         <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px">
                           <sc-for list="{{ b.items }}" as="it" hint-placeholder-count="3">
-                            <li style="display:flex;gap:12px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="width:7px;height:7px;background:#D92624;flex:none;margin-top:8px"></span><span sc-html="{{ it }}"></span></li>
+                            <li style="display:flex;gap:12px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="width:7px;height:7px;background:#D92624;flex:none;margin-top:8px"></span><div style="flex:1"><span sc-html="{{ it.text }}"></span><sc-if value="{{ it.hasSub }}" hint-placeholder-val="{{ false }}"><ul style="margin:7px 0 2px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px"><sc-for list="{{ it.sub }}" as="s2" hint-placeholder-count="2"><li style="display:flex;gap:10px;font-size:14px;line-height:1.45;color:#535252"><span style="width:5px;height:5px;background:#B0AEA8;flex:none;margin-top:7px"></span><span sc-html="{{ s2 }}"></span></li></sc-for></ul></sc-if></div></li>
                           </sc-for>
                         </ul>
                       </sc-if>
@@ -1393,10 +1394,11 @@
                           </sc-for>
                         </div>
                       </sc-if>
+                      <sc-if value="{{ b.isSub }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:9px;margin-top:4px"><span style="width:4px;height:17px;background:#D92624;flex:none"></span><span sc-html="{{ b.text }}" style="font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#1D1E1B"></span></div></sc-if>
                       <sc-if value="{{ b.isUl }}" hint-placeholder-val="{{ false }}">
                         <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px">
                           <sc-for list="{{ b.items }}" as="it" hint-placeholder-count="3">
-                            <li style="display:flex;gap:12px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="width:7px;height:7px;background:#D92624;flex:none;margin-top:8px"></span><span sc-html="{{ it }}"></span></li>
+                            <li style="display:flex;gap:12px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="width:7px;height:7px;background:#D92624;flex:none;margin-top:8px"></span><div style="flex:1"><span sc-html="{{ it.text }}"></span><sc-if value="{{ it.hasSub }}" hint-placeholder-val="{{ false }}"><ul style="margin:7px 0 2px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px"><sc-for list="{{ it.sub }}" as="s2" hint-placeholder-count="2"><li style="display:flex;gap:10px;font-size:14px;line-height:1.45;color:#535252"><span style="width:5px;height:5px;background:#B0AEA8;flex:none;margin-top:7px"></span><span sc-html="{{ s2 }}"></span></li></sc-for></ul></sc-if></div></li>
                           </sc-for>
                         </ul>
                       </sc-if>
