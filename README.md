@@ -50,9 +50,17 @@ pour un rendu complet, déposez-les depuis votre projet Claude Design :
 - `manuel-operateur.pdf` — le manuel de l'opérateur (lié depuis toutes les leçons).
 - `evaluation-risques.pdf` — l'évaluation des risques.
 
-## Déploiement
+## Déploiement (GitHub Pages)
 
-Un workflow GitHub Actions (`.github/workflows/pages.yml`) publie le site sur
-**GitHub Pages** à chaque push. Pour l'activer : dans **Settings → Pages**, réglez
-la source sur **GitHub Actions**. Le site étant entièrement statique, il peut aussi
-être déposé tel quel sur Netlify, Vercel, Cloudflare Pages, etc.
+Le site est du HTML statique servi directement depuis la branche. Dans
+**Settings → Pages** :
+
+1. **Source** : « Deploy from a branch ».
+2. **Branch** : `claude/slash-command-iv5yzl`, dossier `/ (root)`.
+3. **Save**.
+
+Le fichier `.nojekyll` garantit que GitHub sert les fichiers tels quels (sans
+traitement Jekyll). Le site apparaît ensuite sur `https://<utilisateur>.github.io/RodBot/`.
+
+Le site étant entièrement statique, il peut aussi être déposé tel quel sur Netlify,
+Vercel, Cloudflare Pages, etc.
