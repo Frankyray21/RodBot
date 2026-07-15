@@ -17,7 +17,7 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.6.1';
+var APP_VERSION = '1.6.2';
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -186,6 +186,14 @@ function stripBraces(s) { var m = /^\s*\{\{([^}]*)\}\}\s*$/.exec(s); return m ? 
 /* Placeholder si les photos du manuel (hors export) ne sont pas présentes. */
 function addImgFallback(img) {
   img.addEventListener('error', function () {
+    // Repli langue : si une planche/figure ANGLAISE manque, on tente la version FRANÇAISE
+    // avant d'afficher un espace réservé. (img/manual-en → img/manual, img/fig-en → img/fig)
+    var cur = img.getAttribute('src') || '';
+    if (!img.__langFb && /\/(manual|fig)-en\//.test(cur)) {
+      img.__langFb = true;
+      img.src = cur.replace('/manual-en/', '/manual/').replace('/fig-en/', '/fig/');
+      return;
+    }
     if (img.__fb) return; img.__fb = true;
     var label = (img.getAttribute('alt') || 'Image du manuel');
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440">' +
@@ -219,6 +227,10 @@ var ENRICH = /*__ENRICH__*/{"0-0":{"blocks":[{"t":"p","text":"Le RodBot LP de Bo
 
 class Component extends DCLogic {
   MANUAL = "manuel-operateur.pdf";
+  // PDF anglais : déposer le fichier "manual-en.pdf" à la racine du dépôt, puis
+  // remplacer la valeur ci-dessous par "manual-en.pdf". Tant qu'il n'existe pas,
+  // on pointe sur le PDF français pour éviter un lien mort.
+  MANUAL_EN = "manuel-operateur.pdf";
   RA = "evaluation-risques.pdf";
 
   MODULES = [
@@ -640,8 +652,11 @@ class Component extends DCLogic {
     window.scrollTo(0,0);
   };
 
-  pdfAt(page){ return this.MANUAL + "#page=" + page; }
-  manualImg(pg){ return "img/manual/p"+(pg<10?"0"+pg:pg)+".jpg"; }
+  manualBase(){ return (this.state.lang==="en" && this.MANUAL_EN) ? this.MANUAL_EN : this.MANUAL; }
+  pdfAt(page){ return this.manualBase() + "#page=" + page; }
+  // Planches du manuel : dossier anglais img/manual-en/ quand la langue = EN
+  // (repli automatique sur la planche française si l'anglaise n'existe pas — voir addImgFallback).
+  manualImg(pg){ var n=(pg<10?"0"+pg:pg); return (this.state.lang==="en" ? "img/manual-en/p"+n+".jpg" : "img/manual/p"+n+".jpg"); }
   openManual = (n)=>{ this.setState({ mpage: Math.max(1, Math.min(87, n||1)) }); window.scrollTo(0,0); };
   closeManual = ()=> this.setState({ mpage:null });
   // Visionneuse d'image (photos d'équipement) — pop-up plein cadre, ne quitte pas la page
@@ -817,7 +832,7 @@ class Component extends DCLogic {
       isHome:S.view==="home", isModule:S.view==="module", isQuiz:S.view==="quiz", isCert:S.view==="cert",
       totalModules:total, doneCount, totalSections,
       progressPct: Math.round(doneCount/total*100), passPct:70,
-      manualUrl:this.MANUAL, raUrl:this.RA,
+      manualUrl:this.manualBase(), raUrl:this.RA,
       goHome:this.goHome, startFirst:this.startFirst, scrollToSafety:this.scrollToSafety,
       ctaLabel: doneCount===0 ? "Commencer la formation" : (this.allDone() ? "Revoir la formation" : "Continuer la formation")
     };
@@ -858,7 +873,8 @@ class Component extends DCLogic {
           const open=S.openKey===key;
           const ENR_SRC = (this.state.lang==="en" && typeof ENRICH_EN!=="undefined") ? ENRICH_EN : (typeof ENRICH!=="undefined"?ENRICH:null);
           const enr = (ENR_SRC && ENR_SRC[key]) ? ENR_SRC[key] : {};
-          const figBlocks = (enr.figures||[]).map(f=>({ t:"img", src:"img/fig/p"+(f.page<10?"0"+f.page:f.page)+".jpg", cap:f.cap||"", page:f.page }));
+          const figDir = (this.state.lang==="en") ? "img/fig-en/" : "img/fig/";
+          const figBlocks = (enr.figures||[]).map(f=>({ t:"img", src:figDir+"p"+(f.page<10?"0"+f.page:f.page)+".jpg", cap:f.cap||"", page:f.page }));
           const allBlocks = sec.blocks.concat(enr.blocks||[]).concat(figBlocks);
           const hasDanger=allBlocks.some(b=>b.t==="warn"&&b.w==="danger");
           return {
