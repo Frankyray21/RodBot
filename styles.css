@@ -103,6 +103,13 @@ input::placeholder{color:rgba(29,30,27,.35)}
 .rb-img-frame img{transition:transform .5s cubic-bezier(.22,.61,.36,1)}
 .rb-img-card:hover .rb-img-frame img{transform:scale(1.035)}
 
+/* Leçon en deux niveaux : gestes courts d'abord, détails du manuel ensuite. */
+.rb-manual-details>summary{list-style:none;display:flex;align-items:center;gap:9px}
+.rb-manual-details>summary::-webkit-details-marker{display:none}
+.rb-manual-details>summary::before{content:"+";width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:#1D1E1B;color:#FFFFFF;font-weight:900;font-size:15px;flex:none}
+.rb-manual-details[open]>summary::before{content:"−";background:#D92624}
+.rb-manual-details>summary:hover{color:#1D1E1B !important}
+
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001s !important;animation-iteration-count:1 !important;transition-duration:.001s !important}
   .rb-reveal,.rb-hero-img,.rb-stagger>*{animation:none !important}
@@ -134,6 +141,9 @@ html,body{overflow-x:hidden;max-width:100%}
   #app [style*="padding:60px 28px"],
   #app [style*="padding:54px 28px"],
   #app [style*="padding:44px 28px"]{padding-left:16px !important;padding-right:16px !important}
+  .rb-lesson-head{padding:14px 12px !important;gap:9px !important;align-items:flex-start !important}
+  .rb-lesson-head>span:first-child{min-width:27px !important}
+  .rb-field-guide{padding:15px 13px 13px !important}
 }
 
 /* Machine du hero : présente mais discrète sur mobile (derrière le texte) */
