@@ -95,3 +95,28 @@ input::placeholder{color:rgba(29,30,27,.35)}
   .rb-img-card:hover{transform:none;box-shadow:none}
   .rb-img-card:hover .rb-img-frame img{transform:none}
 }
+
+/* ============ RESPONSIVE / MOBILE ============ */
+html,body{overflow-x:hidden;max-width:100%}
+#app img{max-width:100%;height:auto}
+
+/* Grilles multi-colonnes -> 1 colonne sur petits écrans */
+@media (max-width:820px){
+  #app [style*="grid-template-columns"]{grid-template-columns:1fr !important}
+  #app .mr-gal{grid-template-columns:repeat(2,1fr) !important} /* galerie manuel = 2 col. */
+}
+
+/* Téléphones : typographie réduite + en-tête compact */
+@media (max-width:640px){
+  #app [style*="font-size:64px"]{font-size:40px !important}
+  #app [style*="font-size:54px"]{font-size:31px !important;line-height:1.06 !important}
+  #app [style*="font-size:38px"]{font-size:26px !important}
+  #app [style*="font-size:32px"]{font-size:23px !important}
+  #app [style*="font-size:30px"]{font-size:22px !important}
+  .rb-hdr-bar{display:none !important}                 /* masque la barre, garde le % */
+  .mr-ghost::before{font-size:clamp(60px,19vw,104px) !important}
+  /* paddings horizontaux resserrés sur les grands blocs */
+  #app [style*="padding:60px 28px"],
+  #app [style*="padding:54px 28px"],
+  #app [style*="padding:44px 28px"]{padding-left:16px !important;padding-right:16px !important}
+}

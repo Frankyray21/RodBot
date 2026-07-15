@@ -31,8 +31,8 @@
         <span style="font-weight:800;font-size:10px;background:#D92624;color:#FFFFFF;padding:2px 6px">PDF</span>
         MANUEL ↗
       </a>
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="width:120px;height:8px;background:rgba(255,255,255,.16);overflow:hidden">
+      <div class="rb-hdr-prog" style="display:flex;align-items:center;gap:14px">
+        <div class="rb-hdr-bar" style="width:120px;height:8px;background:rgba(255,255,255,.16);overflow:hidden">
           <div style="height:100%;background:#D92624;transition:width .5s cubic-bezier(.4,0,.2,1);width: {{ progressPct }}%"></div>
         </div>
         <span style="font-weight:800;font-size:14px;color:#FAF9F5;min-width:38px;text-align:right">{{ progressPct }}%</span>
@@ -599,7 +599,7 @@
             </div>
             <div style="font-size:12.5px;color:#535252;max-width:340px;text-align:right">{{ mod.manualCount }} pages du manuel officiel · cliquez une page pour l'ouvrir en PDF ↗</div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+          <div class="mr-gal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
             <sc-for list="{{ mod.manualPages }}" as="pg" hint-placeholder-count="6">
               <a href="{{ pg.href }}" target="_blank" rel="noopener" class="mr-plate" style="display:block;background:#FFFFFF;border:1px solid rgba(29,30,27,.18);text-decoration:none;transition:transform .15s,box-shadow .15s,border-color .15s" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px -22px rgba(20,20,19,.7);border-color:#D92624">
                 <div style="position:relative;background:#F4F1EA;border-bottom:1px solid rgba(29,30,27,.12);aspect-ratio:17/22;overflow:hidden">
