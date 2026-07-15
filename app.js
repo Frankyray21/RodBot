@@ -582,7 +582,7 @@ class Component extends DCLogic {
     this.state = {
       view:"home", activeId:null, openKey:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
-      qIdx:0, qSel:null, qChecked:false, qResults:[],
+      qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null,
       completed: saved.completed || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
@@ -608,6 +608,11 @@ class Component extends DCLogic {
   persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, name:this.state.name })); } catch(e){} }
 
   pdfAt(page){ return this.MANUAL + "#page=" + page; }
+  manualImg(pg){ return "img/manual/p"+(pg<10?"0"+pg:pg)+".jpg"; }
+  openManual = (n)=>{ this.setState({ mpage: Math.max(1, Math.min(87, n||1)) }); window.scrollTo(0,0); };
+  closeManual = ()=> this.setState({ mpage:null });
+  manualPrev = ()=> this.setState(s=>({ mpage: Math.max(1, (s.mpage||1)-1) }));
+  manualNext = ()=> this.setState(s=>({ mpage: Math.min(87, (s.mpage||1)+1) }));
   manualPagesFor(idx){
     var seq=(a,b)=>{ var r=[]; for(var i=a;i<=b;i++) r.push(i); return r; };
     var MAP=[
@@ -622,7 +627,7 @@ class Component extends DCLogic {
     ];
     var pages=MAP[idx]||[];
     return pages.map(function(pg){
-      return { n:pg, src:"img/manual/p"+(pg<10?"0"+pg:pg)+".jpg", href:this.pdfAt(pg) };
+      return { n:pg, src:this.manualImg(pg), href:this.pdfAt(pg), open:()=>this.openManual(pg) };
     }, this);
   }
   warnStyle(w){
@@ -755,7 +760,7 @@ class Component extends DCLogic {
       const firstPage=mod.sections.length?mod.sections[0].page:1;
       base.mod={
         num:mod.num, title:mod.title, intro:mod.intro, chapters:mod.chapters, pages:mod.pages,
-        pdfHref:this.pdfAt(firstPage), sectionCount:mod.sections.length,
+        pdfHref:this.pdfAt(firstPage), openManual:()=>this.openManual(firstPage), sectionCount:mod.sections.length,
         quizLen:mod.quiz.length, done, score:this.moduleScore(S.activeId),
         quizCta: done ? "Repasser le quiz" : "Passer le quiz",
         manualPages: this.manualPagesFor(S.activeId),
@@ -768,7 +773,7 @@ class Component extends DCLogic {
           const allBlocks = sec.blocks.concat(enr.blocks||[]).concat(figBlocks);
           const hasDanger=allBlocks.some(b=>b.t==="warn"&&b.w==="danger");
           return {
-            ref:modNum+"."+(si+1), title:sec.title, page:sec.page, pdfHref:this.pdfAt(sec.page),
+            ref:modNum+"."+(si+1), title:sec.title, page:sec.page, pdfHref:this.pdfAt(sec.page), openPage:()=>this.openManual(sec.page),
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             blocks: allBlocks.map(b=>{
@@ -778,7 +783,7 @@ class Component extends DCLogic {
               if(b.t==="steps") o.steps=b.items.map((tx,ix)=>({ n:ix+1, text:tx }));
               if(b.t==="specs") o.rows=b.rows.map(r=>({ k:r[0], v:r[1] }));
               if(b.t==="warn") Object.assign(o, this.warnStyle(b.w));
-              if(b.t==="img"){ o.src=b.src; o.cap=b.cap||""; o.imgPage=b.page; o.imgHref=this.pdfAt(b.page); }
+              if(b.t==="img"){ o.src=b.src; o.cap=b.cap||""; o.imgPage=b.page; o.imgHref=this.pdfAt(b.page); o.openPage=()=>this.openManual(b.page); }
               return o;
             })
           };
@@ -817,7 +822,7 @@ class Component extends DCLogic {
         const ok=this.quizCorrect(q,sel);
         base.quiz.fb={ ok:ok, label:ok?"✓ Bonne réponse":"✗ Réponse incorrecte",
           bg:ok?"rgba(62,156,90,.1)":"rgba(217,38,36,.08)", bar:ok?"#2F7D48":"#D92624", fg:ok?"#2F7D48":"#B71F1D",
-          text:q.fb||"", answerText:this.quizAnswerText(q), page:q.page||0, pageHref:this.pdfAt(q.page||1), hasPage:!!q.page };
+          text:q.fb||"", answerText:this.quizAnswerText(q), page:q.page||0, pageHref:this.pdfAt(q.page||1), hasPage:!!q.page, open:(()=>this.openManual(q.page||1)) };
       } else { base.quiz.fb=null; }
 
       const passed=S.lastPassed;
@@ -917,6 +922,13 @@ class Component extends DCLogic {
 
     base.traineeName=S.name; base.setName=this.setName;
     base.certDate=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+    // ===== Visionneur intégré du manuel (fiable sur tout appareil) =====
+    base.manual = S.mpage ? {
+      page:S.mpage, total:87, src:this.manualImg(S.mpage), pdfHref:this.pdfAt(S.mpage),
+      prev:this.manualPrev, next:this.manualNext, close:this.closeManual,
+      hasPrev:S.mpage>1, hasNext:S.mpage<87, noop:function(e){ if(e&&e.stopPropagation) e.stopPropagation(); }
+    } : null;
+
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
     const scores=M.map((m,i)=>this.moduleScore(i));
     base.overallScore= scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
@@ -934,6 +946,13 @@ function bootRodbot() {
   TPL_ROOT = doc.getElementById('rb-wrap');
   COMP = new Component({});
   fullRender();
+  // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
+  document.addEventListener('keydown', function(e){
+    if(!COMP || COMP.state.mpage==null) return;
+    if(e.key==='Escape') COMP.closeManual();
+    else if(e.key==='ArrowLeft') COMP.manualPrev();
+    else if(e.key==='ArrowRight') COMP.manualNext();
+  });
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootRodbot);
 else bootRodbot();
