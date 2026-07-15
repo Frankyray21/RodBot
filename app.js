@@ -17,7 +17,7 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.6.0';
+var APP_VERSION = '1.6.1';
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -1024,24 +1024,30 @@ class Component extends DCLogic {
     // ===== Galerie « L'équipement en photos » (accueil) + visionneuse d'image =====
     var self=this;
     base.equip = [
-      { src:"img/eq-machine-real.png", tag:"LA VRAIE MACHINE", pos:"50% 46%",
-        desc:"Le RodBot LP en atelier : bras robotisé rouge, bac à tiges et base sur chenilles — l'ensemble que vous piloterez." },
-      { src:"img/telecommande-annotee.png", tag:"LA TÉLÉCOMMANDE", pos:"50% 50%",
-        desc:"Schéma complet de la radio-télécommande (RRC) : joysticks JS1–JS3, modes, e-stop, klaxon, aimant, grappin. Cliquez pour agrandir." },
-      { src:"img/eq-hmi.png", tag:"L'IHM EMBARQUÉE", pos:"50% 30%",
-        desc:"L'écran tactile du panneau : modes, diagnostics, alarmes et calibrage — détaillé au module 05." },
-      { src:"img/eq-labeled.png", tag:"LE BAC À TIGES", pos:"50% 42%",
-        desc:"Plateau amovible de 35 tiges — pattes de retenue latérales et fourreaux de fourches pour la manutention." },
-      { src:"img/eq-panel.png", tag:"PANNEAU & ARRÊT D'URGENCE", pos:"50% 12%",
-        desc:"Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques." },
-      { src:"img/eq-track.png", tag:"LES CHENILLES", pos:"50% 55%",
-        desc:"Train de roulement en caoutchouc — contrôle de la flèche (mou) de 20 à 25 mm, couvert à l'entretien (module 08)." }
+      { src:"img/eq-machine-real.png", pos:"50% 46%",
+        tag:this.tr("LA VRAIE MACHINE","THE REAL MACHINE"),
+        desc:this.tr("Le RodBot LP en atelier : bras robotisé rouge, bac à tiges et base sur chenilles — l'ensemble que vous piloterez.","The RodBot LP in the shop: red robotic arm, rod basket and tracked base — the machine you'll operate.") },
+      { src:"img/telecommande-annotee.png", pos:"50% 50%",
+        tag:this.tr("LA TÉLÉCOMMANDE","THE REMOTE"),
+        desc:this.tr("Schéma complet de la radio-télécommande (RRC) : joysticks JS1–JS3, modes, e-stop, klaxon, aimant, grappin. Cliquez pour agrandir.","Full diagram of the Radio Remote Control (RRC): JS1–JS3 joysticks, modes, e-Stop, horn, magnet, gripper. Click to enlarge.") },
+      { src:"img/eq-hmi.png", pos:"50% 30%",
+        tag:this.tr("L'IHM EMBARQUÉE","THE ON-BOARD HMI"),
+        desc:this.tr("L'écran tactile du panneau : modes, diagnostics, alarmes et calibrage — détaillé au module 05.","The panel touchscreen: modes, diagnostics, alarms and calibration — detailed in module 05.") },
+      { src:"img/eq-labeled.png", pos:"50% 42%",
+        tag:this.tr("LE BAC À TIGES","THE ROD BASKET"),
+        desc:this.tr("Plateau amovible de 35 tiges — pattes de retenue latérales et fourreaux de fourches pour la manutention.","Removable 35-rod rack — side retention tabs and fork pockets for handling.") },
+      { src:"img/eq-panel.png", pos:"50% 12%",
+        tag:this.tr("PANNEAU & ARRÊT D'URGENCE","PANEL & EMERGENCY STOP"),
+        desc:this.tr("Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques.","The low-voltage panel: emergency-stop mushroom button, pressure gauge, magnet switch and hydraulic valves.") },
+      { src:"img/eq-track.png", pos:"50% 55%",
+        tag:this.tr("LES CHENILLES","THE TRACKS"),
+        desc:this.tr("Train de roulement en caoutchouc — contrôle de la flèche (mou) de 20 à 25 mm, couvert à l'entretien (module 08).","Rubber track undercarriage — track sag check of 20 to 25 mm, covered under maintenance (module 08).") }
     ].map(function(x){ return { src:x.src, tag:x.tag, desc:x.desc, pos:x.pos, open:(function(s,c){ return function(){ self.openImg(s,c); }; })(x.src,x.tag) }; });
 
     base.imgView = S.imgView;
     base.closeImg = this.closeImg;
     base.stopEvt = function(e){ if(e&&e.stopPropagation) e.stopPropagation(); };
-    base.rrcAnnotOpen = function(){ self.openImg("img/telecommande-annotee.png","Télécommande radio — schéma annoté complet"); };
+    base.rrcAnnotOpen = function(){ self.openImg("img/telecommande-annotee.png", self.tr("Télécommande radio — schéma annoté complet","Radio remote — full annotated diagram")); };
 
     // ===== Installation de l'app (PWA) =====
     var standalone=false;
