@@ -794,6 +794,21 @@
     </sc-if>
 
     <!-- ============ VISIONNEUSE D'IMAGE (photos d'équipement — pop-up, ne quitte pas la page) ============ -->
+    <!-- Fiche commande (mobile) : pop-up a l'appui d'une pastille de la telecommande -->
+    <sc-if value="{{ rrcInfoOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeRrcInfo }}" style="position:fixed;inset:0;z-index:190;background:rgba(20,20,19,.5);display:flex;align-items:flex-end;animation:rbFade .15s ease both">
+      <div onClick="{{ stopEvt }}" style="width:100%;background:#FFFFFF;border-top:4px solid #D92624;padding:18px 20px 24px;box-shadow:0 -20px 50px -18px rgba(0,0,0,.55);animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both;max-height:82vh;overflow:auto">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+          <span style="width:30px;height:30px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none">{{ rrcSelN }}</span>
+          <span style="flex:1;font-weight:800;font-size:18px;line-height:1.15;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+          <button onClick="{{ closeRrcInfo }}" style="flex:none;background:#F0EEE9;border:none;width:34px;height:34px;font-size:17px;font-weight:800;cursor:pointer;color:#1D1E1B">✕</button>
+        </div>
+        <div style="font-size:14.5px;line-height:1.6;color:#3A3B38;margin-bottom:15px">{{ rrcSelDesc }}</div>
+        <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:12px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:9px 14px;cursor:pointer"><span style="font-weight:800;font-size:13px">📖</span>Voir la page {{ rrcSelPage }} du manuel</button>
+      </div>
+    </div>
+    </sc-if>
+
     <sc-if value="{{ imgView }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeImg }}" style="position:fixed;inset:0;z-index:220;background:rgba(20,20,19,.82);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
       <div onClick="{{ stopEvt }}" style="width:min(1120px,100%);max-height:94vh;display:flex;flex-direction:column;background:#141413;border:1px solid rgba(255,255,255,.14);box-shadow:0 46px 100px -28px rgba(0,0,0,.9);animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both">
@@ -1618,6 +1633,21 @@
     </sc-if>
 
     <!-- ============ IMAGE VIEWER (equipment photos — pop-up, does not leave the page) ============ -->
+    <!-- Fiche commande (mobile) : pop-up a l'appui d'une pastille de la telecommande -->
+    <sc-if value="{{ rrcInfoOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeRrcInfo }}" style="position:fixed;inset:0;z-index:190;background:rgba(20,20,19,.5);display:flex;align-items:flex-end;animation:rbFade .15s ease both">
+      <div onClick="{{ stopEvt }}" style="width:100%;background:#FFFFFF;border-top:4px solid #D92624;padding:18px 20px 24px;box-shadow:0 -20px 50px -18px rgba(0,0,0,.55);animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both;max-height:82vh;overflow:auto">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+          <span style="width:30px;height:30px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none">{{ rrcSelN }}</span>
+          <span style="flex:1;font-weight:800;font-size:18px;line-height:1.15;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+          <button onClick="{{ closeRrcInfo }}" style="flex:none;background:#F0EEE9;border:none;width:34px;height:34px;font-size:17px;font-weight:800;cursor:pointer;color:#1D1E1B">✕</button>
+        </div>
+        <div style="font-size:14.5px;line-height:1.6;color:#3A3B38;margin-bottom:15px">{{ rrcSelDesc }}</div>
+        <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:12px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:9px 14px;cursor:pointer"><span style="font-weight:800;font-size:13px">📖</span>View manual page {{ rrcSelPage }}</button>
+      </div>
+    </div>
+    </sc-if>
+
     <sc-if value="{{ imgView }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeImg }}" style="position:fixed;inset:0;z-index:220;background:rgba(20,20,19,.82);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
       <div onClick="{{ stopEvt }}" style="width:min(1120px,100%);max-height:94vh;display:flex;flex-direction:column;background:#141413;border:1px solid rgba(255,255,255,.14);box-shadow:0 46px 100px -28px rgba(0,0,0,.9);animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both">
