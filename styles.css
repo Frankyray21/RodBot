@@ -120,3 +120,8 @@ html,body{overflow-x:hidden;max-width:100%}
   #app [style*="padding:54px 28px"],
   #app [style*="padding:44px 28px"]{padding-left:16px !important;padding-right:16px !important}
 }
+
+/* Machine animée du hero : plus discrète sur mobile */
+@media (max-width:640px){
+  .rb-hero-machine{width:112% !important;opacity:.5 !important;right:-6% !important}
+}

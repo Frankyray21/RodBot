@@ -59,6 +59,16 @@ function fullRender() {
   var scope = [vals];
   var kids = TPL_ROOT.childNodes;
   for (var i = 0; i < kids.length; i++) renderNode(kids[i], scope, ROOT, false);
+  // Respecte prefers-reduced-motion : fige les animations SVG (SMIL) sur une pose
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      var anims = ROOT.querySelectorAll('svg.rb-anim');
+      for (var a = 0; a < anims.length; a++) {
+        if (anims[a].setCurrentTime) anims[a].setCurrentTime(3.4);
+        if (anims[a].pauseAnimations) anims[a].pauseAnimations();
+      }
+    }
+  } catch (e) {}
 }
 
 /* --------- Mise à jour douce : réévalue les liaisons en place (aucun nœud recréé) --------- */
