@@ -194,6 +194,11 @@ class DCLogic {
 }
 
 
+/* Enrichissement additif des leçons (texte détaillé + figures du manuel).
+   Clé "moduleIndex-sectionIndex". Rempli à partir du manuel OM 10667.
+   Fusionné dans renderVals() sans modifier les données MODULES d'origine. */
+var ENRICH = /*__ENRICH__*/{}/*__END_ENRICH__*/;
+
 class Component extends DCLogic {
   MANUAL = "manuel-operateur.pdf";
   RA = "evaluation-risques.pdf";
@@ -697,17 +702,21 @@ class Component extends DCLogic {
         sections: mod.sections.map((sec,si)=>{
           const key=S.activeId+"-"+si;
           const open=S.openKey===key;
-          const hasDanger=sec.blocks.some(b=>b.t==="warn"&&b.w==="danger");
+          const enr = (typeof ENRICH!=="undefined" && ENRICH[key]) ? ENRICH[key] : {};
+          const figBlocks = (enr.figures||[]).map(f=>({ t:"img", src:"img/fig/p"+(f.page<10?"0"+f.page:f.page)+".jpg", cap:f.cap||"", page:f.page }));
+          const allBlocks = sec.blocks.concat(enr.blocks||[]).concat(figBlocks);
+          const hasDanger=allBlocks.some(b=>b.t==="warn"&&b.w==="danger");
           return {
             ref:modNum+"."+(si+1), title:sec.title, page:sec.page, pdfHref:this.pdfAt(sec.page),
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
-            blocks: sec.blocks.map(b=>{
-              const o={ isP:b.t==="p", isUl:b.t==="ul", isSteps:b.t==="steps", isSpecs:b.t==="specs", isWarn:b.t==="warn", text:b.text||"" };
+            blocks: allBlocks.map(b=>{
+              const o={ isP:b.t==="p", isUl:b.t==="ul", isSteps:b.t==="steps", isSpecs:b.t==="specs", isWarn:b.t==="warn", isImg:b.t==="img", text:b.text||"" };
               if(b.t==="ul") o.items=b.items;
               if(b.t==="steps") o.steps=b.items.map((tx,ix)=>({ n:ix+1, text:tx }));
               if(b.t==="specs") o.rows=b.rows.map(r=>({ k:r[0], v:r[1] }));
               if(b.t==="warn") Object.assign(o, this.warnStyle(b.w));
+              if(b.t==="img"){ o.src=b.src; o.cap=b.cap||""; o.imgPage=b.page; o.imgHref=this.pdfAt(b.page); }
               return o;
             })
           };
