@@ -69,6 +69,7 @@ function fullRender() {
       }
     }
   } catch (e) {}
+  try { if (COMP && COMP.syncHistory) COMP.syncHistory(); } catch (e) {}
 }
 
 /* --------- Mise à jour douce : réévalue les liaisons en place (aucun nœud recréé) --------- */
@@ -622,6 +623,40 @@ class Component extends DCLogic {
   closeInstallHelp = ()=> this.setState({ showInstallHelp:false });
   manualPrev = ()=> this.setState(s=>({ mpage: Math.max(1, (s.mpage||1)-1) }));
   manualNext = ()=> this.setState(s=>({ mpage: Math.min(87, (s.mpage||1)+1) }));
+
+  // ===== Bouton RETOUR du navigateur / de la tablette =====
+  // L'app est une page unique : sans ceci, « Retour » quitterait tout au lieu de
+  // fermer le manuel ou de revenir à l'écran précédent. On synchronise l'historique.
+  appDepth(){
+    var S=this.state, d=0;
+    if(S.view!=='home') d += (S.view==='quiz' ? 2 : 1);
+    if(S.showInstallHelp) d += 1;
+    if(S.mpage!=null) d += 1;
+    return d;
+  }
+  navBackOne(){
+    var S=this.state;
+    if(S.mpage!=null){ this.setState({ mpage:null }); return; }
+    if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
+    if(S.view==='quiz'){ this.setState({ view:'module', graded:false }); return; }
+    if(S.view!=='home'){ this.setState({ view:'home', graded:false, answers:{} }); return; }
+  }
+  syncHistory(){
+    try{
+      if(!window.history || !history.pushState) return;
+      if(this._appDepth===undefined) this._appDepth=0;
+      var d=this.appDepth();
+      if(d>this._appDepth){
+        for(var i=this._appDepth;i<d;i++) history.pushState({rbDepth:i+1},'');
+        this._appDepth=d;
+      } else if(d<this._appDepth){
+        var diff=d-this._appDepth;   // négatif : repli via un bouton interne → on retire les entrées en trop
+        this._suppressPop=true;
+        this._appDepth=d;
+        history.go(diff);
+      }
+    }catch(e){}
+  }
   manualPagesFor(idx){
     var seq=(a,b)=>{ var r=[]; for(var i=a;i<=b;i++) r.push(i); return r; };
     var MAP=[
@@ -990,6 +1025,14 @@ function bootRodbot() {
     if(e.key==='Escape') COMP.closeManual();
     else if(e.key==='ArrowLeft') COMP.manualPrev();
     else if(e.key==='ArrowRight') COMP.manualNext();
+  });
+  // Bouton RETOUR du navigateur / de la tablette : ferme le manuel ou remonte d'un écran
+  window.addEventListener('popstate', function(){
+    if(!COMP) return;
+    if(COMP._suppressPop){ COMP._suppressPop=false; return; }
+    if(COMP.appDepth()<=0) return;              // déjà à l'accueil : on laisse quitter la page
+    COMP._appDepth = Math.max(0, (COMP._appDepth||0)-1);
+    COMP.navBackOne();
   });
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootRodbot);
