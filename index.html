@@ -730,6 +730,10 @@
           <div style="margin-bottom:12px;font-size:12.5px;color:#535252">Cliquez les éléments dans le bon ordre (le numéro indique votre position). <button onClick="{{ quiz.orderReset }}" style="background:none;border:none;color:#D92624;font-weight:700;font-size:12.5px;cursor:pointer;padding:0;text-decoration:underline">Réinitialiser</button></div>
         </sc-if>
 
+        <sc-if value="{{ quiz.showTapHint }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:12px;display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#D92624"><span style="font-size:14px">👆</span>Touchez une réponse — le résultat s'affiche aussitôt.</div>
+        </sc-if>
+
         <div style="display:flex;flex-direction:column;gap:10px">
           <sc-for list="{{ quiz.options }}" as="o" hint-placeholder-count="3">
             <button onClick="{{ o.pick }}" style="text-align:left;background: {{ o.bg }};border:1.5px solid {{ o.border }};padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:border-color .15s,background .15s">
@@ -750,7 +754,7 @@
           </div>
         </sc-if>
 
-        <sc-if value="{{ quiz.notChecked }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ quiz.showValidate }}" hint-placeholder-val="{{ true }}">
           <button onClick="{{ quiz.check }}" style="margin-top:22px;width:100%;background: {{ quiz.checkBg }};color: {{ quiz.checkFg }};border:none;padding:16px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor: {{ quiz.checkCursor }}">Valider ma réponse</button>
         </sc-if>
         <sc-if value="{{ quiz.checked }}" hint-placeholder-val="{{ false }}">

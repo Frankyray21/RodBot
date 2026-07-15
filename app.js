@@ -17,7 +17,7 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.5.1';
+var APP_VERSION = '1.5.2';
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -730,7 +730,14 @@ class Component extends DCLogic {
     const mod=this.MODULES[idx];
     return (mod?mod.quiz:[]).map(q=>({ type:"qcm", text:q.text, options:q.options, correct:q.correct, page:0, fb:"" }));
   }
-  quizPickOne = (oi)=>{ if(this.state.qChecked) return; this.setState({ qSel:oi }); };
+  // Réponse unique (choix unique, vrai/faux, texte à trou) : le clic valide et
+  // affiche la rétroaction IMMÉDIATEMENT — aucun bouton « Valider » à toucher.
+  quizPickOne = (oi)=>{
+    if(this.state.qChecked) return;
+    const q=this.quizFor(this.state.activeId)[this.state.qIdx];
+    const ok=this.quizCorrect(q,oi);
+    this.setState(s=>({ qSel:oi, qChecked:true, qResults:s.qResults.concat([ok]) }));
+  };
   quizToggle = (oi)=>{ if(this.state.qChecked) return; this.setState(s=>{ const cur=Array.isArray(s.qSel)?s.qSel.slice():[]; const j=cur.indexOf(oi); if(j>=0) cur.splice(j,1); else cur.push(oi); return { qSel:cur }; }); };
   quizOrderReset = ()=>{ if(this.state.qChecked) return; this.setState({ qSel:[] }); };
   quizHasAnswer(q,sel){ if(q.type==="multi") return Array.isArray(sel)&&sel.length>0; if(q.type==="order") return Array.isArray(sel)&&sel.length===q.options.length; return sel!==null&&sel!==undefined; }
@@ -851,6 +858,8 @@ class Component extends DCLogic {
       base.quiz={
         num:qi+1, total:qlist.length, typeLabel:TYPEL[q.type]||"Question", text:q.text,
         isSingle:single, isMulti:isMulti, isOrder:isOrder, isCloze:q.type==="cloze", checked:checked, notChecked:!checked,
+        showValidate:(isMulti||isOrder)&&!checked,   // bouton « Valider » seulement pour sélection multiple / remise en ordre
+        showTapHint:single&&!checked,                 // « Touchez une réponse » pour les questions à réponse unique
         progressPct:Math.round(((qi+(checked?1:0))/qlist.length)*100),
         orderReset:this.quizOrderReset, hasAnswer:hasAns,
         options:q.options.map((o,oi)=>{
