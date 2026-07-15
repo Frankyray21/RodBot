@@ -2,7 +2,7 @@
    Précache la coquille de l'app ; met en cache les images/PDF au fil de la consultation. */
 /* Nom du cache aligné sur APP_VERSION (app.js) : à incrémenter à chaque changement.
    Le changement de nom force le rafraîchissement de la coquille mise en cache. */
-const CACHE = 'rodbot-formation-v1.7.7';
+const CACHE = 'rodbot-formation-v1.7.8';
 const CORE = [
   './', './index.html', './app.js', './styles.css',
   './manifest.webmanifest', './icon-192.png', './icon-512.png'
@@ -25,16 +25,21 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // laisse le réseau gérer les polices CDN
 
-  if (req.mode === 'navigate') {
-    // Réseau d'abord, repli sur la coquille en cache si hors-ligne
+  // La COQUILLE DE CODE (page, JS, CSS, manifeste) doit toujours rester synchronisée :
+  // réseau d'abord. Sinon un ancien app.js en cache casse la nouvelle page (écran blanc).
+  const isShell = req.mode === 'navigate' || /\.(?:js|css|webmanifest)$/.test(url.pathname);
+  if (isShell) {
     e.respondWith(
-      fetch(req).then((r) => { const cp = r.clone(); caches.open(CACHE).then((c) => c.put('./index.html', cp)); return r; })
-        .catch(() => caches.match('./index.html'))
+      fetch(req).then((r) => {
+        const cp = r.clone();
+        caches.open(CACHE).then((c) => c.put(req.mode === 'navigate' ? './index.html' : req, cp));
+        return r;
+      }).catch(() => caches.match(req).then((c) => c || caches.match('./index.html')))
     );
     return;
   }
 
-  // Cache d'abord pour les assets (images du manuel, PDF, etc.), sinon réseau + mise en cache
+  // Images du manuel, PDF, polices : cache d'abord (lourds et immuables), sinon réseau + mise en cache
   e.respondWith(
     caches.match(req).then((cached) =>
       cached || fetch(req).then((r) => {
