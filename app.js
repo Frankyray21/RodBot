@@ -590,6 +590,23 @@ class Component extends DCLogic {
   persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, name:this.state.name })); } catch(e){} }
 
   pdfAt(page){ return this.MANUAL + "#page=" + page; }
+  manualPagesFor(idx){
+    var seq=(a,b)=>{ var r=[]; for(var i=a;i<=b;i++) r.push(i); return r; };
+    var MAP=[
+      [1,2,3,4,5,6,7,8,9],        // 01 — Découvrir (pages liminaires + présentation)
+      [10,11,12],                 // 02 — Sécurité
+      [13,14,15,16],              // 03 — Composants & commandes
+      [17,18,19,20,21,22,23,24,44],// 04 — Télécommande radio (+ batterie p.44)
+      seq(25,43),                 // 05 — IHM, réglages & diagnostics
+      seq(45,54),                 // 06 — Mise en route & déplacement
+      seq(55,66),                 // 07 — Manutention des tiges
+      seq(67,87)                  // 08 — Dépannage & entretien + annexes
+    ];
+    var pages=MAP[idx]||[];
+    return pages.map(function(pg){
+      return { n:pg, src:"img/manual/p"+(pg<10?"0"+pg:pg)+".jpg", href:this.pdfAt(pg) };
+    }, this);
+  }
   warnStyle(w){
     if(w==="danger") return { wBg:"rgba(217,38,36,.09)", wBorder:"rgba(217,38,36,.5)", wSolid:"#D92624", wFg:"#B71F1D", wLabel:"⚠ DANGER" };
     if(w==="warn")   return { wBg:"rgba(232,163,58,.13)", wBorder:"rgba(214,144,36,.45)",  wSolid:"#E8A33A", wFg:"#8A5A10", wLabel:"AVERTISSEMENT" };
@@ -675,6 +692,8 @@ class Component extends DCLogic {
         pdfHref:this.pdfAt(firstPage), sectionCount:mod.sections.length,
         quizLen:mod.quiz.length, done, score:this.moduleScore(S.activeId),
         quizCta: done ? "Repasser le quiz" : "Passer le quiz",
+        manualPages: this.manualPagesFor(S.activeId),
+        manualCount: this.manualPagesFor(S.activeId).length,
         sections: mod.sections.map((sec,si)=>{
           const key=S.activeId+"-"+si;
           const open=S.openKey===key;
