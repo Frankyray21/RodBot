@@ -351,8 +351,8 @@
                 <div style="position:absolute;inset:0;background:rgba(217,38,36,.15);border:4px solid #D92624;pointer-events:none;animation:rbPulse 1s ease-in-out infinite"></div>
               </sc-if>
               <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
-                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:32px;height:32px;background:transparent;border:2.5px solid {{ s.ring }};cursor:pointer;box-shadow:0 0 0 2px {{ s.halo }};transition:transform .15s" style-hover="transform:translate(-50%,-50%) scale(1.18)">
-                  <span style="position:absolute;top:-11px;left:-11px;width:19px;height:19px;background: {{ s.bg }};color: {{ s.fg }};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,.55)">{{ s.n }}</span>
+                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:20px;height:20px;background:transparent;border:2px solid {{ s.ring }};cursor:pointer;box-shadow:0 0 0 1.5px {{ s.halo }};transition:transform .15s" style-hover="transform:translate(-50%,-50%) scale(1.3)">
+                  <span style="position:absolute;top:-9px;right:-9px;min-width:15px;height:15px;padding:0 2px;background: {{ s.bg }};color: {{ s.fg }};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.6)">{{ s.n }}</span>
                 </button>
               </sc-for>
             </div>
