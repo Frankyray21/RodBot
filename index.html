@@ -118,6 +118,9 @@
               <div style="display:flex;gap:14px;flex-wrap:wrap">
                 <button onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;padding:16px 28px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ ctaLabel }} →</button>
                 <button onClick="{{ scrollToSafety }}" style="background:transparent;color:#FAF9F5;border:1px solid rgba(255,255,255,.34);padding:16px 24px;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#FFFFFF">L'essentiel sécurité</button>
+                <sc-if value="{{ showInstall }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ installApp }}" title="Installer l'app sur votre appareil (fonctionne hors-ligne)" style="display:inline-flex;align-items:center;gap:8px;background:#FAF9F5;color:#1D1E1B;border:none;padding:16px 22px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#FFFFFF;transform:translateY(-2px)"><span style="font-size:17px">📲</span>Installer l'app</button>
+                </sc-if>
               </div>
             </div>
           </div>
