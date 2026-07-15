@@ -17,7 +17,7 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.5.3';
+var APP_VERSION = '1.5.4';
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -589,6 +589,7 @@ class Component extends DCLogic {
       view:"home", activeId:null, openKey:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null,
+      imgView:null,
       canInstall:false, showInstallHelp:false,
       completed: saved.completed || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false,
@@ -618,6 +619,9 @@ class Component extends DCLogic {
   manualImg(pg){ return "img/manual/p"+(pg<10?"0"+pg:pg)+".jpg"; }
   openManual = (n)=>{ this.setState({ mpage: Math.max(1, Math.min(87, n||1)) }); window.scrollTo(0,0); };
   closeManual = ()=> this.setState({ mpage:null });
+  // Visionneuse d'image (photos d'équipement) — pop-up plein cadre, ne quitte pas la page
+  openImg = (src,cap)=>{ this.setState({ imgView:{ src:src, cap:cap||"" } }); };
+  closeImg = ()=> this.setState({ imgView:null });
   installApp = ()=>{
     if(typeof __deferredPrompt!=="undefined" && __deferredPrompt){
       __deferredPrompt.prompt();
@@ -637,10 +641,12 @@ class Component extends DCLogic {
     if(S.view!=='home') d += (S.view==='quiz' ? 2 : 1);
     if(S.showInstallHelp) d += 1;
     if(S.mpage!=null) d += 1;
+    if(S.imgView) d += 1;
     return d;
   }
   navBackOne(){
     var S=this.state;
+    if(S.imgView){ this.setState({ imgView:null }); return; }
     if(S.mpage!=null){ this.setState({ mpage:null }); return; }
     if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
     if(S.view==='quiz'){ this.setState({ view:'module', graded:false }); return; }
@@ -988,6 +994,28 @@ class Component extends DCLogic {
       hasPrev:S.mpage>1, hasNext:S.mpage<87, noop:function(e){ if(e&&e.stopPropagation) e.stopPropagation(); }
     } : null;
 
+    // ===== Galerie « L'équipement en photos » (accueil) + visionneuse d'image =====
+    var self=this;
+    base.equip = [
+      { src:"img/eq-machine-real.png", tag:"LA VRAIE MACHINE", pos:"50% 46%",
+        desc:"Le RodBot LP en atelier : bras robotisé rouge, bac à tiges et base sur chenilles — l'ensemble que vous piloterez." },
+      { src:"img/telecommande-annotee.png", tag:"LA TÉLÉCOMMANDE", pos:"50% 50%",
+        desc:"Schéma complet de la radio-télécommande (RRC) : joysticks JS1–JS3, modes, e-stop, klaxon, aimant, grappin. Cliquez pour agrandir." },
+      { src:"img/eq-hmi.png", tag:"L'IHM EMBARQUÉE", pos:"50% 30%",
+        desc:"L'écran tactile du panneau : modes, diagnostics, alarmes et calibrage — détaillé au module 05." },
+      { src:"img/eq-labeled.png", tag:"LE BAC À TIGES", pos:"50% 42%",
+        desc:"Plateau amovible de 35 tiges — pattes de retenue latérales et fourreaux de fourches pour la manutention." },
+      { src:"img/eq-panel.png", tag:"PANNEAU & ARRÊT D'URGENCE", pos:"50% 12%",
+        desc:"Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques." },
+      { src:"img/eq-track.png", tag:"LES CHENILLES", pos:"50% 55%",
+        desc:"Train de roulement en caoutchouc — contrôle de la flèche (mou) de 20 à 25 mm, couvert à l'entretien (module 08)." }
+    ].map(function(x){ return { src:x.src, tag:x.tag, desc:x.desc, pos:x.pos, open:(function(s,c){ return function(){ self.openImg(s,c); }; })(x.src,x.tag) }; });
+
+    base.imgView = S.imgView;
+    base.closeImg = this.closeImg;
+    base.stopEvt = function(e){ if(e&&e.stopPropagation) e.stopPropagation(); };
+    base.rrcAnnotOpen = function(){ self.openImg("img/telecommande-annotee.png","Télécommande radio — schéma annoté complet"); };
+
     // ===== Installation de l'app (PWA) =====
     var standalone=false;
     try { standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; } catch(e){}
@@ -1049,7 +1077,9 @@ function bootRodbot() {
   } catch (e) {}
   // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
   document.addEventListener('keydown', function(e){
-    if(!COMP || COMP.state.mpage==null) return;
+    if(!COMP) return;
+    if(COMP.state.imgView){ if(e.key==='Escape') COMP.closeImg(); return; }
+    if(COMP.state.mpage==null) return;
     if(e.key==='Escape') COMP.closeManual();
     else if(e.key==='ArrowLeft') COMP.manualPrev();
     else if(e.key==='ArrowRight') COMP.manualNext();

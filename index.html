@@ -148,33 +148,18 @@
             <div style="font-weight:700;font-size:10.5px;color:#8A8985;letter-spacing:.12em">FIGURES & ÉCRANS DU MANUEL</div>
           </div>
           <div class="rb-stagger" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
-            <div class="rb-img-card" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);overflow:hidden">
-              <div class="rb-img-frame" style="background:#FAF9F5;height:190px">
-                <img src="img/eq-labeled.png" alt="Rendu annoté du bac à tiges — pattes de retenue latérales et fourreaux de fourches" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover;object-position:50% 42%">
-              </div>
-              <div style="padding:15px 17px 16px">
-                <div style="font-weight:800;font-size:9.5px;letter-spacing:.16em;color:#E8534F;margin-bottom:6px">LE BAC À TIGES</div>
-                <div style="font-size:12.5px;line-height:1.5;color:#B8B7B2">Plateau amovible de 35 tiges — pattes de retenue latérales et fourreaux de fourches pour la manutention.</div>
-              </div>
-            </div>
-            <div class="rb-img-card" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);overflow:hidden">
-              <div class="rb-img-frame" style="background:#FAF9F5;height:190px">
-                <img src="img/eq-transport.png" alt="Position du mât pour le transport — bac plein et bac vide" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover;object-position:50% 60%">
-              </div>
-              <div style="padding:15px 17px 16px">
-                <div style="font-weight:800;font-size:9.5px;letter-spacing:.16em;color:#E8534F;margin-bottom:6px">POSITION TRANSPORT</div>
-                <div style="font-size:12.5px;line-height:1.5;color:#B8B7B2">Mât replié sur le bac, plein ou vide — la pose de déplacement qui garantit la stabilité de la machine.</div>
-              </div>
-            </div>
-            <div class="rb-img-card" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);overflow:hidden">
-              <div class="rb-img-frame" style="background:#FAF9F5;height:190px">
-                <img src="img/eq-hmi.png" alt="Écran tactile IHM du RodBot — Direct Mode" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%">
-              </div>
-              <div style="padding:15px 17px 16px">
-                <div style="font-weight:800;font-size:9.5px;letter-spacing:.16em;color:#E8534F;margin-bottom:6px">L'IHM EMBARQUÉE</div>
-                <div style="font-size:12.5px;line-height:1.5;color:#B8B7B2">L'écran tactile du panneau — modes, diagnostics, alarmes et calibrage, couverts au module 05.</div>
-              </div>
-            </div>
+            <sc-for list="{{ equip }}" as="q" hint-placeholder-count="6">
+              <button onClick="{{ q.open }}" class="rb-img-card" style="text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);overflow:hidden;cursor:pointer;padding:0;display:block;width:100%;color:inherit;font:inherit" style-hover="border-color:rgba(217,38,36,.55)">
+                <div class="rb-img-frame" style="background:#FAF9F5;height:190px;position:relative">
+                  <img src="{{ q.src }}" alt="{{ q.tag }}" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover;object-position: {{ q.pos }}">
+                  <span style="position:absolute;right:8px;bottom:8px;background:rgba(20,20,19,.82);color:#FFFFFF;font-size:9px;font-weight:800;letter-spacing:.1em;padding:3px 7px">🔍 AGRANDIR</span>
+                </div>
+                <div style="padding:15px 17px 16px">
+                  <div style="font-weight:800;font-size:9.5px;letter-spacing:.16em;color:#E8534F;margin-bottom:6px">{{ q.tag }}</div>
+                  <div style="font-size:12.5px;line-height:1.5;color:#B8B7B2">{{ q.desc }}</div>
+                </div>
+              </button>
+            </sc-for>
           </div>
         </div>
       </section>
@@ -337,6 +322,16 @@
             </div>
             <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 La pastille <strong style="color:#1D1E1B">4</strong> (champignon rouge) est fonctionnelle : appuyez dessus pour vivre un arrêt d'urgence.</div>
           </div>
+        </div>
+
+        <!-- Schéma annoté complet de la télécommande (cliquable → plein écran) -->
+        <div style="margin-top:26px;border-top:1px solid rgba(29,30,27,.12);padding-top:22px">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#D92624;margin-bottom:12px">📋 SCHÉMA ANNOTÉ COMPLET — CHAQUE COMMANDE NOMMÉE</div>
+          <button onClick="{{ rrcAnnotOpen }}" style="display:block;width:100%;padding:0;border:1px solid rgba(29,30,27,.16);background:#FFFFFF;cursor:pointer;position:relative;overflow:hidden" style-hover="border-color:#D92624">
+            <img src="img/telecommande-annotee.png" alt="Télécommande radio annotée — tous les boutons, joysticks et voyants nommés" loading="lazy" style="display:block;width:100%;height:auto">
+            <span style="position:absolute;right:12px;bottom:12px;background:rgba(20,20,19,.85);color:#FFFFFF;font-size:11px;font-weight:800;letter-spacing:.08em;padding:6px 12px">🔍 AGRANDIR</span>
+          </button>
+          <div style="margin-top:10px;font-weight:600;font-size:11.5px;color:#989898;text-align:center">Chaque bouton, joystick (JS1–JS3) et voyant est identifié — touchez l'image pour la voir en grand.</div>
         </div>
       </section>
       </sc-if>
@@ -789,6 +784,23 @@
         <div style="flex:none;background:#141413;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.12)">
           <button onClick="{{ manual.prev }}" style="background:none;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:11px 18px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FFFFFF">‹ Précédente</button>
           <button onClick="{{ manual.next }}" style="background:#D92624;color:#FFFFFF;border:none;padding:11px 20px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="background:#B71F1D">Suivante ›</button>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ VISIONNEUSE D'IMAGE (photos d'équipement — pop-up, ne quitte pas la page) ============ -->
+    <sc-if value="{{ imgView }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeImg }}" style="position:fixed;inset:0;z-index:220;background:rgba(20,20,19,.82);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
+      <div onClick="{{ stopEvt }}" style="width:min(1120px,100%);max-height:94vh;display:flex;flex-direction:column;background:#141413;border:1px solid rgba(255,255,255,.14);box-shadow:0 46px 100px -28px rgba(0,0,0,.9);animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both">
+        <div style="flex:none;display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:3px solid #D92624;border-bottom:1px solid rgba(255,255,255,.12)">
+          <span style="font-size:17px;flex:none">🔍</span>
+          <span style="font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#FAF9F5">{{ imgView.cap }}</span>
+          <div style="flex:1"></div>
+          <button onClick="{{ closeImg }}" title="Fermer et revenir à la page" style="flex:none;background:#D92624;color:#FFFFFF;border:none;width:38px;height:38px;font-size:18px;font-weight:800;cursor:pointer" style-hover="background:#B71F1D">✕</button>
+        </div>
+        <div style="flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:14px;background:#0D0D0C">
+          <img src="{{ imgView.src }}" alt="{{ imgView.cap }}" style="max-width:100%;width:auto;height:auto;background:#FFFFFF;box-shadow:0 20px 60px -22px rgba(0,0,0,.9)">
         </div>
       </div>
     </div>
