@@ -685,27 +685,45 @@
       </sc-if>
 
       <sc-if value="{{ quizActive }}" hint-placeholder-val="{{ true }}">
-        <div style="margin-bottom:6px;font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624">QUIZ · MODULE {{ mod.num }}</div>
-        <h1 style="font-weight:900;font-size:26px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 26px;color:#1D1E1B">{{ mod.title }}</h1>
-        <div style="display:flex;flex-direction:column;gap:20px">
-          <sc-for list="{{ quizItems }}" as="q" hint-placeholder-count="4">
-            <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.14);padding:22px 22px 20px">
-              <div style="display:flex;gap:12px;margin-bottom:16px">
-                <span style="font-weight:800;font-size:14px;color:#D92624;min-width:26px">Q{{ q.n }}</span>
-                <span style="font-weight:700;font-size:16px;line-height:1.35;color:#1D1E1B">{{ q.text }}</span>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:9px;padding-left:38px">
-                <sc-for list="{{ q.options }}" as="o" hint-placeholder-count="3">
-                  <button onClick="{{ o.pick }}" style="text-align:left;background: {{ o.bg }};border:1.5px solid {{ o.border }};padding:13px 15px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .15s,background .15s">
-                    <span style="width:22px;height:22px;border:2px solid {{ o.dot }};flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color: {{ o.dotFg }};background: {{ o.dotBg }}">{{ o.letter }}</span>
-                    <span style="font-size:14.5px;line-height:1.4;color:#2A2B28">{{ o.text }}</span>
-                  </button>
-                </sc-for>
-              </div>
-            </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:8px">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624">QUIZ · MODULE {{ mod.num }}</div>
+          <div style="font-weight:700;font-size:11px;letter-spacing:.06em;color:#989898">QUESTION {{ quiz.num }} / {{ quiz.total }}</div>
+        </div>
+        <div style="height:4px;background:rgba(29,30,27,.1);margin-bottom:22px"><div style="height:100%;background:#D92624;transition:width .4s cubic-bezier(.4,0,.2,1);width: {{ quiz.progressPct }}%"></div></div>
+
+        <div style="display:inline-block;background:#1D1E1B;color:#FAF9F5;padding:5px 11px;font-weight:800;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px">{{ quiz.typeLabel }}</div>
+        <h1 style="font-weight:800;font-size:21px;line-height:1.38;letter-spacing:0;text-transform:none;margin:0 0 20px;color:#1D1E1B">{{ quiz.text }}</h1>
+
+        <sc-if value="{{ quiz.isOrder }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom:12px;font-size:12.5px;color:#535252">Cliquez les éléments dans le bon ordre (le numéro indique votre position). <button onClick="{{ quiz.orderReset }}" style="background:none;border:none;color:#D92624;font-weight:700;font-size:12.5px;cursor:pointer;padding:0;text-decoration:underline">Réinitialiser</button></div>
+        </sc-if>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ quiz.options }}" as="o" hint-placeholder-count="3">
+            <button onClick="{{ o.pick }}" style="text-align:left;background: {{ o.bg }};border:1.5px solid {{ o.border }};padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:border-color .15s,background .15s">
+              <span style="width:24px;height:24px;flex:none;border:2px solid {{ o.badgeBorder }};background: {{ o.badgeBg }};color: {{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px">{{ o.badge }}</span>
+              <span style="font-size:14.5px;line-height:1.45;color: {{ o.textColor }}">{{ o.text }}</span>
+            </button>
           </sc-for>
         </div>
-        <button onClick="{{ submitQuiz }}" style="margin-top:24px;width:100%;background: {{ submitBg }};color: {{ submitFg }};border:none;padding:16px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor: {{ submitCursor }};transition:background .15s">{{ submitLabel }}</button>
+
+        <sc-if value="{{ quiz.fb }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:20px;background: {{ quiz.fb.bg }};border-left:5px solid {{ quiz.fb.bar }};padding:16px 18px">
+            <div style="font-weight:800;font-size:14.5px;color: {{ quiz.fb.fg }};margin-bottom:8px">{{ quiz.fb.label }}</div>
+            <div style="font-size:13.5px;line-height:1.55;color:#2A2B28;margin-bottom:10px">{{ quiz.fb.text }}</div>
+            <div style="font-weight:700;font-size:12.5px;line-height:1.5;color:#1D1E1B;margin-bottom:12px">{{ quiz.fb.answerText }}</div>
+            <sc-if value="{{ quiz.fb.hasPage }}" hint-placeholder-val="{{ true }}">
+              <a href="{{ quiz.fb.pageHref }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:11px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:6px 11px" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:9.5px;background:#D92624;color:#FFFFFF;padding:2px 5px">PROCÉDURE</span>Voir la procédure — manuel p. {{ quiz.fb.page }} ↗</a>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ quiz.notChecked }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ quiz.check }}" style="margin-top:22px;width:100%;background: {{ quiz.checkBg }};color: {{ quiz.checkFg }};border:none;padding:16px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor: {{ quiz.checkCursor }}">Valider ma réponse</button>
+        </sc-if>
+        <sc-if value="{{ quiz.checked }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ quiz.next }}" style="margin-top:22px;width:100%;background:#D92624;color:#FFFFFF;border:none;padding:16px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">{{ quiz.nextLabel }}</button>
+        </sc-if>
       </sc-if>
     </div>
     </sc-if>
