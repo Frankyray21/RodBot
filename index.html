@@ -548,16 +548,15 @@
               <div style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
 
-                  <div class="rb-field-guide" style="background:#F4F3EE;padding:18px 18px 16px">
-                    <div style="font-weight:900;font-size:12px;letter-spacing:.1em;color:#1D1E1B;margin-bottom:12px">L'ESSENTIEL À FAIRE</div>
-                    <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px">
+                  <div class="rb-field-guide" style="padding:0 2px 2px">
+                    <ul style="margin:0;padding:0;list-style:none;border-top:1px solid rgba(29,30,27,.12)">
                       <sc-for list="{{ s.guideItems }}" as="g" hint-placeholder-count="3">
-                        <li style="display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.4;color:#1D1E1B">
-                          <span style="width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center;background:#1D1E1B;color:#FFFFFF;font-weight:900;font-size:13px">{{ g.n }}</span>
-                          <span style="padding-top:2px">{{ g.text }}</span>
+                        <li style="display:flex;gap:11px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid rgba(29,30,27,.12);font-size:15.5px;line-height:1.4;color:#1D1E1B">
+                          <span style="width:6px;height:6px;flex:none;background:#D92624;margin-top:8px"></span>
+                          <span>{{ g.text }}</span>
                         </li>
                       </sc-for>
-                    </ol>
+                    </ul>
                     <sc-if value="{{ s.hasGuideStop }}" hint-placeholder-val="true">
                       <div style="margin-top:15px;padding:12px 14px;background:#D92624;color:#FFFFFF;display:flex;gap:12px;align-items:flex-start">
                         <span style="font-weight:900;font-size:11px;letter-spacing:.08em;white-space:nowrap;padding-top:2px">ARRÊTER</span>
@@ -1414,16 +1413,15 @@
               <div style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
 
-                  <div class="rb-field-guide" style="background:#F4F3EE;padding:18px 18px 16px">
-                    <div style="font-weight:900;font-size:12px;letter-spacing:.1em;color:#1D1E1B;margin-bottom:12px">KEY ACTIONS</div>
-                    <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px">
+                  <div class="rb-field-guide" style="padding:0 2px 2px">
+                    <ul style="margin:0;padding:0;list-style:none;border-top:1px solid rgba(29,30,27,.12)">
                       <sc-for list="{{ s.guideItems }}" as="g" hint-placeholder-count="3">
-                        <li style="display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.4;color:#1D1E1B">
-                          <span style="width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center;background:#1D1E1B;color:#FFFFFF;font-weight:900;font-size:13px">{{ g.n }}</span>
-                          <span style="padding-top:2px">{{ g.text }}</span>
+                        <li style="display:flex;gap:11px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid rgba(29,30,27,.12);font-size:15.5px;line-height:1.4;color:#1D1E1B">
+                          <span style="width:6px;height:6px;flex:none;background:#D92624;margin-top:8px"></span>
+                          <span>{{ g.text }}</span>
                         </li>
                       </sc-for>
-                    </ol>
+                    </ul>
                     <sc-if value="{{ s.hasGuideStop }}" hint-placeholder-val="true">
                       <div style="margin-top:15px;padding:12px 14px;background:#D92624;color:#FFFFFF;display:flex;gap:12px;align-items:flex-start">
                         <span style="font-weight:900;font-size:11px;letter-spacing:.08em;white-space:nowrap;padding-top:2px">STOP</span>
