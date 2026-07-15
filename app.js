@@ -17,7 +17,10 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.6.2';
+var APP_VERSION = '1.7.0';
+/* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
+   des paginations différentes. Générée par appariement des titres de sections. */
+var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -227,10 +230,8 @@ var ENRICH = /*__ENRICH__*/{"0-0":{"blocks":[{"t":"p","text":"Le RodBot LP de Bo
 
 class Component extends DCLogic {
   MANUAL = "manuel-operateur.pdf";
-  // PDF anglais : déposer le fichier "manual-en.pdf" à la racine du dépôt, puis
-  // remplacer la valeur ci-dessous par "manual-en.pdf". Tant qu'il n'existe pas,
-  // on pointe sur le PDF français pour éviter un lien mort.
-  MANUAL_EN = "manuel-operateur.pdf";
+  // PDF anglais (OM 10631, 82 pages) — ajouté au dépôt.
+  MANUAL_EN = "manual-en.pdf";
   RA = "evaluation-risques.pdf";
 
   MODULES = [
@@ -653,11 +654,14 @@ class Component extends DCLogic {
   };
 
   manualBase(){ return (this.state.lang==="en" && this.MANUAL_EN) ? this.MANUAL_EN : this.MANUAL; }
+  // Remappe un numéro de page FR (données) vers la page correspondante du manuel EN.
+  mp(pg){ if(this.state.lang==="en" && typeof PAGE_MAP_EN!=="undefined" && PAGE_MAP_EN[pg]) return PAGE_MAP_EN[pg]; return pg; }
+  manualTotal(){ return this.state.lang==="en" ? 82 : 87; }
   pdfAt(page){ return this.manualBase() + "#page=" + page; }
   // Planches du manuel : dossier anglais img/manual-en/ quand la langue = EN
   // (repli automatique sur la planche française si l'anglaise n'existe pas — voir addImgFallback).
   manualImg(pg){ var n=(pg<10?"0"+pg:pg); return (this.state.lang==="en" ? "img/manual-en/p"+n+".jpg" : "img/manual/p"+n+".jpg"); }
-  openManual = (n)=>{ this.setState({ mpage: Math.max(1, Math.min(87, n||1)) }); window.scrollTo(0,0); };
+  openManual = (n)=>{ this.setState({ mpage: Math.max(1, Math.min(this.manualTotal(), n||1)) }); window.scrollTo(0,0); };
   closeManual = ()=> this.setState({ mpage:null });
   // Visionneuse d'image (photos d'équipement) — pop-up plein cadre, ne quitte pas la page
   openImg = (src,cap)=>{ this.setState({ imgView:{ src:src, cap:cap||"" } }); };
@@ -671,7 +675,7 @@ class Component extends DCLogic {
   };
   closeInstallHelp = ()=> this.setState({ showInstallHelp:false });
   manualPrev = ()=> this.setState(s=>({ mpage: Math.max(1, (s.mpage||1)-1) }));
-  manualNext = ()=> this.setState(s=>({ mpage: Math.min(87, (s.mpage||1)+1) }));
+  manualNext = ()=> this.setState(s=>({ mpage: Math.min(this.manualTotal(), (s.mpage||1)+1) }));
 
   // ===== Bouton RETOUR du navigateur / de la tablette =====
   // L'app est une page unique : sans ceci, « Retour » quitterait tout au lieu de
@@ -721,9 +725,10 @@ class Component extends DCLogic {
       seq(67,87)                  // 08 — Dépannage & entretien + annexes
     ];
     var pages=MAP[idx]||[];
-    return pages.map(function(pg){
-      return { n:pg, src:this.manualImg(pg), href:this.pdfAt(pg), open:()=>this.openManual(pg) };
-    }, this);
+    var self=this, seen={};
+    return pages.map(function(pg){ return self.mp(pg); })
+      .filter(function(ep){ if(seen[ep]) return false; seen[ep]=true; return true; })
+      .map(function(ep){ return { n:ep, src:self.manualImg(ep), href:self.pdfAt(ep), open:(function(x){ return function(){ self.openManual(x); }; })(ep) }; });
   }
   warnStyle(w){
     if(w==="danger") return { wIcon:"⛔", wBg:"rgba(217,38,36,.1)", wBorder:"rgba(217,38,36,.55)", wSolid:"#D92624", wFg:"#B71F1D", wLabel:"DANGER" };
@@ -863,7 +868,7 @@ class Component extends DCLogic {
       const firstPage=mod.sections.length?mod.sections[0].page:1;
       base.mod={
         num:mod.num, title:mod.title, intro:mod.intro, chapters:mod.chapters, pages:mod.pages,
-        pdfHref:this.pdfAt(firstPage), openManual:()=>this.openManual(firstPage), sectionCount:mod.sections.length,
+        pdfHref:this.pdfAt(this.mp(firstPage)), openManual:()=>this.openManual(this.mp(firstPage)), sectionCount:mod.sections.length,
         quizLen:mod.quiz.length, done, score:this.moduleScore(S.activeId),
         quizCta: done ? this.tr("Repasser le quiz","Retake the quiz") : this.tr("Passer le quiz","Take the quiz"),
         manualPages: this.manualPagesFor(S.activeId),
@@ -878,7 +883,7 @@ class Component extends DCLogic {
           const allBlocks = sec.blocks.concat(enr.blocks||[]).concat(figBlocks);
           const hasDanger=allBlocks.some(b=>b.t==="warn"&&b.w==="danger");
           return {
-            ref:modNum+"."+(si+1), title:sec.title, page:sec.page, pdfHref:this.pdfAt(sec.page), openPage:()=>this.openManual(sec.page),
+            ref:modNum+"."+(si+1), title:sec.title, page:this.mp(sec.page), pdfHref:this.pdfAt(this.mp(sec.page)), openPage:()=>this.openManual(this.mp(sec.page)),
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             blocks: allBlocks.map(b=>{
@@ -888,7 +893,7 @@ class Component extends DCLogic {
               if(b.t==="steps") o.steps=b.items.map((tx,ix)=>({ n:ix+1, text:tx }));
               if(b.t==="specs") o.rows=b.rows.map(r=>({ k:r[0], v:r[1] }));
               if(b.t==="warn") Object.assign(o, this.warnStyle(b.w));
-              if(b.t==="img"){ o.src=b.src; o.cap=b.cap||""; o.imgPage=b.page; o.imgHref=this.pdfAt(b.page); o.openPage=()=>this.openManual(b.page); }
+              if(b.t==="img"){ o.src=b.src; o.cap=b.cap||""; o.imgPage=this.mp(b.page); o.imgHref=this.pdfAt(this.mp(b.page)); o.openPage=()=>this.openManual(this.mp(b.page)); }
               return o;
             })
           };
@@ -929,7 +934,7 @@ class Component extends DCLogic {
         const ok=this.quizCorrect(q,sel);
         base.quiz.fb={ ok:ok, label:ok?this.tr("✓ Bonne réponse","✓ Correct answer"):this.tr("✗ Réponse incorrecte","✗ Incorrect answer"),
           bg:ok?"rgba(62,156,90,.1)":"rgba(217,38,36,.08)", bar:ok?"#2F7D48":"#D92624", fg:ok?"#2F7D48":"#B71F1D",
-          text:q.fb||"", answerText:this.quizAnswerText(q), page:q.page||0, pageHref:this.pdfAt(q.page||1), hasPage:!!q.page, open:(()=>this.openManual(q.page||1)) };
+          text:q.fb||"", answerText:this.quizAnswerText(q), page:this.mp(q.page||0), pageHref:this.pdfAt(this.mp(q.page||1)), hasPage:!!q.page, open:(()=>this.openManual(this.mp(q.page||1))) };
       } else { base.quiz.fb=null; }
 
       const passed=S.lastPassed;
@@ -981,9 +986,9 @@ class Component extends DCLogic {
     base.rrcSelN = S.rrcSel+1;
     base.rrcSelName = selSp.name;
     base.rrcSelDesc = selSp.desc;
-    base.rrcSelPage = selSp.page;
+    base.rrcSelPage = this.mp(selSp.page);
     base.rrcSelHref = this.pdfAt(selSp.page);
-    base.rrcSelOpen = ()=>this.openManual(selSp.page);
+    base.rrcSelOpen = ()=>this.openManual(this.mp(selSp.page));
 
     // MÂT
     base.slew=S.slew; base.hoist=S.hoist; base.ext=S.ext; base.tilt=S.tilt;
@@ -1032,9 +1037,9 @@ class Component extends DCLogic {
     base.certDate=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
     // ===== Visionneur intégré du manuel (fiable sur tout appareil) =====
     base.manual = S.mpage ? {
-      page:S.mpage, total:87, src:this.manualImg(S.mpage), pdfHref:this.pdfAt(S.mpage),
+      page:S.mpage, total:this.manualTotal(), src:this.manualImg(S.mpage), pdfHref:this.pdfAt(S.mpage),
       prev:this.manualPrev, next:this.manualNext, close:this.closeManual,
-      hasPrev:S.mpage>1, hasNext:S.mpage<87, noop:function(e){ if(e&&e.stopPropagation) e.stopPropagation(); }
+      hasPrev:S.mpage>1, hasNext:S.mpage<this.manualTotal(), noop:function(e){ if(e&&e.stopPropagation) e.stopPropagation(); }
     } : null;
 
     // ===== Galerie « L'équipement en photos » (accueil) + visionneuse d'image =====
