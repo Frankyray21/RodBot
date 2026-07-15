@@ -17,7 +17,7 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.5.4';
+var APP_VERSION = '1.6.0';
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -585,7 +585,10 @@ class Component extends DCLogic {
     super(props);
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem("rodbot_formation_v3")||"{}"); } catch(e){}
+    let savedLang = "fr";
+    try { savedLang = localStorage.getItem("rodbot_lang") || "fr"; } catch(e){}
     this.state = {
+      lang: (savedLang==="en" ? "en" : "fr"),
       view:"home", activeId:null, openKey:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null,
@@ -600,7 +603,7 @@ class Component extends DCLogic {
 
   openSim = (tab)=>{ this.setState({ view:"sim", simTab:tab }); window.scrollTo(0,0); };
   pickSpot = (i)=>{
-    const sp=this.RRC_SPOTS[i];
+    const sp=this.spots()[i];
     if(sp.estop) this.setState({ rrcSel:i, estopped:true });
     else this.setState({ rrcSel:i });
   };
@@ -614,6 +617,28 @@ class Component extends DCLogic {
     this._kt = setTimeout(()=>this.setState({ klaxon:false }), 1400);
   };
   persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, name:this.state.name })); } catch(e){} }
+
+  // ===== Bilingue FR / EN =====
+  tr(fr,en){ return this.state.lang==="en" ? en : fr; }               // choisit la chaîne selon la langue
+  M(){ return (this.state.lang==="en" && typeof MODULES_EN!=="undefined") ? MODULES_EN : this.MODULES; }
+  spots(){ return (this.state.lang==="en" && typeof RRC_SPOTS_EN!=="undefined") ? RRC_SPOTS_EN : this.RRC_SPOTS; }
+  simModesData(){ return (this.state.lang==="en" && typeof SIM_MODES_EN!=="undefined") ? SIM_MODES_EN : this.SIM_MODES; }
+  setLang = (l)=>{
+    l = (l==="en") ? "en" : "fr";
+    if(l===this.state.lang) return;
+    this.state.lang = l;
+    try { localStorage.setItem("rodbot_lang", l); } catch(e){}
+    try { document.documentElement.setAttribute("lang", l); } catch(e){}
+    // Recharge le gabarit dans la bonne langue puis rendu complet
+    var id = (l==="en") ? "rb-template-en" : "rb-template";
+    var node = document.getElementById(id) || document.getElementById("rb-template");
+    if(node){
+      var doc = new DOMParser().parseFromString('<div id="rb-wrap">'+node.textContent+'</div>','text/html');
+      TPL_ROOT = doc.getElementById("rb-wrap");
+    }
+    fullRender();
+    window.scrollTo(0,0);
+  };
 
   pdfAt(page){ return this.MANUAL + "#page=" + page; }
   manualImg(pg){ return "img/manual/p"+(pg<10?"0"+pg:pg)+".jpg"; }
@@ -710,15 +735,15 @@ class Component extends DCLogic {
   }
   quizAnswerText(q){
     const L=["A","B","C","D","E","F"];
-    if(q.type==="multi") return "Bonnes réponses : "+(q.correct||[]).map(i=>L[i]).join(", ");
-    if(q.type==="order") return "Ordre correct : "+(q.correct||[]).map((i,pos)=>(pos+1)+") "+q.options[i]).join("  ·  ");
-    if(q.type==="cloze") return "Réponse : "+q.options[q.correct];
-    return "Réponse : "+L[q.correct]+") "+q.options[q.correct];
+    if(q.type==="multi") return this.tr("Bonnes réponses : ","Correct answers: ")+(q.correct||[]).map(i=>L[i]).join(", ");
+    if(q.type==="order") return this.tr("Ordre correct : ","Correct order: ")+(q.correct||[]).map((i,pos)=>(pos+1)+") "+q.options[i]).join("  ·  ");
+    if(q.type==="cloze") return this.tr("Réponse : ","Answer: ")+q.options[q.correct];
+    return this.tr("Réponse : ","Answer: ")+L[q.correct]+") "+q.options[q.correct];
   }
 
   moduleDone(i){ return !!this.state.completed[i]; }
   moduleScore(i){ return this.state.completed[i] ? this.state.completed[i].score : 0; }
-  allDone(){ return this.MODULES.every((m,i)=>this.moduleDone(i)); }
+  allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
   goHome = ()=> this.setState({ view:"home", graded:false, answers:{} });
   openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null });
@@ -728,12 +753,13 @@ class Component extends DCLogic {
   retryQuiz = ()=> { this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
   setName = (e)=>{ const v=e.target.value; this.setState({name:v}, ()=>this.persist()); };
   scrollToSafety = ()=>{ const el=document.getElementById("rb-safety"); if(el){ const y=el.getBoundingClientRect().top+window.scrollY-80; window.scrollTo({top:y,behavior:"smooth"}); } };
-  startFirst = ()=>{ const first=this.MODULES.findIndex((m,i)=>!this.moduleDone(i)); this.openModule(first===-1?0:first); };
+  startFirst = ()=>{ const first=this.M().findIndex((m,i)=>!this.moduleDone(i)); this.openModule(first===-1?0:first); };
 
   // ===== Moteur de quiz typé (choix unique, vrai/faux, sélection multiple, remise en ordre, texte à trou) =====
   quizFor(idx){
-    if(typeof QUIZ2!=="undefined" && QUIZ2[idx]) return QUIZ2[idx];
-    const mod=this.MODULES[idx];
+    var Q2 = (this.state.lang==="en" && typeof QUIZ2_EN!=="undefined") ? QUIZ2_EN : (typeof QUIZ2!=="undefined"?QUIZ2:null);
+    if(Q2 && Q2[idx]) return Q2[idx];
+    const mod=this.M()[idx];
     return (mod?mod.quiz:[]).map(q=>({ type:"qcm", text:q.text, options:q.options, correct:q.correct, page:0, fb:"" }));
   }
   // Réponse unique (choix unique, vrai/faux, texte à trou) : le clic valide et
@@ -776,13 +802,13 @@ class Component extends DCLogic {
   };
   goToNextModule = ()=>{
     const next=this.state.activeId+1;
-    if(next<this.MODULES.length) this.setState({ view:"module", activeId:next, openKey:null, graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] });
+    if(next<this.M().length) this.setState({ view:"module", activeId:next, openKey:null, graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] });
     else if(this.allDone()) this.setState({ view:"cert" });
     else this.goHome();
   };
 
   renderVals(){
-    const S=this.state, M=this.MODULES;
+    const S=this.state, M=this.M();
     const total=M.length;
     const doneCount=M.filter((m,i)=>this.moduleDone(i)).length;
     const totalSections=M.reduce((a,m)=>a+m.sections.length,0);
@@ -809,10 +835,10 @@ class Component extends DCLogic {
     });
 
     base.estops = [
-      { where:"PANNEAU BASSE TENSION", detail:"Immédiatement sous l'IHM à écran tactile" },
-      { where:"TÉLÉCOMMANDE RADIO", detail:"Au centre, en bas de la RRC" },
-      { where:"CHÂSSIS DU RODBOT", detail:"Coin inférieur avant droit" },
-      { where:"COMMANDES MANUELLES", detail:"À l'arrière, près des leviers hydrauliques" }
+      { where:this.tr("PANNEAU BASSE TENSION","LOW-VOLTAGE PANEL"), detail:this.tr("Immédiatement sous l'IHM à écran tactile","Directly below the touchscreen HMI") },
+      { where:this.tr("TÉLÉCOMMANDE RADIO","RADIO REMOTE"), detail:this.tr("Au centre, en bas de la RRC","Center, bottom of the RRC") },
+      { where:this.tr("CHÂSSIS DU RODBOT","RODBOT CHASSIS"), detail:this.tr("Coin inférieur avant droit","Lower front-right corner") },
+      { where:this.tr("COMMANDES MANUELLES","MANUAL CONTROLS"), detail:this.tr("À l'arrière, près des leviers hydrauliques","At the rear, near the hydraulic levers") }
     ];
 
     const mod = S.activeId!=null ? M[S.activeId] : null;
@@ -824,13 +850,14 @@ class Component extends DCLogic {
         num:mod.num, title:mod.title, intro:mod.intro, chapters:mod.chapters, pages:mod.pages,
         pdfHref:this.pdfAt(firstPage), openManual:()=>this.openManual(firstPage), sectionCount:mod.sections.length,
         quizLen:mod.quiz.length, done, score:this.moduleScore(S.activeId),
-        quizCta: done ? "Repasser le quiz" : "Passer le quiz",
+        quizCta: done ? this.tr("Repasser le quiz","Retake the quiz") : this.tr("Passer le quiz","Take the quiz"),
         manualPages: this.manualPagesFor(S.activeId),
         manualCount: this.manualPagesFor(S.activeId).length,
         sections: mod.sections.map((sec,si)=>{
           const key=S.activeId+"-"+si;
           const open=S.openKey===key;
-          const enr = (typeof ENRICH!=="undefined" && ENRICH[key]) ? ENRICH[key] : {};
+          const ENR_SRC = (this.state.lang==="en" && typeof ENRICH_EN!=="undefined") ? ENRICH_EN : (typeof ENRICH!=="undefined"?ENRICH:null);
+          const enr = (ENR_SRC && ENR_SRC[key]) ? ENR_SRC[key] : {};
           const figBlocks = (enr.figures||[]).map(f=>({ t:"img", src:"img/fig/p"+(f.page<10?"0"+f.page:f.page)+".jpg", cap:f.cap||"", page:f.page }));
           const allBlocks = sec.blocks.concat(enr.blocks||[]).concat(figBlocks);
           const hasDanger=allBlocks.some(b=>b.t==="warn"&&b.w==="danger");
@@ -853,7 +880,7 @@ class Component extends DCLogic {
       };
 
       const LETTERS=["A","B","C","D","E","F"];
-      const TYPEL={qcm:"Choix unique",vf:"Vrai ou faux",multi:"Sélection multiple — cochez toutes les bonnes réponses",order:"Remettez dans le bon ordre",cloze:"Texte à trou"};
+      const TYPEL={qcm:this.tr("Choix unique","Single choice"),vf:this.tr("Vrai ou faux","True or false"),multi:this.tr("Sélection multiple — cochez toutes les bonnes réponses","Multiple select — check all correct answers"),order:this.tr("Remettez dans le bon ordre","Put in the correct order"),cloze:this.tr("Texte à trou","Fill in the blank")};
       base.quizActive=!S.graded;
       base.quizGraded=S.graded;
       const qlist=this.quizFor(S.activeId);
@@ -880,11 +907,11 @@ class Component extends DCLogic {
         }),
         checkBg:hasAns?"#1D1E1B":"rgba(29,30,27,.12)", checkFg:hasAns?"#FAF9F5":"rgba(29,30,27,.42)", checkCursor:hasAns?"pointer":"not-allowed",
         check:this.quizCheck, next:this.quizNext,
-        nextLabel:(qi+1<qlist.length)?"Question suivante →":"Voir mon résultat →"
+        nextLabel:(qi+1<qlist.length)?this.tr("Question suivante →","Next question →"):this.tr("Voir mon résultat →","See my result →")
       };
       if(checked){
         const ok=this.quizCorrect(q,sel);
-        base.quiz.fb={ ok:ok, label:ok?"✓ Bonne réponse":"✗ Réponse incorrecte",
+        base.quiz.fb={ ok:ok, label:ok?this.tr("✓ Bonne réponse","✓ Correct answer"):this.tr("✗ Réponse incorrecte","✗ Incorrect answer"),
           bg:ok?"rgba(62,156,90,.1)":"rgba(217,38,36,.08)", bar:ok?"#2F7D48":"#D92624", fg:ok?"#2F7D48":"#B71F1D",
           text:q.fb||"", answerText:this.quizAnswerText(q), page:q.page||0, pageHref:this.pdfAt(q.page||1), hasPage:!!q.page, open:(()=>this.openManual(q.page||1)) };
       } else { base.quiz.fb=null; }
@@ -895,11 +922,11 @@ class Component extends DCLogic {
         scorePct:S.lastScore,
         ringBg: passed?"rgba(62,156,90,.14)":"rgba(217,38,36,.1)",
         ringFg: passed?"#2F7D48":"#B71F1D",
-        title: passed?"Module validé !":"Pas tout à fait…",
+        title: passed?this.tr("Module validé !","Module passed!"):this.tr("Pas tout à fait…","Not quite…"),
         message: passed
-          ? "Vous maîtrisez les points clés de ce module. Poursuivez avec le module suivant ou revenez au parcours."
-          : "Il faut au moins 70 % pour valider. Revoyez les leçons du module puis retentez le quiz.",
-        nextLabel: !passed?"Revoir le module":(lastModule?(this.allDone()?"Voir mon attestation":"Retour au parcours"):"Module suivant"),
+          ? this.tr("Vous maîtrisez les points clés de ce module. Poursuivez avec le module suivant ou revenez au parcours.","You've mastered this module's key points. Continue to the next module or go back to the path.")
+          : this.tr("Il faut au moins 70 % pour valider. Revoyez les leçons du module puis retentez le quiz.","You need at least 70% to pass. Review the module lessons, then retake the quiz."),
+        nextLabel: !passed?this.tr("Revoir le module","Review the module"):(lastModule?(this.allDone()?this.tr("Voir mon attestation","See my certificate"):this.tr("Retour au parcours","Back to the path")):this.tr("Module suivant","Next module")),
         nextAction: !passed?this.backToModule:(lastModule?(this.allDone()?()=>this.setState({view:"cert"}):this.goHome):this.goToNextModule)
       };
       base.retryQuiz=this.retryQuiz; base.backToModule=this.backToModule; base.startQuiz=this.startQuiz;
@@ -923,7 +950,7 @@ class Component extends DCLogic {
     // RRC
     base.estopped = S.estopped;
     base.resetEstop = this.resetEstop;
-    base.rrcSpots = this.RRC_SPOTS.map((sp,i)=>{
+    base.rrcSpots = this.spots().map((sp,i)=>{
       const sel = S.rrcSel===i;
       const isE = !!sp.estop;
       return {
@@ -934,7 +961,7 @@ class Component extends DCLogic {
         halo: sel ? "rgba(217,38,36,.5)" : "rgba(20,20,19,.6)"
       };
     });
-    const selSp = this.RRC_SPOTS[S.rrcSel] || this.RRC_SPOTS[0];
+    const selSp = this.spots()[S.rrcSel] || this.spots()[0];
     base.rrcSelN = S.rrcSel+1;
     base.rrcSelName = selSp.name;
     base.rrcSelDesc = selSp.desc;
@@ -964,8 +991,8 @@ class Component extends DCLogic {
     base.mastReadout = "J2 "+S.hoist+"° · J3 "+base.extPct+"% · J6 "+S.tilt+"°";
 
     // MODES
-    const curMode = this.SIM_MODES.find(m=>m.id===S.simMode);
-    base.simModes = this.SIM_MODES.map(m=>{
+    const curMode = this.simModesData().find(m=>m.id===S.simMode);
+    base.simModes = this.simModesData().map(m=>{
       const on = m.id===S.simMode;
       return {
         name:m.id, tag:m.tag, pick:()=>this.pickMode(m.id),
@@ -1024,8 +1051,15 @@ class Component extends DCLogic {
     base.showInstallHelp = S.showInstallHelp;
     base.closeInstallHelp = this.closeInstallHelp;
     base.isIOS = /iP(hone|ad|od)/.test(navigator.userAgent||"");
+    // Bascule de langue FR / EN (dans l'en-tête)
+    base.lang = S.lang;
+    base.setLangFr = ()=>this.setLang("fr");
+    base.setLangEn = ()=>this.setLang("en");
+    var _actS="background:#D92624;color:#FFFFFF;", _inS="background:transparent;color:#B8B7B2;";
+    base.langFrStyle = (S.lang==="en") ? _inS : _actS;
+    base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = APP_VERSION_DATE;
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "JUL 15, 2026");
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
     const scores=M.map((m,i)=>this.moduleScore(i));
@@ -1035,6 +1069,2516 @@ class Component extends DCLogic {
   }
 }
 
+
+/* ===== Données anglaises (EN) — générées par traduction, sélectionnées via this.state.lang ===== */
+var MODULES_EN = [
+  {
+    num:"01", title:"Getting to Know the RodBot LP", short:"Overview", chapters:"1", pages:"6–9",
+    subtitle:"What the machine is, its components, its three mast control modes and its technical specifications.",
+    intro:"Borterra's RodBot LP eliminates the manual handling of drill rods — one of the leading causes of drill-related accidents. This module introduces the machine, its components and its capabilities.",
+    sections:[
+      { title:"What is the RodBot LP?", page:6, blocks:[
+        {t:"p", text:"A hydraulic robotic drill-rod handling system, designed to load and unload rods smoothly. It adapts to a wide range of equipment: drills, rod baskets and pallets."},
+        {t:"p", text:"Track-mounted, it carries a removable rod basket and repositions itself inside the hole. Electrical and hydraulic power come from a wired connection to the drill; this link also ties together the emergency stop circuits of both machines."},
+        {t:"warn", w:"note", text:"The machine is primarily operated by Radio Remote Control (RRC) — the operator stays clear of the rods."} ]},
+      { title:"The three mast control modes", page:6, blocks:[
+        {t:"ul", items:[
+          "DIRECT (\"manual by remote\") — each joint movement is activated individually with the joystick, like conventional heavy machinery.",
+          "LINEAR — the rod moves in a straight line (X, Y or Z) with a single joystick movement; the system operates several hydraulic valves at once. The operator retains individual control of the wrist, rotation and tilt.",
+          "TRAJECTORY — the mast moves automatically between points recorded by the operator, following a computed path that minimizes time and avoids collisions."] } ]},
+      { title:"Main components", page:7, blocks:[
+        {t:"ul", items:["Telescoping mast (robotic arm) on a pedestal","Gripper (jaws) with electromagnet","Removable rod basket","Tracks and stabilizer cylinders","24 V electrical panel with touch HMI","Radio remote control unit and storage compartment","Amber beacon"] } ]},
+      { title:"Dimensions & rod handling", page:8, blocks:[
+        {t:"specs", rows:[["Empty weight","5,800 lb"],["Weight with empty basket","6,500 lb"],["Length × width","116 × 60 in"],["Minimum height","90 in"],["Max load (general use)","308 lb"],["Max load (electromagnet)","120 lb"],["Rods","Ø 5 in × 6 ft"],["Basket capacity","35 rods"],["Max vertical reach (from ground)","159 in"],["Max horizontal reach (from axis)","119 in"]] } ]},
+      { title:"Power & carrier", page:8, blocks:[
+        {t:"specs", rows:[["Electrical","120 V AC · 4.5 A max"],["Hydraulic","2,500–3,000 psi · 80 L/min"],["Pump required","Variable displacement, load sensing"],["Connection assembly","30 ft"],["Brakes","Spring-applied (SAHR), hydrostatic"],["Ground clearance","10 in"],["Max grade, empty basket","35° / 70 %"],["Max grade, full basket","28° / 53 %"],["Max grade, handling","15° / 27 %"],["Max speed","2.8 km/h"]] },
+        {t:"warn", w:"warn", text:"Maximum grades are calculated for the transport pose. Moving the mast out of this pose shifts the center of gravity and reduces stability."} ]}
+    ],
+    quiz:[
+      { text:"How many rods can the RodBot basket hold?", options:["20","35","50"], correct:1 },
+      { text:"What are the three mast control modes?", options:["DIRECT, LINEAR, TRAJECTORY","MANUAL, SEMI-AUTO, AUTO","LOCAL, REMOTE, STANDBY"], correct:0 },
+      { text:"What is the maximum electromagnet lifting load?", options:["308 lb","120 lb","500 lb"], correct:1 },
+      { text:"Where does the RodBot get its power?", options:["From an onboard diesel engine","From onboard batteries","From a wired connection to the drill (electrical + hydraulic)"], correct:2 }
+    ]
+  },
+  {
+    num:"02", title:"Safety First", short:"Safety", chapters:"2", pages:"10–12",
+    subtitle:"Operating instructions, manual pictograms, mindfulness practice and the four emergency stops.",
+    intro:"The list of instructions covers adding the radio remote and trajectory planning. Only trained and authorized personnel may commission or operate this system.",
+    sections:[
+      { title:"Operating instructions", page:10, blocks:[
+        {t:"ul", items:[
+          "The manufacturer accepts no liability for improper use or arbitrary modifications to the equipment.",
+          "The operator must have read and understood the manual and follow the recommended maintenance schedules.",
+          "Operation, maintenance and repair are reserved for trained personnel who are aware of the hazards.",
+          "Comply with general and local health and safety regulations."] } ]},
+      { title:"The manual's pictograms", page:10, blocks:[
+        {t:"ul", items:[
+          "DANGER — indicates a life-threatening situation; these situations must be avoided.",
+          "WARNING — information of critical importance for safety.",
+          "CAUTION — prevention of the risk of injury and/or property damage."] },
+        {t:"warn", w:"warn", text:"The manual's procedures never replace caution. Comply with regional regulations and the rules specific to the site and the company."} ]},
+      { title:"Safe mindfulness practice", page:11, blocks:[
+        {t:"ul", items:[
+          "Only operate the system if you are trained, authorized, and in good physical and mental condition — never under the influence of alcohol or drugs.",
+          "Read and understand all labels before use.",
+          "Never remove guards and safety covers while the system is energized.",
+          "It is the operator's responsibility to be aware of conditions and the presence of personnel in the work area.",
+          "Only perform maintenance/repair if you are authorized and qualified; spare parts identical or equivalent to the original parts.",
+          "Resolve all malfunctions before returning to service; do not operate the machine if an error is reported in the control system.",
+          "Outdoors: do not operate the system during a thunderstorm or in high winds (above 65 km/h).",
+          "Clean up oil spills or leaks before commissioning."] },
+        {t:"warn", w:"danger", text:"Fluids under pressure — risk of subcutaneous injection from a high-pressure hydraulic oil leak. If injured: contact emergency medical services IMMEDIATELY (risk of gangrene and severe reactions)."} ]},
+      { title:"The four emergency stops", page:12, blocks:[
+        {t:"p", text:"Four emergency stops immediately halt all movement. If the signal is linked to the parent drill, activating an emergency stop on either machine triggers the shutdown of both."},
+        {t:"specs", rows:[["Low-voltage control panel","Immediately below the touch HMI"],["Radio remote","Center, bottom"],["RodBot chassis","Lower front right corner"],["Manual controls","At the rear, near the hydraulic levers"]] } ]}
+    ],
+    quiz:[
+      { text:"Who is authorized to operate the RodBot?", options:["Any mine employee","Trained, authorized and fit personnel","Anyone accompanied by a supervisor"], correct:1 },
+      { text:"How many emergency stops are on the machine?", options:["2","3","4"], correct:2 },
+      { text:"In case of a high-pressure fluid injection injury?", options:["Apply a dressing and monitor","Contact emergency medical services immediately","Rinse with water and resume work"], correct:1 },
+      { text:"At what wind speed is outdoor use prohibited?", options:["45 km/h","65 km/h","90 km/h"], correct:1 }
+    ]
+  },
+  {
+    num:"03", title:"Components & Basic Controls", short:"Controls", chapters:"3 – 5", pages:"13–16",
+    subtitle:"The mast segments (J1–J6), the LOCAL/REMOTE switch, the safety reset button and the isolation valves.",
+    intro:"Each mast actuator carries a reference number and name. The low-voltage control panel and the hydraulic isolation valves determine who controls the machine — and when nothing can move.",
+    sections:[
+      { title:"The mast segments (J1 – J6)", page:13, blocks:[
+        {t:"specs", rows:[["J1","SLEW"],["J2","ARTICULATION (shoulder)"],["J3","TELESCOPE"],["J4","ROTARY JOINT (wrist)"],["J5","ROTATION"],["J6","TILT"],["End effector","GRIPPER (jaws)"]] },
+        {t:"p", text:"Example: the SLEW function corresponds to J1. These names are used everywhere — screens, diagnostics, calibration."} ]},
+      { title:"LOCAL / REMOTE operator control switch", page:14, blocks:[
+        {t:"p", text:"To use the radio remote, the panel's OPERATOR CONTROL switch must be in the REMOTE position."},
+        {t:"warn", w:"note", text:"In LOCAL mode, remote signals are ignored and the \"No Radio\" icon is shown on the HMI."} ]},
+      { title:"Safety reset button", page:15, blocks:[
+        {t:"p", text:"It \"sets\" the safety circuit at system startup, or re-enables it after an emergency stop has been triggered and then reset."} ]},
+      { title:"Main panel display (HMI)", page:15, blocks:[
+        {t:"p", text:"The touchscreen displays control-system information; the operator can change certain settings from it. The screens are covered in detail in module 05."} ]},
+      { title:"Hydraulic isolation valves", page:16, blocks:[
+        {t:"p", text:"Two normally-closed activation/isolation valves are built into the connection manifold: one regulates flow to the tracks and cylinders, the other to all other elements. Their state depends on the MODE chosen by the operator, or on the safety system if it detects an error."},
+        {t:"warn", w:"warn", text:"In the event of a power loss, both valves close by default: any hydraulic operation becomes impossible. They can be forced to the open position manually (counterclockwise)."} ]}
+    ],
+    quiz:[
+      { text:"What does J1 correspond to?", options:["The TELESCOPE","The SLEW","The TILT"], correct:1 },
+      { text:"The switch is in LOCAL mode. What does the radio remote do?", options:["It works normally","Its movement signals are ignored","It only controls the gripper"], correct:1 },
+      { text:"What happens to the isolation valves in the event of a power loss?", options:["They stay in their last state","They open to bleed off pressure","They close — no more hydraulic operation"], correct:2 },
+      { text:"What is the safety reset button for?", options:["To restart the HMI","To enable/re-enable the safety circuit","To clear the data logs"], correct:1 }
+    ]
+  },
+  {
+    num:"04", title:"The Radio Remote Control", short:"Remote", chapters:"6 · 10", pages:"17–24 · 44",
+    subtitle:"Activation, physical key, emergency stop, Rabbit/Turtle modes, tilt switch, indicator light, joysticks, display and battery.",
+    intro:"The RRC is built to withstand impacts, dirt and water. Proportional, self-centering joysticks; the emergency stop works in series with those of the RodBot and the parent drill.",
+    sections:[
+      { title:"Physical key & interlock", page:17, blocks:[
+        {t:"warn", w:"note", text:"A physical key is fitted at the top left of the remote. Without it, the RRC will not turn on. Removing it during operation breaks the connection with the receiver and triggers a stop."} ]},
+      { title:"Turning the remote on / off", page:17, blocks:[
+        {t:"ul", items:[
+          "Prerequisite: panel switch set to REMOTE — otherwise no movement message is recognized.",
+          "ON: ON button on the left side; the LED indicator at the bottom left of the screen turns green.",
+          "OFF: press the remote's emergency stop, then reset it by turning the red mushroom head."] },
+        {t:"warn", w:"note", text:"To turn off the RRC without stopping the drill (battery change, power saving): first set the panel switch to LOCAL, then press the remote's e-Stop."} ]},
+      { title:"RRC emergency stop", page:18, blocks:[
+        {t:"p", text:"The remote's e-Stop controls a relay wired in series with the other emergency stops of the RodBot and the parent drill. In REMOTE mode, one press stops both machines — the same effect as a wired e-Stop."},
+        {t:"warn", w:"warn", text:"In LOCAL mode, the remote's emergency stop button does NOT work."} ]},
+      { title:"Fast (Rabbit) / Slow (Turtle) modes", page:19, blocks:[
+        {t:"p", text:"Applies a scaling factor to all joints in DIRECT, LINEAR and TRAJECTORY modes. Rabbit = maximum speed defined in the valve settings; Turtle = each joint's speed reduced by 50 % — except the gripper."} ]},
+      { title:"Tilt switch", page:19, blocks:[
+        {t:"p", text:"If the remote is tilted or dropped (operator in difficulty), the RodBot goes into a safety stop: hydraulic power cut off — without triggering the wired drill's e-Stop. As soon as the RRC is returned to level, joysticks at neutral, the system automatically returns to standby."},
+        {t:"warn", w:"warn", text:"Daily inspection: check that the tilt switch works properly at the start of every shift."} ]},
+      { title:"Amber beacon", page:20, blocks:[
+        {t:"ul", items:["ON (steady) — REMOTE CONTROL mode active.","FLASHING — mast in TRAJECTORY mode or machine tramming (CRAWL).","OFF — LOCAL mode."] } ]},
+      { title:"Joysticks, buttons & switches", page:21, blocks:[
+        {t:"ul", items:[
+          "3 proportional joysticks (JS1, JS2, JS3) with return-to-center spring.",
+          "Mode selection buttons: STANDBY, DIRECT, LINEAR / ON, STABILIZERS and slew.",
+          "Yellow button: TRAJECTORY activation. Green button: gripper activation.",
+          "Electromagnet control, horn + beacon, Rabbit/Turtle, screen brightness, work lights, help.",
+          "Emergency stop at center, bottom. Status and low-battery indicators."] } ]},
+      { title:"Remote display", page:23, blocks:[
+        {t:"p", text:"Non-touch screen: the keypad keys above correspond to the icons shown. The display adapts to the RodBot's state: system STATUS indicator, mode type, gripper and magnet state, battery, Slow/Fast mode, basket positions and trajectory points. The yellow box marks the selected item."} ]},
+      { title:"Battery: replacement & charging", page:44, blocks:[
+        {t:"warn", w:"warn", text:"If the RRC turns off or loses contact during operation (dead battery), the machine treats the event as an emergency stop."},
+        {t:"steps", items:[
+          "Set the OPERATOR CONTROL selector to LOCAL.",
+          "Turn the remote OFF (RRC e-Stop).",
+          "Replace the battery.",
+          "Turn the remote back ON.",
+          "Check that the radio link icon is restored at the bottom of the monitor.",
+          "Return the selector to the REMOTE position."] },
+        {t:"p", text:"The storage box on the machine contains the charger: insert the battery and charging starts automatically."} ]}
+    ],
+    quiz:[
+      { text:"What happens if the physical key is removed during operation?", options:["Nothing, the key is only for startup","The connection is broken and a stop is triggered","The machine switches to LOCAL mode"], correct:1 },
+      { text:"Turtle (slow) mode reduces joint speed by…", options:["25 %","50 % — except the gripper","75 %, including the gripper"], correct:1 },
+      { text:"The remote drops to the ground. What does the RodBot do?", options:["It continues its movement","It goes into a safety stop: hydraulics cut off","It triggers the wired drill's e-Stop"], correct:1 },
+      { text:"The amber beacon is flashing. That means…", options:["LOCAL mode active","RRC low battery","Mast in TRAJECTORY or tramming in CRAWL"], correct:2 },
+      { text:"To replace the battery without triggering an emergency stop, the first step is…", options:["Set the panel selector to LOCAL","Press the RRC e-Stop directly","Disconnect the connection cable"], correct:0 }
+    ]
+  },
+  {
+    num:"05", title:"HMI, Settings & Diagnostics", short:"HMI & settings", chapters:"7 – 9", pages:"25–43",
+    subtitle:"HMI screens, alarms, 3D view, encoder calibration, slew limits, bypasses, joystick curves and PPU tuning.",
+    intro:"The electrical panel's HMI provides access to system status, alarms and calibration settings. Some settings require administrator login and particular vigilance.",
+    sections:[
+      { title:"HMI home screen", page:25, blocks:[
+        {t:"ul", items:[
+          "Radio connection status: green = connected, red = not operational or not authorized.",
+          "Top bar — current mode: MAST DIRECT, LINEAR, TRAJECTORY, LOCAL, CRAWL, STABILIZERS, STANDBY or FAULT.",
+          "Status indicators: green = operational, red = de-energized or ERROR, yellow = loading or warning. Tap a circle for more information.",
+          "PLC and PPU software versions displayed; Settings, Diagnostics, Alarms and RVIZ view buttons."] } ]},
+      { title:"Alarms & clearing faults", page:27, blocks:[
+        {t:"p", text:"The alarm table classifies entries as information, warnings and system faults. Typical causes: CAN network faults at startup, joints operated manually in remote mode… Resolved faults change to the Inactive state."},
+        {t:"warn", w:"warn", text:"Both active AND inactive faults must all be cleared before resuming operation: select the row, then \"Clear fault\"."} ]},
+      { title:"TRAJECTORY view (3D model)", page:28, blocks:[
+        {t:"p", text:"A real-time 3D model of the mast position and the obstacles modeled by the planning software. Useful after a collision, to confirm encoder readings and diagnose set points. Four views — tap to enlarge."},
+        {t:"warn", w:"note", text:"The software cannot model every object in an underground mine: to avoid an object that is invisible on screen, use additional set points."} ]},
+      { title:"Encoder calibration (zero point)", page:30, blocks:[
+        {t:"p", text:"Required if an encoder is replaced or if it has slipped on its shaft: without a zero-point reset, the reported orientation is wrong."},
+        {t:"steps", items:[
+          "Turn on the machine and set the remote to DIRECT mode.",
+          "Log in to the HMI with the administrator credentials (Appendix A).",
+          "One joint at a time, bring it to its home position (defined stop: J1 counterclockwise, J2 fully up, J3 retracted, J4 fully down, J5 counterclockwise, J6 cylinder extended).",
+          "Press the corresponding button on the HMI and check that the value goes to zero (1° or 359° acceptable)."] } ]},
+      { title:"Slew rotation limits", page:32, blocks:[
+        {t:"p", text:"Mechanical stops at ±165° (total travel 330°, 30° dead zone at the front). The default software limits are 10° and 320°; adjustable on the calibration screen by tapping the value."},
+        {t:"warn", w:"note", text:"The OVERRIDE JOINT LIMITS button releases the full travel to the stops — it resets when you leave the calibration screen."} ]},
+      { title:"Valve error bypass", page:32, blocks:[
+        {t:"p", text:"Reserved for an experienced operator, in two scenarios only: a known non-critical fault (e.g. overheating) that absolutely must be overridden, or a fault on the valve block of the mode other than the one in use."},
+        {t:"warn", w:"danger", text:"An active bypass ignores ALL faults on that valve. Dangerous if the fault is critical or if it masks an imminent hazard to personnel or the machine."} ]},
+      { title:"Joystick curves & set-point limits", page:33, blocks:[
+        {t:"p", text:"The curves (0 to 3) define actuator sensitivity relative to the joystick: more travel for precision, or a linear ramp in speed. Select the curve on the HMI and check that the icon lights up."},
+        {t:"p", text:"The VALVE SET-POINT LIMITS reduce the maximum speed of each joint in DIRECT mode (both directions; gravity can create a difference). Useful range: 10 to 100 % — consult MEDATech for a different valve spool beyond that. A button restores the factory values."} ]},
+      { title:"Joint tuning (PPU calibration)", page:35, blocks:[
+        {t:"p", text:"If the mast becomes jerky in LINEAR/TRAJECTORY despite correct encoder calibration: Threshold (minimum movement set point) and Dynamic (delays and speeds) calibration. Position each joint within ±2°/5 mm of the target pose in DIRECT mode, start from the HMI (yellow button → green), then hold the left joystick: the joint does 2 back-and-forth cycles (\"CALIBRATING\"). Releasing the joystick cancels."},
+        {t:"warn", w:"warn", text:"During calibration, the joints move WITHOUT direct command or environment sensing. Space required: SLEW 25°, SHOULDER 50°, TELESCOPE 140 mm, WRIST 30°, ROTATION 20°, TILT 40°. Releasing the joystick stops the mast at any time."},
+        {t:"p", text:"Then: red MEDATech USB stick in the PPU's blue cable (1 min), send the \"medatech_calibration\" folder to MEDATech service, reload the returned \"cal.7z\" file onto the stick, reinsert (1 min) and restart the PPU from the HMI."} ]},
+      { title:"Diagnostics screens", page:41, blocks:[
+        {t:"ul", items:["Encoder diagnostics.","Valve diagnostics.","Electrical system diagnostics."] },
+        {t:"warn", w:"note", text:"Valves outside their designated mode normally show a fault (CRAWL valves faulted during MAST mode, and vice versa). Only be concerned if the fault appears in the designated mode."} ]}
+    ],
+    quiz:[
+      { text:"Before resuming operation after faults, you must…", options:["Clear only the active faults","Clear both active AND inactive faults","Restart the machine, nothing else"], correct:1 },
+      { text:"A valve error bypass…", options:["Ignores ALL faults on that valve — reserved for non-critical cases","Only lasts 30 seconds","Is recommended at every fault"], correct:0 },
+      { text:"What is the total slew travel between mechanical stops?", options:["360°","330° (±165°)","180°"], correct:1 },
+      { text:"The mast is jerky in LINEAR mode despite calibrated encoders. What to do?", options:["A joint tuning (PPU calibration)","Replace the pump","Switch to Rabbit mode"], correct:0 },
+      { text:"CRAWL mode valves show a fault during MAST mode…", options:["That's normal: they are outside their designated mode","Stop the machine immediately","The fault must be bypassed"], correct:0 }
+    ]
+  },
+  {
+    num:"06", title:"Startup & Tramming", short:"Startup", chapters:"11.1 – 11.5", pages:"45–54",
+    subtitle:"Wired connection (electrical + hydraulic), startup sequence, the six modes, manual control and safe tramming.",
+    intro:"The RodBot has no onboard power source: everything passes through the 10 m connection cables to the drill. This module covers connecting, starting and tramming the machine.",
+    sections:[
+      { title:"Electrical connection & emergency stop", page:45, blocks:[
+        {t:"p", text:"Two electrical connections in spiral wrap: a 24 V DC cable for the onboard electronics and an emergency stop cable linking the e-Stop circuits of the RodBot and the parent drill. A junction box (120 V AC → 24 V DC) mounts on the drill; connect to connectors 2 and 4 on the panel."},
+        {t:"warn", w:"danger", text:"The RodBot must be installed with a BARRIER separating the operator from the machine and the drill — radio operation, each on either side of the barrier."},
+        {t:"warn", w:"warn", text:"If you observe unexpected mast movement, immediately press an emergency stop, then diagnose the problem."} ]},
+      { title:"Hydraulic connection", page:47, blocks:[
+        {t:"p", text:"The connection hose assembly (10 m) connects the RodBot to the drill's pump: Pressure, Tank, Load Sensing (LS) and Case Drain. A bulkhead with quick couplers mounts on the drill or pump (2 bolts, 3/8 in)."},
+        {t:"warn", w:"note", text:"A pump replacement may require recalibration: TRAJECTORY and LINEAR modes depend on the set latency, ramp and pressure. Contact MEDATech if their performance degrades."} ]},
+      { title:"Powering on — the sequence", page:49, blocks:[
+        {t:"steps", items:[
+          "Connect the RodBot to power (connection cable → parent drill box).",
+          "Wait for the HMI screen to light up (~30 seconds).",
+          "Check that the remote's e-Stop is released, then press the green start button.",
+          "Follow the on-screen instructions to pair the RRC (press the green button again).",
+          "Press the control panel's safety reset button.",
+          "Wait for the startup sequence shown on the HMI to complete.",
+          "In STANDBY mode, the system is ready: select a mode from the side buttons of the RRC."] } ]},
+      { title:"The six operating modes", page:50, blocks:[
+        {t:"specs", rows:[["STANDBY","Safety mode — no command processed; e-Stop, tilt and lights remain active"],["CRAWL","Tracks only"],["STABILIZERS","The 4 cylinders only"],["DIRECT","Individual mast joints"],["LINEAR","End effector in straight X-Y-Z lines"],["TRAJECTORY","Autonomous movement between recorded points"]] } ]},
+      { title:"Manual control & levers", page:50, blocks:[
+        {t:"p", text:"All functions can be operated with the valve levers — only with the selector in LOCAL. In REMOTE mode, an operated lever is detected as a valve error: protective stop, hydraulics cut off. To clear: switch to LOCAL + safety reset button."} ]},
+      { title:"Tramming (CRAWL) & transport pose", page:51, blocks:[
+        {t:"warn", w:"danger", text:"NEVER tram the RodBot with the manual valves — risk of being struck or crushed. Always by radio remote. The levers of the \"tracks and cylinders\" block are for maintenance only and are shipped disconnected, stored at the rear."},
+        {t:"p", text:"You cannot switch to CRAWL mode if the gripper jaws are closed. Before any tramming, place the arm in the transport pose:"},
+        {t:"ul", items:["Slew parallel to the chassis","Hoist lowered fully","Telescope retracted","Wrist pointing down","Gripper open"] },
+        {t:"warn", w:"warn", text:"Inspect the path (personnel, obstacles, cavities, unstable ground). Never stand in front of or beside the moving machine; use a spotter if visibility is reduced. Keep the connection cables out of the path — never drive over them."},
+        {t:"p", text:"Track speeds: Hi 2.8 km/h · Lo 1.5 km/h. To change: turn the manual bypass valve (0.55 in square) 90° — clockwise = Hi, counterclockwise = Lo."} ]},
+      { title:"STANDBY mode", page:54, blocks:[
+        {t:"p", text:"Allows the RRC to be paired without any command being processed. All safety functions (e-Stop, tilt) and the lights remain functional: a safe mode to start the remote before switching to the working modes."} ]}
+    ],
+    quiz:[
+      { text:"What is the length of the connection cables to the drill?", options:["5 m","10 m","20 m"], correct:1 },
+      { text:"How must the RodBot be installed relative to the operator?", options:["A barrier separates them — radio operation on either side","Side by side for better visibility","It doesn't matter, the radio reaches 100 m"], correct:0 },
+      { text:"Can you switch to CRAWL mode with the gripper closed?", options:["Yes, without restriction","Yes, but at Lo speed only","No, it is impossible"], correct:2 },
+      { text:"A manual lever is operated during REMOTE mode…", options:["The lever takes priority","Valve error → protective stop, hydraulics cut off","The movement adds to the radio command"], correct:1 },
+      { text:"Tramming the machine must be done…", options:["By radio remote only","With the manual valves for more precision","Either by radio or levers, it doesn't matter"], correct:0 }
+    ]
+  },
+  {
+    num:"07", title:"Rod Handling", short:"Handling", chapters:"11.6 – 11.7", pages:"54–66",
+    subtitle:"Gripper control, DIRECT and LINEAR modes, TRAJECTORY set points, anti-collision limits and basket loading.",
+    intro:"The core of the job: moving rods between the basket and the drill. DIRECT or LINEAR at the operator's choice; TRAJECTORY for automated movements — provided points and limits are set correctly.",
+    sections:[
+      { title:"Gripper (jaws) control", page:55, blocks:[
+        {t:"p", text:"Two simultaneous actions are required on the RRC. CLOSE: green GRIPPER button + GRIPPER toggle down. OPEN: green GRIPPER button held + toggle held up for at least 1 second."},
+        {t:"warn", w:"danger", text:"Never stand under the mast or gripper. Watch for overhead mine services (electrical cables, water and air lines, ventilation): any mast contact can cause serious injury or death."} ]},
+      { title:"Choosing between DIRECT and LINEAR", page:56, blocks:[
+        {t:"p", text:"DIRECT: like a traditional crane, each actuator commanded independently (white labels on the face). LINEAR: the end effector follows straight lines — FORWARD/BACK, UP/DOWN, LEFT/RIGHT (slew) — orange labels; left joystick = up/down + left/right, right joystick = in/out. Wrist, rotation and tilt remain individually controllable."},
+        {t:"warn", w:"note", text:"The choice is a matter of personal preference; for most operators, LINEAR mode is generally simpler."} ]},
+      { title:"TRAJECTORY set points", page:58, blocks:[
+        {t:"p", text:"Access the configuration screen: hold the DIRECT or LINEAR button for 3 seconds. Select a point with the \"Trajectory point\" switch, then \"Save/Select\" up to save (a check mark appears) or down to delete."},
+        {t:"specs", rows:[["BASKET 1","Default above the basket — adjustable"],["BASKET 2","Secondary basket (on the ground): rod gripped at center ±5 cm, ≥30 cm above, parallel to the basket"],["WAIT","Final approach point toward the drill; can serve as a stop (rod presenter)"],["DRILL","MANDATORY — rod transfer point, gripped at center ±5 cm"],["POINT 1 & 2","Optional waypoints to go around obstacles"]] },
+        {t:"p", text:"Example sequence: BASKET → POINT 2 → POINT 1 → WAIT → DRILL."} ]},
+      { title:"Upper & lower limits (anti-collision)", page:61, blocks:[
+        {t:"p", text:"The planner automatically avoids: the RodBot itself, the drill (positioned from the DRILL point), the rod basket, the rear and the floor. The operator additionally defines two horizontal planes — roof/services and floor/ledge."},
+        {t:"p", text:"Defining a plane: bring the gripper's center of gravity (empty, preferably) to the desired height — usually ~30 cm from the ground for the lower limit — then flip the switch up. Same procedure for the upper limit."},
+        {t:"warn", w:"note", text:"If a rod is detected in the gripper, the planner assumes a 6 ft rod held ±5 cm from center and keeps the whole rod clear of the planes."} ]},
+      { title:"No vision system!", page:63, blocks:[
+        {t:"warn", w:"danger", text:"No vision system detects personnel, vehicles or equipment entering the work area. Barriers, boundaries and operating restrictions compliant with mine policies are MANDATORY; limit traffic within the mast's work envelope."},
+        {t:"warn", w:"warn", text:"Built-in safety: switching to CRAWL and moving the machine DELETES all set points except BASKET 1. Settings survive a restart — delete points and limits at the end of every task and redefine them at each new setup."} ]},
+      { title:"Operating in TRAJECTORY mode", page:64, blocks:[
+        {t:"p", text:"Prerequisites: DRILL, WAIT and UPPER/LOWER LIMITS defined. Hold the yellow TRAJECTORY button + right joystick: right = toward the BASKET, left = toward the DRILL. Once the movement is started, the button can be released; holding the joystick continues the movement, releasing it stops the mast."},
+        {t:"p", text:"Releasing the yellow button returns to the previous mode (LINEAR or DIRECT) — you can take over at any time, then reactivate TRAJECTORY: a new collision-free path is generated."} ]},
+      { title:"Loading the rod basket", page:65, blocks:[
+        {t:"ul", items:[
+          "The basket's fork sleeves engage the chassis profiles.",
+          "The basket positions laterally between the two chassis retaining tabs.",
+          "The basket is NOT bolted: it is held by these alignment and retaining devices."] } ]}
+    ],
+    quiz:[
+      { text:"How do you open the gripper?", options:["Green button + toggle held up ≥ 1 s","A single press of the toggle","A quick double press of the green button"], correct:0 },
+      { text:"Which points are mandatory to use TRAJECTORY mode?", options:["POINT 1 and POINT 2","DRILL, WAIT and the UPPER/LOWER LIMITS","Only BASKET 1"], correct:1 },
+      { text:"Does the RodBot detect a person entering its work area?", options:["Yes, via cameras","Yes, via laser sensors","No — no vision system: barriers mandatory"], correct:2 },
+      { text:"After tramming in CRAWL, the set points…", options:["Are all kept","Are all deleted except BASKET 1","Are converted to default points"], correct:1 },
+      { text:"How is the rod basket secured to the chassis?", options:["Bolted at the four corners","By hydraulic clamps","Not bolted — sleeves and retaining tabs"], correct:2 }
+    ]
+  },
+  {
+    num:"08", title:"Troubleshooting & Maintenance", short:"Maintenance", chapters:"12 – 13 · appendices", pages:"67–87",
+    subtitle:"Troubleshooting guide, LOTO, inspections, fluids, greasing, wear pads, tracks, transport, towing and appendices.",
+    intro:"Regular maintenance ensures safe, reliable operation. This section is for qualified personnel — and troubleshooting always starts with the simple causes.",
+    sections:[
+      { title:"Troubleshooting guide — common cases", page:67, blocks:[
+        {t:"specs", rows:[
+          ["Won't turn on","REMOTE mode with RRC off → LOCAL, turn on the RRC, safety reset · or e-Stop pressed → reset"],
+          ["The RRC won't turn on","Battery dead → charge · key missing → put the key back"],
+          ["Stops in REMOTE mode","RRC e-Stop pressed · RRC turned on after the selector → turn on the RRC first · tilt → hold level"],
+          ["Nothing works despite RRC + REMOTE","Safety circuit needs setting → RESET button · check error messages, valve coil, oil supply, radio receiver"],
+          ["Functions slow","Turtle mode active → switch to Rabbit"],
+          ["No AUTO / TIP","Encoder faulted → check the HMI and wiring"],
+          ["Rotation too limited","Soft stops too restrictive → reset (2-3° difference normal)"],
+          ["Rod touches floor/roof in TRAJECTORY","UPPER/LOWER LIMITS non-compliant → redefine them · check encoders"],
+          ["Rod misplaced at the drill","Redefine the DRILL point · check encoders · incorrect destination"],
+          ["Erratic mast","Encoders poorly transmitted to the PPU → check · recalibrate (manual section 8.6)"]] },
+        {t:"p", text:"MEDATech support: service@medatech.ca · +1 (705) 443-8440, ext. 4."} ]},
+      { title:"Golden rules before any maintenance", page:71, blocks:[
+        {t:"warn", w:"danger", text:"Machine de-energized, power disconnected, lockout-tagout (LOTO) applied for ALL maintenance — including washing. Some devices store hydraulic energy (cylinders with counterbalance valves). Qualified personnel only; local work-at-height practices followed."},
+        {t:"warn", w:"note", text:"Perform maintenance with the articulation (shoulder) horizontal or lower to avoid unnecessary work at height."} ]},
+      { title:"Cleaning", page:71, blocks:[
+        {t:"p", text:"The RodBot can and should be cleaned — but never a direct pressure-washer jet on the electrical components (rotary encoders, panel): the pressure damages their seals."} ]},
+      { title:"Regular inspections", page:71, blocks:[
+        {t:"specs", rows:[["Hoses, lines, cables (damage, leaks)","Daily"],["Test without rod — normal movements","Daily"],["Emergency stops functional","Weekly"],["Joint & slew-ring lubrication","Weekly"],["Track inspection","Weekly"],["Structures: deformation, weld cracks","Weekly"],["Track reducer oil level","500 h"],["Reducer oil change","2,000 h"],["Telescope wear pads","As needed"]] },
+        {t:"p", text:"Immediately report any problem found to management and/or maintenance personnel."} ]},
+      { title:"Fluids & grease points", page:72, blocks:[
+        {t:"specs", rows:[["Hydraulic oil","ISO VG 46"],["Grease (mechanical joints)","EP2"],["Final drive reducer oil","SAE 80W90"]] },
+        {t:"p", text:"10 grease points: 4 on the base slew ring, 4 on the rotation ring, 2 on the tilt cylinder. For the rings: grease, turn the joint about 30°, repeat across the full range."},
+        {t:"warn", w:"warn", text:"Do not move the slewing joints while a technician is within the machine's range of action."} ]},
+      { title:"Telescope wear pads", page:73, blocks:[
+        {t:"p", text:"Eight plastic pads guide the telescope slide; they wear and require adjustment to limit play. Procedure: mast horizontal above the basket, boom extended 3 in, machine de-energized. Loosen the locknuts, adjust pads 1-2 then 7-8 with about 1/8 in clearance (gauge 11 plate); pads 3-4 and 5-6 seated without tightening. Retighten the locknuts."},
+        {t:"warn", w:"note", text:"If the bolt head bottoms out against the locknut, the pad must be replaced (remove the closure plate, the thrust plate, replace, reassemble, adjust). Binding or noise: loosen 3-6, grease the rails, check the stops."} ]},
+      { title:"Track maintenance", page:75, blocks:[
+        {t:"p", text:"Tension: the track sag must measure 20 to 25 mm (straightedge + tape). Never more than 30 mm or excessive tension. Adjust via the valve behind the nameplate: inject grease to tighten, slowly unscrew to loosen."},
+        {t:"specs", rows:[["New track","X = 22 mm"],["50 % wear","X = 15 mm"],["Replacement limit","X < 8 mm"]] } ]},
+      { title:"Transport, anchoring, towing & lifting", page:76, blocks:[
+        {t:"p", text:"Four ways to transport: autonomous tramming, ground towing, forklift/telehandler, low-bed trailer — always with the arm in the transport pose. 4 anchor points on the chassis (tie-down, towing, lifting) and 4 lifting points, 9/16 in, on the basket; fork passages on chassis and basket."},
+        {t:"warn", w:"danger", text:"Towing: disable the SAHR brakes by removing the plug (M16 hex key) from BOTH tracks — after securely fastening the machine to the vehicle. Reinstall the plugs after towing: without them, the machine has NO brakes."},
+        {t:"warn", w:"warn", text:"Follow safe anchoring procedures when securing to a transporter and when loading/unloading."} ]},
+      { title:"The manual's appendices", page:80, blocks:[
+        {t:"ul", items:[
+          "A (p. 80) — HMI administrator login settings.",
+          "B (p. 81) — PPU reset: power button 5 s, wait 60 s; otherwise contact MEDATech.",
+          "C (p. 82) — Pairing the AUTEC remote and the receiver (START/STOP procedure).",
+          "D (p. 84) — PPU software update: taiga.7z file on USB stick, wait 10 min, check the version on the HMI.",
+          "E (p. 87) — Data logs: Wi-Fi \"MEDATech-Datalogger\", logger.local dashboard, UDP/CAN logs at 5-min intervals."] } ]}
+    ],
+    quiz:[
+      { text:"Before any maintenance — including washing — you must…", options:["De-energize, disconnect and apply LOTO","Switch to STANDBY mode","Close the gripper"], correct:0 },
+      { text:"The mast functions are abnormally slow. Likely cause?", options:["Worn pump","Turtle (slow) mode active","RRC low battery"], correct:1 },
+      { text:"What is the correct track sag?", options:["5–10 mm","20–25 mm","40–50 mm"], correct:1 },
+      { text:"After towing, you must…", options:["Drain the hydraulic oil","Reinstall the SAHR plugs — otherwise no brakes","Recalibrate the encoders"], correct:1 },
+      { text:"Which hydraulic oil is approved?", options:["ISO VG 46","SAE 80W90","ATF Dexron III"], correct:0 }
+    ]
+  }
+];
+
+var ENRICH_EN = {
+ "0-0": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The Borterra RodBot LP is a hydraulic robotic drill-rod handling system, designed for smooth loading and unloading of rods. It removes manual rod handling — one of the leading causes of drill-related workplace injuries — and adapts to a wide range of equipment: drills, rod baskets and pallets."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Track-mounted rod carrier; the tracks let you reposition the RodBot inside the drift.",
+     "Removable rod basket, designed for rods 5 in in diameter and up to 6 ft long.",
+     "Hydraulic and electric supply provided by a wired connection (hydraulic and electric) to a drill.",
+     "Main control by Radio Remote Control (RRC), to move rods without manual handling during drilling and tripping operations."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The link cable to the drill also connects the emergency stop (e-Stop) buttons of the RodBot and the drill: the two emergency-stop circuits are interconnected."
+   }
+  ],
+  "figures": []
+ },
+ "0-1": {
+  "blocks": [
+   {
+    "t": "ul",
+    "items": [
+     "Direct control (also called \"manual control by radio remote\"): the joysticks drive each slew joint movement individually, like the controls of conventional heavy machinery.",
+     "Linear control: moves the rod / casing in a linear X, Y or Z direction with a single joystick movement; the system operates several hydraulic valves at the same time. The operator keeps individual control of the end-effector's slew actuators (wrist, rotation, gripper tilt).",
+     "Trajectory control: the mast moves automatically from a starting pose to a user-defined final pose, following a path computed by the RodBot to minimize travel time while avoiding collisions."
+    ]
+   },
+   {
+    "t": "p",
+    "text": "For trajectory mode, the operator first defines and saves destination points and waypoints in space, moving the mast by direct or linear control; rods can then be moved between two locations with a single joystick movement. Details in sections 11.6.3 (linear) and 11.6.4 (trajectory)."
+   }
+  ],
+  "figures": []
+ },
+ "0-2": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The illustration on page 7 identifies the machine's main components."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Gripper",
+     "Rod basket",
+     "Tracks",
+     "Stabilizer cylinders",
+     "Remote control unit",
+     "Beacon light",
+     "24 V electrical panel",
+     "Pedestal",
+     "Mast",
+     "Storage compartment"
+    ]
+   }
+  ],
+  "figures": [
+   {
+    "page": 7,
+    "cap": "Overview: main components of the RodBot LP (gripper, mast, pedestal, rod basket, tracks, stabilizer cylinders, 24 V electrical panel, beacon, remote control unit)."
+   }
+  ]
+ },
+ "0-3": {
+  "blocks": [
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Empty weight",
+      "5,800 lb"
+     ],
+     [
+      "Weight with empty basket",
+      "6,500 lb"
+     ],
+     [
+      "Length",
+      "116 in"
+     ],
+     [
+      "Width",
+      "60 in"
+     ],
+     [
+      "Minimum height",
+      "90 in"
+     ]
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Max. load, general-purpose lifting",
+      "308 lb"
+     ],
+     [
+      "Max. load, rod lifting by electromagnet",
+      "120 lb"
+     ],
+     [
+      "Rod diameter",
+      "5 in"
+     ],
+     [
+      "Rod length",
+      "6 ft"
+     ],
+     [
+      "Basket capacity",
+      "35 rods"
+     ],
+     [
+      "Max. vertical reach (vertical rod, from ground)",
+      "159 in"
+     ],
+     [
+      "Max. horizontal reach (from centerline)",
+      "119 in"
+     ]
+    ]
+   }
+  ],
+  "figures": []
+ },
+ "0-4": {
+  "blocks": [
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Electrical supply",
+      "120 V AC"
+     ],
+     [
+      "Maximum current draw",
+      "4.5 A"
+     ],
+     [
+      "Hydraulic supply",
+      "From the pump (not included) via the link assembly (included)"
+     ],
+     [
+      "Required pump type",
+      "Variable displacement with load sensing"
+     ],
+     [
+      "Supply pressure range",
+      "2,500-3,000 psi"
+     ],
+     [
+      "Maximum required flow",
+      "80 L/min"
+     ],
+     [
+      "Hydraulic connections",
+      "Pressure (P), Tank (T), Case drain (T/Dr), Load sense (LS)"
+     ],
+     [
+      "Link assembly length",
+      "30 ft"
+     ]
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Ground clearance",
+      "10 in"
+     ],
+     [
+      "Transmission",
+      "Open-circuit hydrostatic"
+     ],
+     [
+      "Brakes",
+      "Spring-applied, hydrostatic"
+     ],
+     [
+      "Max. travel grade, empty basket",
+      "35° / 70 %"
+     ],
+     [
+      "Max. travel grade, full basket",
+      "28° / 53 %"
+     ],
+     [
+      "Max. grade, rod handling",
+      "15° / 27 %"
+     ],
+     [
+      "Track length",
+      "71 in"
+     ],
+     [
+      "Track gauge",
+      "46 in"
+     ],
+     [
+      "Track width",
+      "12 in"
+     ],
+     [
+      "Max. slow travel speed",
+      "2.8 km/h"
+     ],
+     [
+      "Stabilizer stroke",
+      "10.5 in"
+     ]
+    ]
+   }
+  ],
+  "figures": []
+ },
+ "1-0": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "This safety chapter specifically covers the addition of the radio remote and the rollout of trajectory planning on the mast's drill-rod handler."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "The operator must have read and understood the operating manual and must follow the recommended maintenance schedules.",
+     "The Rod Handler must only be operated, serviced and repaired by personnel trained on the equipment and aware of the hazards it presents.",
+     "Personnel must follow general and local safety and health regulations."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The manufacturer accepts no liability for damage resulting from improper use or from arbitrary modifications made to the equipment."
+   }
+  ],
+  "figures": []
+ },
+ "1-1": {
+  "blocks": [
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "DANGER",
+      "Life-threatening situation — must be avoided at all costs."
+     ],
+     [
+      "WARNING",
+      "Information of critical importance for safety."
+     ],
+     [
+      "CAUTION",
+      "Information intended to prevent any risk of injury and/or property damage."
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The procedures described in the manual do not relieve the operator from exercising caution, nor from complying with regional regulations and with the safety rules, regulations and practices specific to the site and the company."
+   }
+  ],
+  "figures": [
+   {
+    "page": 10,
+    "cap": "Manual safety pictograms: DANGER, WARNING and CAUTION."
+   }
+  ]
+ },
+ "1-2": {
+  "blocks": [
+   {
+    "t": "ul",
+    "items": [
+     "Only operate the robotic system after full training and valid certification.",
+     "Always read and understand all labels before using the system.",
+     "Only operate the equipment when in good physical and mental condition, never under the influence of alcohol or drugs.",
+     "Never remove guards and safety covers while the system is powered and running.",
+     "Clean up oil spills and leaks before startup, and resolve all malfunctions before returning to service.",
+     "Only use spare parts identical or equivalent to the original parts."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "Pressurized fluids: a high-pressure hydraulic oil leak onto the skin can cause a subcutaneous injection injury. If injured, immediately contact emergency medical services or a doctor familiar with this type of injury — risk of gangrene or severe allergic reactions."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Outdoors, do not operate the system during a thunderstorm or in high winds above 65 km/h. Also do not operate it if an error is reported by the control system or if its proper operation is compromised."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Do not undertake any maintenance or repair work without authorization, without proper qualification, and without having read and understood the manufacturer's safety instructions; check local and mine-specific regulations."
+   }
+  ],
+  "figures": [
+   {
+    "page": 11,
+    "cap": "First-steps icons — mindful safe practice."
+   }
+  ]
+ },
+ "1-3": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The machine has four emergency-stop locations; activating one immediately stops all movement of the drill unit."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Low-voltage control panel",
+      "Immediately below the touchscreen HMI"
+     ],
+     [
+      "Radio remote",
+      "Center, bottom"
+     ],
+     [
+      "RodBot frame",
+      "Lower front-right corner of the frame"
+     ],
+     [
+      "Manual controls",
+      "At the rear, near the mast's hydraulic control levers"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "If the emergency-stop signal is coupled to the parent drill, activating an emergency stop on either machine triggers an emergency stop on both."
+   }
+  ],
+  "figures": []
+ },
+ "2-0": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The telescopic mast (robotic arm) is made up of several slew joint (wrist) actuators. Each joint has a number (J…) and a reference name, identified on the diagram on page 13."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "TELESCOPE",
+     "SLEW",
+     "ARTICULATION (SHOULDER)",
+     "SLEW JOINT (WRIST)",
+     "ROTATION",
+     "TILT",
+     "GRIPPER (JAWS)"
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Example mapping given by the manual: the SLEW function corresponds to J1, i.e. \"slew 1\"."
+   }
+  ],
+  "figures": [
+   {
+    "page": 13,
+    "cap": "Diagram of the mast segments and function names"
+   }
+  ]
+ },
+ "2-1": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The operator control switch, located on the low-voltage control panel, determines whether commands from the radio remote are accepted by the robotic system."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "OPERATOR CONTROL REMOTE position",
+      "The radio remote is linked to the robotic system and can drive it"
+     ],
+     [
+      "LOCAL position",
+      "Control signals from the radio remote are not accepted; the \"No Radio\" icon is displayed"
+     ]
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Operator control",
+     "Safety reset button",
+     "Main HMI control panel (Human-Machine Interface)",
+     "PPU (Path Planning Unit)",
+     "Radio receiver",
+     "Emergency stop"
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "To drive by radio remote, the switch MUST be in the REMOTE position. In LOCAL mode, no radio command is executed."
+   }
+  ],
+  "figures": [
+   {
+    "page": 14,
+    "cap": "Inside view of the main control panel"
+   }
+  ]
+ },
+ "2-2": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The safety reset button activates (\"sets\") the robotic system's safety circuit."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "At robotic system startup, press to establish (set) the safety circuit.",
+     "After an emergency stop has been triggered then reset, press again to reactivate the safety circuit."
+    ]
+   }
+  ],
+  "figures": []
+ },
+ "2-3": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The main panel touchscreen, also called the HMI (Human-Machine Interface), displays information related to the RodBot's control system. The operator can change certain system settings directly through the HMI."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Indicator showing that the operator control switch is set to \"LOCAL\" mode",
+     "\"No Radio\" (radio transceiver not enabled) icon"
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Section 7 of the manual contains additional information about this screen."
+   }
+  ],
+  "figures": [
+   {
+    "page": 15,
+    "cap": "Main panel screen: LOCAL mode indicator and No Radio icon"
+   }
+  ]
+ },
+ "2-4": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Two normally-closed hydraulic enable/isolation valves are built into the manifold to which the link hoses connect. Their state is set by the operator's choice of \"MODE\", or by the safety system if it detects an error."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Number / type",
+      "2 valves, normally closed"
+     ],
+     [
+      "Location",
+      "Link-hose connection manifold"
+     ],
+     [
+      "One valve",
+      "Regulates flow to the tracks and cylinders"
+     ],
+     [
+      "The other valve",
+      "Regulates flow to all other elements"
+     ],
+     [
+      "State control",
+      "Operator's MODE choice or safety system (if an error is detected)"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "In the event of a power loss, both valves close by default, making any hydraulic operation impossible."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "These valves can be forced manually to the open position by turning the valve counterclockwise."
+   }
+  ],
+  "figures": [
+   {
+    "page": 16,
+    "cap": "Mast hydraulic enable/isolation valve (normally closed; closes on loss of electrical power)"
+   }
+  ]
+ },
+ "3-0": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The radio remote (RRC) was specially designed for the RodBot: it is built to withstand shock, dirt, moisture and water exposure. Its joysticks are fully proportional and spring-return to the zero position."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Key location",
+      "Upper-left part of the remote"
+     ],
+     [
+      "Role",
+      "The key must be present for the remote to work"
+     ],
+     [
+      "Without the key",
+      "The remote does not power on"
+     ],
+     [
+      "Removal during operation",
+      "Breaks the RRC ↔ receiver link and triggers a stop"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Never remove the physical key while the machine is running: the connection between the RRC and the receiver is broken and a stop is triggered."
+   }
+  ],
+  "figures": [
+   {
+    "page": 17,
+    "cap": "Overview of the radio remote (RRC)"
+   }
+  ]
+ },
+ "3-1": {
+  "blocks": [
+   {
+    "t": "steps",
+    "items": [
+     "Set the OPERATOR CONTROL switch on the electrical panel to REMOTE: otherwise the system will not recognize any movement message.",
+     "Press the ON button on the left side of the remote.",
+     "Confirm that the LED indicator, at the bottom left of the screen, turns green (\"ON\" state confirmed)."
+    ]
+   },
+   {
+    "t": "p",
+    "text": "To turn off the remote, press its emergency-stop button. It must then be reset by turning the red mushroom head."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Pressing the remote's emergency stop stops the drill, unless the control mode selector has first been set to LOCAL."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The remote can be turned on while OPERATOR CONTROL is on LOCAL, but the system will then not recognize any message from it regarding RodBot movements."
+   }
+  ],
+  "figures": [
+   {
+    "page": 18,
+    "cap": "ON button and emergency-stop button of the remote"
+   }
+  ]
+ },
+ "3-2": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The wireless radio remote's emergency stop controls a relay located on the RodBot, wired in series with the other emergency stops of the RodBot and of the parent drill, to which it is electrically connected."
+   },
+   {
+    "t": "p",
+    "text": "When the remote is active and OPERATOR CONTROL is on REMOTE, pressing the emergency stop stops both the RodBot and the parent drill: the same effect as pressing any wired emergency stop on the RodBot or the drill."
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "In LOCAL mode, radio communication is disabled and the remote's emergency-stop button does NOT work. Never rely on the RRC emergency stop when the selector is on LOCAL."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "To turn off the remote without shutting down the engine: first set OPERATOR CONTROL to LOCAL, then turn off the remote using its emergency-stop button. Useful for replacing a weak battery or saving battery power."
+   }
+  ],
+  "figures": []
+ },
+ "3-3": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The Fast (Rabbit) / Slow (Turtle) modes apply a scaling factor to all joints in DIRECT, LINEAR and TRAJECTORY modes."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Fast (Rabbit) mode",
+      "Maximum speed set in the Valve Setpoints menu (section 8.5)"
+     ],
+     [
+      "Slow (Turtle) mode",
+      "Each joint's speed limited to 50 % (cut in half)"
+     ],
+     [
+      "Exception",
+      "The gripper (jaws) is not slowed by Slow mode"
+     ]
+    ]
+   }
+  ],
+  "figures": [
+   {
+    "page": 19,
+    "cap": "Fast (Rabbit)/Slow (Turtle) selector and directional hydraulic valve limit control"
+   }
+  ]
+ },
+ "3-4": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The remote is equipped with a tilt switch intended to detect an operator emergency (remote tilted or dropped)."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Triggering: the RodBot enters a safety-stop state, hydraulic power is cut.",
+     "Difference from the red button: the wired drill emergency stop is NOT triggered, unlike pressing the emergency stop.",
+     "Recovery: as soon as the remote is returned to a stable horizontal position and no joystick is operated, the system automatically exits the safety stop and enters standby mode."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Daily inspection: check the proper operation of the radio remote's tilt switch at the start of each shift."
+   }
+  ],
+  "figures": []
+ },
+ "3-5": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "An amber beacon mounted on top of the RodBot indicates the status of radio remote operation."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Steady on",
+      "RodBot in OPERATOR CONTROL – REMOTE mode"
+     ],
+     [
+      "Off",
+      "RodBot in OPERATOR CONTROL – LOCAL mode"
+     ],
+     [
+      "Flashing",
+      "Mast in TRAJECTORY mode, or machine moving in CRAWL mode"
+     ]
+    ]
+   }
+  ],
+  "figures": []
+ },
+ "3-6": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Section 6.7 describes the joystick controls for each of the LP RodBot's operating modes. The remote has three proportional joysticks: JS1, JS2 and JS3."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "JS1: magnet control (one function is free, unassigned)",
+     "Horn and beacon control",
+     "Gripper (jaws) activation",
+     "Fast (Rabbit) / Slow (Turtle) selector",
+     "Status beacon; status and low-battery indicators",
+     "Mode selection buttons: Standby (wait), Direct and Linear",
+     "Mode selection buttons: ON, stabilizers and slew",
+     "Trajectory activation; Help, Wait, Start",
+     "Screen brightness adjustment; work lights",
+     "Emergency stop"
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "In Slow mode, actuator speed is cut in half (50 %), except for the gripper (jaws)."
+   }
+  ],
+  "figures": [
+   {
+    "page": 21,
+    "cap": "Layout of the JS1/JS2/JS3 joysticks, buttons and switches on the remote"
+   },
+   {
+    "page": 22,
+    "cap": "Detail of the radio remote controls"
+   }
+  ]
+ },
+ "3-7": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The remote's Human-Machine Interface (HMI) is NOT a touchscreen: the keypad keys located above the screen correspond to the icons displayed. The display changes according to the RodBot's state to provide the relevant information and control options."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Drill position and trajectory points (from rack to drill)",
+     "System STATUS indicator",
+     "Battery charge state indicator",
+     "Rack Positions",
+     "Operating mode type and mode indicator",
+     "Gripper state and magnet state",
+     "Slow / Fast mode",
+     "The yellow box indicates the selected item"
+    ]
+   }
+  ],
+  "figures": [
+   {
+    "page": 23,
+    "cap": "Remote screen (HMI): key / icon mapping"
+   },
+   {
+    "page": 24,
+    "cap": "Typical screen with status indicator labels"
+   }
+  ]
+ },
+ "3-8": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The battery charge level is shown at the top right of the remote's screen, as well as at the bottom of the electrical panel screen."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "If the remote loses radio contact or shuts off during operation (dead battery), the machine treats this as an emergency stop. Follow the procedure below to change the battery without triggering the stop."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Set the OPERATOR CONTROL selector to LOCAL.",
+     "Turn the remote OFF, by pressing the emergency stop on the remote or on the RRC.",
+     "Replace the battery.",
+     "Turn the remote ON.",
+     "Confirm that the radio link icon, at the bottom of the control monitor, is restored.",
+     "Return the OPERATOR CONTROL selector to the REMOTE position."
+    ]
+   },
+   {
+    "t": "p",
+    "text": "Charging and storage: the storage box on the machine contains a battery charger. Insert the battery into the charger and charging starts automatically."
+   }
+  ],
+  "figures": [
+   {
+    "page": 44,
+    "cap": "Radio remote charger and storage box"
+   }
+  ]
+ },
+ "4-0": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Navigation is done through the icons on the left sidebar: press an icon to open its page, press again to return to the main menu. The top bar groups the radio connection status, signal strength, active operating mode, overall controller status, as well as the PLC and PPU (Path Planning Unit) software versions."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Radio connection – green",
+      "Remote on and connected"
+     ],
+     [
+      "Radio connection – red",
+      "Remote not operational or not authorized"
+     ],
+     [
+      "Controller indicator – green",
+      "Systems operational"
+     ],
+     [
+      "Controller indicator – red",
+      "System powered off or in FAULT"
+     ],
+     [
+      "Controller indicator – yellow",
+      "Loading in progress or warning (non-fault)"
+     ]
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Pressing a highlighted status circle displays details of the relevant subsystem.",
+     "The \"System settings\" button opens two screens (navigate with the arrows at top right): Joystick curve factor (section 8.4) and Limit valve setpoint (section 8.5)."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Encoder calibration, joint tuning (PPU calibration) and the valve bypass screen can only be changed after administrator login. HMI credentials — user: opt / password: qwer."
+   }
+  ],
+  "figures": [
+   {
+    "page": 25,
+    "cap": "HMI home screen: top status bar and navigation buttons"
+   }
+  ]
+ },
+ "4-1": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The \"ALARMS\" button opens a table that helps diagnose RodBot anomalies and identify safety risks. Faults occur for various reasons: CAN network faults at startup, joints operated manually while the system is in remote mode, etc."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "System information",
+     "System warnings",
+     "System faults"
+    ]
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Check the STATUS column: a resolved fault shows as Inactive.",
+     "Press the row of the fault to clear.",
+     "Press the \"Clear fault\" button.",
+     "Navigate between the table pages using the arrows at top right."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Both active AND inactive faults must all be cleared before operation can resume."
+   }
+  ],
+  "figures": [
+   {
+    "page": 27,
+    "cap": "Example of the ALARMS screen with the STATUS column"
+   }
+  ]
+ },
+ "4-2": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The TRAJECTORY view is a real-time 3D model of the mast position and obstacles, as modeled by the path-planning software. You access it via the button in the lower-left corner of the HMI; pressing one of the four views enlarges it, pressing again returns to the previous screen."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Diagnose problems after a collision",
+     "Confirm encoder readings",
+     "Diagnose setpoint problems"
+    ]
+   },
+   {
+    "t": "p",
+    "text": "The objects perceived and avoided during planning include the upper limit, the lower limit, the drill mast, as well as the RodBot and its rod basket."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "The software cannot model every object in an underground mine. If an object to avoid does not appear on screen, you must add extra setpoints to route around it."
+   }
+  ],
+  "figures": [
+   {
+    "page": 28,
+    "cap": "TRAJECTORY view: four-view 3D model of the mast position"
+   },
+   {
+    "page": 29,
+    "cap": "Objects perceived and avoided: upper/lower limits, mast and rod basket"
+   }
+  ]
+ },
+ "4-3": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Encoder calibration is required if an encoder is replaced, or if it has loosened and slipped on the shaft. It consists of bringing the joint to its home position then resetting the \"zero point\"; without this reset, the encoder does not report the joint's exact orientation."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Power on the machine and set the remote to DIRECT mode.",
+     "Log in to the HMI with the administrator credentials (opt / qwer).",
+     "One joint at a time, move it to its indicated zero position, then press the corresponding button on the HMI.",
+     "Confirm that the value changes as it moves and that it goes to zero after pressing, as well as each time it returns to that stop."
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "J1 – Slew",
+      "Counterclockwise mechanical stop"
+     ],
+     [
+      "J2 – Articulation (shoulder)",
+      "Maximum up position"
+     ],
+     [
+      "J3 – Telescope",
+      "Fully retracted"
+     ],
+     [
+      "J4 – Slew joint (wrist)",
+      "Maximum down position"
+     ],
+     [
+      "J5 – Rotation",
+      "Counterclockwise to the mechanical stop"
+     ],
+     [
+      "J6 – Tilt",
+      "Tilt cylinder fully extended to the mechanical stop"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Since the encoders are very precise, slight variations are acceptable: the value may show 1° or 359° instead of 0°."
+   }
+  ],
+  "figures": [
+   {
+    "page": 31,
+    "cap": "Zero-point positions of joints J1 to J6"
+   }
+  ]
+ },
+ "4-4": {
+  "blocks": [
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Mechanical stops",
+      "+/- 165° (total travel 330°)"
+     ],
+     [
+      "Dead zone",
+      "30° directly in front of the robotic system"
+     ],
+     [
+      "Default software limits",
+      "10° and 320° (correspond to the mechanical stops)"
+     ]
+    ]
+   },
+   {
+    "t": "p",
+    "text": "Slew rotation can be further restricted by the software limits shown on the calibration screen. To change them, press the number on the screen and enter the desired value."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The OVERRIDE JOINT LIMITS button allows movement over the full travel up to the stops; the override resets as soon as the operator leaves the calibration screen."
+   }
+  ],
+  "figures": [
+   {
+    "page": 32,
+    "cap": "Slew rotation limits and front dead zone"
+   }
+  ]
+ },
+ "4-5": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The valve bypass screen appears when a valve fault occurs in one of the two valve blocks. It must only be used by an experienced operator. To toggle a bypass, press the \"Fault bypass\" box next to the faulted joint."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "A known, non-critical fault has occurred (for example an overheat) and the operator absolutely must keep running the machine.",
+     "A valve fault is present on the Crawl mode and Stabilizers block and the operator wants to keep using Arm mode — or the reverse."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "When a bypass button is activated, the system ignores ALL faults on that valve. This can be dangerous if the fault is critical or if it was preventing an imminent hazard to personnel or the machine."
+   }
+  ],
+  "figures": [
+   {
+    "page": 33,
+    "cap": "Valve fault bypass screen"
+   }
+  ]
+ },
+ "4-6": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The joystick curves set the sensitivity of the hydraulic actuators relative to the joystick commands: either more joystick travel for fine control, or a linear increase in joint speed. To change the curve, select the sensitivity on the HMI and confirm that the icon lights up."
+   },
+   {
+    "t": "p",
+    "text": "If the joints move too fast in DIRECT mode, the VALVE SETPOINT LIMITS screen lets you cap each joint's maximum speed: pushing the joystick fully then produces a lower valve flow, and therefore a reduced actuator speed. Press the joint's numeric value, enter the new percentage on the keypad, then confirm with Enter."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Available control curves",
+      "0 to 3"
+     ],
+     [
+      "Valve setpoint – maximum",
+      "100 % (cannot be exceeded)"
+     ],
+     [
+      "Valve setpoint – recommended minimum",
+      "10 %"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The restriction applies to both directions of the joint, but the actual speed may differ depending on gravity. For speeds > 100 % or < 10 %, consult MEDATech to obtain a different valve spool. A button lets you restore the factory default settings."
+   }
+  ],
+  "figures": [
+   {
+    "page": 34,
+    "cap": "Available joystick control curves (0 to 3)"
+   },
+   {
+    "page": 35,
+    "cap": "Per-joint valve setpoint limits screen"
+   }
+  ]
+ },
+ "4-7": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Joint tuning is required if the mast motion becomes jerky or hard to control in LINEAR and Trajectory modes, once encoder calibration is done. Two types exist: Threshold (the lowest valve setpoint needed to start motion) and Dynamic (delays and speeds matching a range of valve setpoints)."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Bring each joint to within 2° or 5 mm of its target position, in DIRECT mode.",
+     "Press the yellow button on the HMI: it turns green and the calibration screen appears on the radio remote (RRC).",
+     "On the RRC, use the selector to choose the joint under the appropriate type (Threshold or Dynamic).",
+     "Hold the left joystick to the left: the screen shows \"CALIBRATING\" and the joint runs two back-and-forth cycles (releasing before the end cancels).",
+     "Once done, the yellow dot turns green; repeat for each required joint.",
+     "Insert the red MEDATech USB key into the PPU's blue cable and wait 1 minute, then remove the key.",
+     "Send the \"medatech_calibration\" file to MEDATech service, which returns a \"cal.7z\" file.",
+     "Place \"cal.7z\" on the red USB key, reinsert it for 1 minute, then press the green button on the HMI to restart the PPU."
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Slew",
+      "25° clockwise first"
+     ],
+     [
+      "Articulation (shoulder)",
+      "50° down first"
+     ],
+     [
+      "Telescoping",
+      "140 mm outward first"
+     ],
+     [
+      "Slew joint (wrist)",
+      "30° up first"
+     ],
+     [
+      "Rotation",
+      "20° clockwise (joystick) first"
+     ],
+     [
+      "Tilt",
+      "40° to the right first"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "During calibration, the joints move without direct operator command and without sensing their surroundings. Stay alert to avoid any collision with the RodBot or an obstacle. Releasing the joystick stops the mast movement at any time; provide enough clearance, otherwise move the machine or contact MEDATech."
+   }
+  ],
+  "figures": [
+   {
+    "page": 36,
+    "cap": "Tuning pose: current position brought to the mast target position"
+   },
+   {
+    "page": 39,
+    "cap": "RRC calibration screen: current selection and status indicator"
+   }
+  ]
+ },
+ "4-8": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The diagnostics show the status of various control-system elements, such as component or network communications. The Diagnostics button on the HOME screen opens the first of three screens; these screens are informational only and non-interactive, except for the navigation arrows at top right."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Encoder Diagnostics",
+     "Valve Diagnostics",
+     "Electrical System Diagnostics"
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Interlock: the valves lose communication when they are not in their designated mode (CRAWL or MAST). CRAWL mode valves appear faulted when the system is in MAST mode, and vice versa — this is normal. Only be concerned if a valve is faulted while it is in its designated mode (e.g. SLEW valve faulted in MAST mode)."
+   }
+  ],
+  "figures": [
+   {
+    "page": 41,
+    "cap": "First diagnostic screen accessible from HOME"
+   }
+  ]
+ },
+ "5-0": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The RodBot has no onboard power source: it draws its electrical and hydraulic power from external sources supplied by the operator, usually mounted on the drill it serves. The RodBot and these sources are connected by 10 m link-cable assemblies, which lets it position itself freely relative to the drill."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "24 V DC cable (onboard electronics)",
+      "P/N 279708"
+     ],
+     [
+      "Emergency-stop cable (link to the parent drill circuit)",
+      "P/N 279729"
+     ],
+     [
+      "Packaging of the two cables",
+      "a single assembly in spiral wrap"
+     ],
+     [
+      "Connection to the RodBot control panel",
+      "connectors 2 and 4"
+     ]
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "The junction box mounts on the parent drill: it contains a power supply converting 120 V AC to 24 V DC and a connection point for the emergency-stop cable.",
+     "To keep the RodBot and parent drill emergency-stop circuits independent, install jumpers between 8-1 and 7-2 as per the wiring diagram.",
+     "If the parent drill provides sufficient 24 V (see section 1.1.3), the 24 V DC power supply can be omitted and the source connected directly to CONN1."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "The LP RodBot must be installed so that a barrier separates the operator from the machine and the drill, with control by radio remote from either side of this barrier. In case of unexpected movement of the telescopic mast (robotic arm) while no command is given, immediately press the emergency stop then diagnose the problem."
+   }
+  ],
+  "figures": [
+   {
+    "page": 45,
+    "cap": "Junction box mounting and 24 V DC / emergency-stop link cables"
+   },
+   {
+    "page": 46,
+    "cap": "Junction box wiring diagram; connection to connectors 2 and 4 of the RodBot panel"
+   }
+  ]
+ },
+ "5-1": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The RodBot's hydraulic functions are driven by an operator-supplied pump, usually an auxiliary pump mounted on the parent drill. The requirements for this source pump are stated in section 1.1.3."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Pressure line",
+     "Tank line",
+     "Load Sense line",
+     "Case drain line"
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Hydraulic link-hose assembly",
+      "P/N 278232, 10 m hoses"
+     ],
+     [
+      "Quick-connect bulkhead",
+      "P/N 278240"
+     ],
+     [
+      "Bulkhead mounting",
+      "2 3/8 in bolts"
+     ],
+     [
+      "Connection to the RodBot",
+      "at the manifold block"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Replacing the pump may require recalibration. The TRAJECTORY and LINEAR modes rely on set values for latency, ramp speed and maximum hydraulic supply pressure. If either of these modes (or both) performs unsatisfactorily after a pump change, contact MEDATech Engineering to schedule a recalibration."
+   }
+  ],
+  "figures": [
+   {
+    "page": 47,
+    "cap": "Link-hose assembly: pressure, tank, load sense, case drain"
+   },
+   {
+    "page": 48,
+    "cap": "Connection bulkhead (2 3/8 in bolts) and RodBot manifold block"
+   }
+  ]
+ },
+ "5-2": {
+  "blocks": [
+   {
+    "t": "steps",
+    "items": [
+     "Connect the RodBot to power using the link cable connected to the main drill's power box.",
+     "Wait for the HMI screen to light up (about 30 seconds).",
+     "Make sure the remote's emergency stop is released, then press the green start button to power up the equipment.",
+     "Follow the on-screen instructions on the remote to pair it by pressing the green start button again.",
+     "Follow the remote and HMI instructions to press the safety reset button located on the control panel.",
+     "Wait for the startup sequence to finish; the HMI shows the startup status before switching to STANDBY mode.",
+     "Once in STANDBY mode, the system is ready: operating modes are selected from the remote using the side buttons."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The HMI screen takes about 30 seconds to light up. The sequence always ends in STANDBY mode, which is the ready-to-use state."
+   }
+  ],
+  "figures": [
+   {
+    "page": 49,
+    "cap": "HMI screen and normal RodBot power-up sequence"
+   }
+  ]
+ },
+ "5-3": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The desired mode is selected from the radio remote, as per the diagram in section 6.7. Each mode restricts the accessible functions, which is a protection: only the commands matching the active mode are processed."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "STANDBY (or STARTUP)",
+      "safety mode: no command possible"
+     ],
+     [
+      "CRAWL",
+      "control of the track drives only"
+     ],
+     [
+      "STABILIZERS",
+      "control of the four cylinders (stabilizers) only"
+     ],
+     [
+      "DIRECT",
+      "control mode for the telescopic mast (robotic arm)"
+     ],
+     [
+      "LINEAR",
+      "second control mode for the telescopic mast"
+     ],
+     [
+      "TRAJECTORY",
+      "autonomous arm movement along predefined setpoints"
+     ]
+    ]
+   }
+  ],
+  "figures": [
+   {
+    "page": 50,
+    "cap": "Operating mode selection from the radio remote"
+   }
+  ]
+ },
+ "5-4": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "All functions can be operated \"manually\" by moving the hydraulic valve levers when the OPERATOR CONTROL selector is in the LOCAL position."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "If the levers are moved manually while the machine is in REMOTE mode, the safety system detects this action as a valve error and enters a protective-stop state, which cuts hydraulic power."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Set the machine to LOCAL mode using the switch on the low-voltage control panel.",
+     "Press the safety reset button to cancel the protective stop."
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Startup is possible if OPERATOR CONTROL is set to LOCAL; or",
+     "if OPERATOR CONTROL is on REMOTE and the radio remote is active, without its emergency stop pressed in.",
+     "Pressing \"SAFETY RESET\" restores the safety circuit and radio communication."
+    ]
+   }
+  ],
+  "figures": [
+   {
+    "page": 51,
+    "cap": "\"Tracks and Cylinders\" valve block and manual levers (maintenance only)"
+   }
+  ]
+ },
+ "5-5": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "To control the tracks from the remote, it must be set to CRAWL mode. Switching to CRAWL is impossible when the gripper jaws are closed. The manual levers on the \"Tracks and Cylinders\" block are used only for track maintenance (section 13.6): the RodBot ships with these levers disconnected and stored in the rear compartment."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Slew: oriented parallel to the machine frame",
+     "Hoist: fully lowered",
+     "Telescope: retracted",
+     "Wrist: pointed down",
+     "Gripper: open"
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Maximum speed — fast (Hi)",
+      "2.8 km/h"
+     ],
+     [
+      "Maximum speed — slow (Lo)",
+      "1.5 km/h"
+     ],
+     [
+      "Manual bypass valve",
+      "0.55 in square head, turn 90°"
+     ],
+     [
+      "Switch to fast speed (Hi)",
+      "clockwise rotation"
+     ],
+     [
+      "Switch to slow speed (Lo)",
+      "counterclockwise rotation"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "Never move the RodBot using the manual valves: the operator risks being struck or crushed by the vehicle. Always move the machine by radio remote. Before any move, visually inspect the path (personnel, obstacles, voids, unstable ground), never stand in front of or beside the machine, use a spotter if visibility is obstructed, and keep the hydraulic and electric link cables out of the path and the undercarriage — do not drive over them."
+   }
+  ],
+  "figures": [
+   {
+    "page": 52,
+    "cap": "Transport pose of the arm to adopt before any move"
+   },
+   {
+    "page": 53,
+    "cap": "Hi/Lo manual bypass valve (0.55 in square) of the track circuit"
+   }
+  ]
+ },
+ "5-6": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "STANDBY mode lets you pair the radio remote with the receiver, but no command from the remote is processed by the control system. It thus offers a safe mode to start the radio remote before switching to the work modes."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "In STANDBY mode, all safety functions (emergency stop and tilt switch) as well as the lights remain functional."
+   }
+  ],
+  "figures": [
+   {
+    "page": 54,
+    "cap": "Mast range of motion: 6-degrees-of-freedom positioning system"
+   }
+  ]
+ },
+ "6-0": {
+  "blocks": [
+   {
+    "t": "steps",
+    "items": [
+     "Close the gripper on the rod: press and hold the green GRIPPER button while toggling the GRIPPER switch down — both actions at the same time.",
+     "Open the gripper and release the rod: hold the green GRIPPER button and hold the GRIPPER lever up for at least 1 second."
+    ]
+   },
+   {
+    "t": "p",
+    "text": "The green GRIPPER button acts as a safety: it must stay pressed throughout the opening or closing operation, otherwise the command is not accepted by the system."
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "No worker should ever stand under the mast or the gripper. Stay alert to suspended items in underground mines (electrical cables, water and air lines, ventilation ducts): any contact of the telescopic mast with these networks can cause serious injury, death or property damage."
+   }
+  ],
+  "figures": [
+   {
+    "page": 55,
+    "cap": "Gripper control: green button and toggle operated at the same time"
+   },
+   {
+    "page": 56,
+    "cap": "Remote face: green GRIPPER button and gripper toggle"
+   }
+  ]
+ },
+ "6-1": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The choice of DIRECT or LINEAR is a matter of personal preference; for most operators and most of the time, LINEAR mode is the simplest. In DIRECT, the operator controls each joint (like a traditional crane, one actuator at a time or several); in LINEAR, they directly control the position of the gripper and the rod."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "DIRECT mode",
+      "Joint-by-joint control; WHITE lettering on the face"
+     ],
+     [
+      "LINEAR mode",
+      "Straight-line end-effector control; ORANGE label"
+     ],
+     [
+      "Left joystick (LINEAR)",
+      "Up/Down and Left/Right"
+     ],
+     [
+      "Right joystick (LINEAR)",
+      "In/Out"
+     ],
+     [
+      "Mast range",
+      "6 degrees of freedom; 330° slew between fixed stops (programmable soft stop)"
+     ]
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "FORWARD / BACKWARD — the mast moves the rod toward or away from the base in a straight line, in the horizontal plane.",
+     "UP / DOWN — the mast moves the rod in a straight line, up and down, in the same plane.",
+     "LEFT / RIGHT — slews the mast on its base (SLEW), as in manual control."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "In LINEAR mode, the control system manages all motion functions; the slew joint (wrist), rotation and tilt movements remain controllable independently, however, to fine-tune the end-effector positioning."
+   }
+  ],
+  "figures": [
+   {
+    "page": 57,
+    "cap": "LINEAR control (orange label) and left/right joystick assignment"
+   },
+   {
+    "page": 54,
+    "cap": "Mast range of motion at 6 degrees of freedom"
+   }
+  ]
+ },
+ "6-2": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "TRAJECTORY mode uses autonomous navigation and planning software that moves the mast through predefined setpoints while avoiding obstacles. It is accessible after activating LINEAR or DIRECT mode. Minimum required points: DRILL, WAIT, UPPER LIMIT and LOWER LIMIT."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Open the configuration screen: hold the LINEAR (or DIRECT) mode button for 3 seconds.",
+     "Grab a drill rod by its center (± 2\" / 5 cm).",
+     "Position the rod in the drill mast or the presenter.",
+     "With the trajectory-point selector, highlight DRILL (the green highlight indicates the active point).",
+     "Push the \"Save/Select\" switch up: a checkmark appears in the box of the on-screen icon."
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "RACK POINT 1",
+      "By default above and center of the rod basket; adjustable"
+     ],
+     [
+      "RACK POINT 2",
+      "2nd rack (on ground/off to the side), longer rods; ≥ 1' (30 cm) above the rack, parallel to storage"
+     ],
+     [
+      "WAIT",
+      "Point outside the mast; last segment = direct path to the rod string; often 1 to 2 feet from DRILL"
+     ],
+     [
+      "DRILL",
+      "Rod release and transfer point to the drill; mandatory"
+     ],
+     [
+      "POINT 1 / POINT 2",
+      "Optional waypoints to route around an obstacle"
+     ]
+    ]
+   },
+   {
+    "t": "p",
+    "text": "Example travel order: RACK POINT → POINT 2 → POINT 1 → WAIT → DRILL. To delete a saved point, highlight it and push the \"Save/Select\" switch down."
+   }
+  ],
+  "figures": [
+   {
+    "page": 59,
+    "cap": "Trajectory-point selectors and side view of an example automatic mode"
+   },
+   {
+    "page": 61,
+    "cap": "Top view: adding a waypoint to route around an obstruction"
+   }
+  ]
+ },
+ "6-3": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The Upper and Lower Limits are two operator-defined horizontal planes that prevent the mast and rod from entering certain zones. The software uses them to avoid any collision with pipes, the roof / back, a cross member or the floor. They are mandatory for using TRAJECTORY mode."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "The RodBot itself",
+     "The drill",
+     "The rod basket on the RodBot",
+     "The Back",
+     "The Floor"
+    ]
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Empty the gripper before lowering it (recommended).",
+     "Move the gripper above the ground, to the height below which the rod and the RodBot must not go — the plane is set by the gripper's center of gravity.",
+     "Usually at 30 cm from the ground, flick the switch up to set the lower plane.",
+     "Follow a similar procedure to set the Upper Limit."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "If a rod is detected in the gripper in TRAJECTORY mode, the planner assumes a 1.8 m (6') rod held within 5 cm (2\") of its center and generates a path so that no part of the pipe crosses a plane. Since the DRILL point sets the drill's mast position, it must be redefined for each new setup."
+   }
+  ],
+  "figures": [
+   {
+    "page": 62,
+    "cap": "Preset exclusion zones and Upper/Lower Limit planes around the mast"
+   },
+   {
+    "page": 63,
+    "cap": "Gripper center of gravity and upper/lower limit plane selectors"
+   }
+  ]
+ },
+ "6-4": {
+  "blocks": [
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "The RodBot has NO vision system: it detects neither workers, nor vehicles, nor equipment entering its work zone. Limit personnel traffic in the mast's work envelope and set up barriers, boundaries and operating restrictions in accordance with the mine's policies and procedures."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "If an unexpected movement occurs in automatic mode, immediately press one of the emergency-stop buttons, located on the remote or on the robotic system."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "As a safety measure, if the machine is put in CRAWL MODE and moves in this mode, all setpoints are deleted EXCEPT RACK POINT 1; all others must be reconfigured from the new location."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "The TRAJECTORY settings (points and limits) are kept even after power-off and restart. The procedures recommend deleting the points as well as the upper and lower limits at the end of each task, before moving on to the next setup."
+   }
+  ],
+  "figures": [
+   {
+    "page": 62,
+    "cap": "Mast work envelope — no presence detection in the zone"
+   }
+  ]
+ },
+ "6-5": {
+  "blocks": [
+   {
+    "t": "steps",
+    "items": [
+     "Confirm that all required trajectory points as well as the upper and lower limits are set.",
+     "With the trajectory-point selector, choose the destination: DRILL or WAIT, and RACK POINT 1 or 2.",
+     "Hold the yellow TRAJECTORY button and move the right lever: RIGHT for the RACK, LEFT for the DRILL.",
+     "Once the movement is started, release the yellow button: the mast continues the trajectory as long as the lever stays operated.",
+     "Releasing the joysticks immediately stops the mast movement."
+    ]
+   },
+   {
+    "t": "p",
+    "text": "On releasing the yellow button, the remote returns to the previous LINEAR or DIRECT mode. You can take back manual control at any time, then reactivate TRAJECTORY (yellow button + right lever): a new collision-free path is then generated to the chosen destination. The mode only works as long as a collision-free path is possible."
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Right lever directions: RIGHT = RACK, LEFT = DRILL."
+   }
+  ],
+  "figures": [
+   {
+    "page": 64,
+    "cap": "Yellow TRAJECTORY button and right lever to start the autonomous move"
+   },
+   {
+    "page": 65,
+    "cap": "Linear mode selected: moving the rod to the DRILL or the RACK"
+   }
+  ]
+ },
+ "6-6": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The RodBot frame has alignment features ensuring correct positioning of the rod basket. The basket is not rigidly fixed by bolts or clamps: it is held in place only by the frame's retaining devices."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Engage the basket's fork pockets into the frame profiles.",
+     "Position the basket laterally between the two frame retaining tabs.",
+     "Confirm that the basket is properly held by these devices before any handling."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "Since the basket rests on retainers and is not bolted, check its proper engagement and alignment before loading rods or moving the machine."
+   }
+  ],
+  "figures": [
+   {
+    "page": 65,
+    "cap": "Rod basket alignment: fork pockets and frame retaining tabs"
+   }
+  ]
+ },
+ "7-0": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The troubleshooting guide (section 12) presents each symptom in the form Failure / Possible cause / Check-Solution. Always start with the simplest checks (control mode, emergency stops, remote battery) before investigating the hydraulics or the encoders."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Does not power on (REMOTE mode, remote OFF)",
+      "Set OPERATOR CONTROL to LOCAL, turn on the remote, press SAFETY RESET"
+     ],
+     [
+      "Does not power on (emergency stop pressed)",
+      "Reset the emergency-stop button(s), then SAFETY RESET"
+     ],
+     [
+      "Stops in REMOTE mode (remote e-Stop)",
+      "Reset the e-Stop, set the remote bypass to ON, SAFETY RESET, restart"
+     ],
+     [
+      "Radio remote does not power on",
+      "Replace or recharge the battery; check that the key is present in the remote"
+     ],
+     [
+      "Mast functions abnormally slow",
+      "Switch from SLOW (TURTLE) mode to FAST (RABBIT) mode"
+     ],
+     [
+      "Does not work in AUTO or on the TIP",
+      "Check the encoders and their wiring on the HMI screen"
+     ],
+     [
+      "Base rotation range too limited",
+      "Reset the software stops (section 8.2); a 2-3° gap from the mechanical stops is normal"
+     ],
+     [
+      "Erratic mast or unpredictable trajectory",
+      "Check encoders, fasteners and zero points; recalibrate the mast (section 8.6)"
+     ]
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "The remote must be ON before setting the selector to REMOTE; the tilt switch blocks turn-on if the unit is not held horizontal.",
+     "If the mast does not move while everything seems ready: check error messages, power to the check-valve coil connector, oil supply / load-sense line, proper tightening of the hoses on the drill, and that the radio receiver is powered."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "note",
+    "text": "For any assistance beyond this manual, contact the MEDATech team: service@medatech.ca or +1 (705) 443-8440, ext. 4."
+   }
+  ],
+  "figures": []
+ },
+ "7-1": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Regular maintenance is essential to the safe, reliable and efficient operation of the RodBot. This section is for qualified maintenance personnel. The manual is not a detailed overhaul guide: contact MEDATech engineering services for any task not covered."
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "Before any maintenance — including washing — power off the RodBot, disconnect the electrical supply and apply the lockout-tagout (LOTO) procedure on all electrical systems."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Some devices store hydraulic energy, such as cylinders fitted with counterbalance valves; this energy can remain present even when powered off."
+   },
+   {
+    "t": "ul",
+    "items": [
+     "Only qualified personnel should carry out repairs, troubleshooting or maintenance.",
+     "Follow safe practices and local requirements for any work at height.",
+     "Perform maintenance with the articulation (shoulder) horizontal or lower, to avoid unnecessary work at height."
+    ]
+   }
+  ],
+  "figures": []
+ },
+ "7-2": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The RodBot can and should be cleaned, but never spray the electrical components directly (rotary encoders, electrical panel). Although water-resistant, the pressure of a direct pressure-washer jet could damage their seals."
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Washing counts as maintenance: lock out and power off the equipment before cleaning."
+   }
+  ],
+  "figures": []
+ },
+ "7-3": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Regular inspections serve both operator safety and the early detection of potentially costly failures. Any problem found must be reported immediately to management and/or maintenance personnel."
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Inspect hoses, hydraulic lines and electrical cables (damage/leaks)",
+      "Daily"
+     ],
+     [
+      "Test the RodBot without a rod (movement as expected)",
+      "Daily"
+     ],
+     [
+      "Confirm that all emergency stops are functional",
+      "Weekly"
+     ],
+     [
+      "Lubricate the linkage pivot points and the slew rings",
+      "Weekly"
+     ],
+     [
+      "Adjust the telescopic joint wear pads",
+      "As needed"
+     ],
+     [
+      "Check the oil level of the track drive gearbox",
+      "Every 500 h"
+     ],
+     [
+      "Drain and replace the track drive gearbox oil",
+      "Every 2,000 h"
+     ],
+     [
+      "Inspect the tracks",
+      "Weekly"
+     ],
+     [
+      "Inspect the mechanical structures (deformation, weld cracks)",
+      "Weekly"
+     ]
+    ]
+   }
+  ],
+  "figures": []
+ },
+ "7-4": {
+  "blocks": [
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Hydraulic oil",
+      "ISO 46 viscosity grade"
+     ],
+     [
+      "Grease for mechanical joints",
+      "EP2"
+     ],
+     [
+      "Final drive gearbox oil",
+      "SAE 80W90"
+     ]
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "4 grease points on the base slew ring",
+     "4 grease points on the rotation slew ring",
+     "2 grease points on the tilt cylinder"
+    ]
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Grease the joint through the slew ring grease fittings.",
+     "Move the joint about 30 degrees.",
+     "Repeat until the full range of motion has been covered, for complete lubrication of the ring."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "Do not move the slew joints while a technician is within the machine's working radius."
+   }
+  ],
+  "figures": [
+   {
+    "page": 73,
+    "cap": "Grease points on the slew rings (grease fittings circled in green)"
+   }
+  ]
+ },
+ "7-5": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "The telescope slide is guided by a set of eight plastic pads (pucks) that slide against the surface of the inner boom during extension and retraction. Over time, these pads wear and need adjustment to minimize play and float in the arm."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Move the mast to a horizontal position above the basket.",
+     "Extend the boom to 3 in from its retracted position.",
+     "Power off the machine.",
+     "Loosen the locknuts of all the adjustment screws.",
+     "Unscrew all the screws until they are loose or the inner boom touches the outer boom.",
+     "Pads 1 and 2: tighten or loosen until an 11-gauge steel plate (~1/8 in) fits between the inner boom's wear strip and the outer boom's shell.",
+     "Screws 3 and 4: do not tighten them, but make sure they are seated and not loose.",
+     "Repeat the 11-gauge plate adjustment for pads 7 and 8.",
+     "Repeat the seated (no-tightening) adjustment for pads 5 and 6.",
+     "Tighten the locknuts."
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "In case of binding or loud noises: loosen pads 3, 4, 5 and 6 until the desired result.",
+     "Apply grease to the inner boom rails.",
+     "Check for the absence of rubbing on the boom end stops or on the outer boom weld bead."
+    ]
+   },
+   {
+    "t": "p",
+    "text": "Replacement: if the bolt head bottoms out against the locknut, replace the pad — loosen the locknut, remove the 3 3/8 in bolts from the closure plate (item 1), remove the metal thrust plate (item 2) and the pad (item 3), then reassemble in reverse order, adjust the screws per the procedure above and retighten the locknut."
+   }
+  ],
+  "figures": [
+   {
+    "page": 74,
+    "cap": "Telescope wear pads and location of the adjustment screws"
+   },
+   {
+    "page": 75,
+    "cap": "Closure plate assembly (item 1), thrust plate (item 2) and pad (item 3)"
+   }
+  ]
+ },
+ "7-6": {
+  "blocks": [
+   {
+    "t": "p",
+    "text": "Tension: the track sag (slack) must measure between 20 and 25 mm, checked using a straightedge and a tape measure. Never let the sag exceed 30 mm and avoid over-tensioning."
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Access the track adjustment valve, located behind the nameplate.",
+     "To tension: inject grease into the cylinder using a grease gun.",
+     "To slacken: slowly unscrew the valve to release grease."
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "New",
+      "22 mm"
+     ],
+     [
+      "25 % wear",
+      "18.5 mm"
+     ],
+     [
+      "50 % wear",
+      "15 mm"
+     ],
+     [
+      "75 % wear",
+      "11.5 mm"
+     ],
+     [
+      "Wear limit (100 %)",
+      "8 mm"
+     ]
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "warn",
+    "text": "Track pad wear is measured by dimension \"X\": replace the track as soon as X is below 8 mm."
+   }
+  ],
+  "figures": [
+   {
+    "page": 75,
+    "cap": "Checking track sag (20 to 25 mm) with a straightedge and tape"
+   },
+   {
+    "page": 76,
+    "cap": "Measuring pad wear (dimension X) and tension adjustment fitting behind the nameplate"
+   }
+  ]
+ },
+ "7-7": {
+  "blocks": [
+   {
+    "t": "ul",
+    "items": [
+     "Autonomous travel (tramming)",
+     "Ground towing",
+     "Forklift or telehandler",
+     "Towing on a lowboy trailer",
+     "Before any move, position the arm in the prescribed pose: the maximum grade is calculated for this pose, and any deviation shifts the center of gravity and reduces stability."
+    ]
+   },
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Frame anchor points",
+      "4 points (tie-down, towing, lifting)"
+     ],
+     [
+      "Rod basket lifting points",
+      "4 points 9/16 in in diameter"
+     ],
+     [
+      "Fork lifting",
+      "Fork passages on the side of the frame and on the rod basket"
+     ]
+    ]
+   },
+   {
+    "t": "steps",
+    "items": [
+     "Disable the SAHR brake (spring-applied, hydraulically released): remove the plug from both track assemblies using an M16 hex wrench, which puts the machine in neutral.",
+     "Firmly secure the machine to the towing vehicle before disengaging the drive hubs.",
+     "After towing, reinstall the plugs before any use."
+    ]
+   },
+   {
+    "t": "warn",
+    "w": "danger",
+    "text": "Always firmly secure the machine before disengaging the hubs: otherwise, risk of uncontrolled movement and serious injury. The hub must be replaced after towing to restore braking — operating the machine without brakes endangers all personnel and equipment in the area."
+   }
+  ],
+  "figures": [
+   {
+    "page": 77,
+    "cap": "Arm pose to adopt before any move of the machine"
+   },
+   {
+    "page": 78,
+    "cap": "SAHR brake disable plug to remove with an M16 hex wrench"
+   }
+  ]
+ },
+ "7-8": {
+  "blocks": [
+   {
+    "t": "specs",
+    "rows": [
+     [
+      "Appendix A — Administrator login",
+      "User: opt / Password: qwer"
+     ],
+     [
+      "Appendix B — PPU reset",
+      "Hold the PPU power button 5 s, then wait 60 s"
+     ],
+     [
+      "Appendix C — AUTEC pairing",
+      "Pairing a spare remote/receiver (factory-paired)"
+     ],
+     [
+      "Appendix D — PPU update",
+      "taiga.7z file on a blank USB key"
+     ],
+     [
+      "Appendix E — Data logger",
+      "MEDATech-Datalogger Wi-Fi / logger.local dashboard"
+     ]
+    ]
+   },
+   {
+    "t": "steps",
+    "items": [
+     "PPU reset (Appendix B) — Press and hold the PPU power button for five (5) seconds.",
+     "Confirm that the USB port is powered and/or wait 60 seconds to see if the PPU error clears.",
+     "If this does not work, contact MEDATech for assistance."
+    ]
+   },
+   {
+    "t": "steps",
+    "items": [
+     "PPU software update (Appendix D) — Copy the taiga.7z file to the root directory of a blank USB key.",
+     "With the system running, plug the key into the PPU's USB cable and install the update.",
+     "Wait at least 10 minutes, then turn off the device; remove the USB key and power back on.",
+     "On the HMI home screen, confirm that the PPU version number has been updated."
+    ]
+   },
+   {
+    "t": "ul",
+    "items": [
+     "PPU data logger (Appendix E): with the machine powered, a \"MEDATech-Datalogger\" Wi-Fi network appears.",
+     "SSID: MEDATech-Datalogger — Password: Medatech123; dashboard accessible via the prompt or at the address logger.local.",
+     "\"Logs\" sub-page: UDP (PPU) and CAN logs downloadable in 5-minute intervals."
+    ]
+   }
+  ],
+  "figures": [
+   {
+    "page": 81,
+    "cap": "PPU power button to hold for 5 s for the reset"
+   },
+   {
+    "page": 86,
+    "cap": "HMI home screen showing the PPU software version"
+   }
+  ]
+ }
+};
+
+var QUIZ2_EN = {"0":[{"type":"vf","text":"The RodBot LP has its own onboard power source (engine or batteries).","options":["True","False"],"correct":1,"page":6,"fb":"The RodBot has no onboard power source: it draws both its electrical AND hydraulic supply from a cabled connection to the drill. This cable also links the emergency-stop circuits of the two machines."},{"type":"multi","text":"Among these modes, which ones control the MAST (robotic arm)? Check all correct answers.","options":["DIRECT","LINEAR","CRAWL","TRAJECTORY"],"correct":[0,1,3],"page":6,"fb":"DIRECT, LINEAR and TRAJECTORY are the three mast control modes. CRAWL, on the other hand, only controls the tracks (moving the machine)."},{"type":"order","text":"Rank the three mast control modes, from most manual to most automated.","options":["TRAJECTORY","DIRECT","LINEAR"],"correct":[1,2,0],"page":6,"fb":"DIRECT (each joint controlled separately) → LINEAR (the end effector follows straight lines) → TRAJECTORY (autonomous movement between recorded points)."},{"type":"cloze","text":"The maximum lifting load per electromagnet is _____ lb.","options":["120","308","500"],"correct":0,"page":8,"fb":"120 lb per electromagnet. The general-purpose maximum lifting load is higher: 308 lb."},{"type":"qcm","text":"What is the capacity of the rod basket?","options":["20 rods","35 rods","50 rods"],"correct":1,"page":8,"fb":"The basket holds 35 rods (Ø 5 in × 6 ft)."}],"1":[{"type":"qcm","text":"Who is authorized to commission and operate the RodBot?","options":["Any mine employee","Trained, authorized and fit personnel","Anyone accompanied by a supervisor"],"correct":1,"page":10,"fb":"Only personnel trained on the equipment, authorized, aware of the hazards and in good physical and mental condition may operate it."},{"type":"vf","text":"In the event of a hydraulic fluid injection injury under the skin, it is enough to apply a bandage and monitor it.","options":["True","False"],"correct":1,"page":11,"fb":"FALSE — this is an emergency: contact medical services immediately. A subcutaneous injection of high-pressure fluid can lead to gangrene and severe reactions."},{"type":"cloze","text":"Outdoors, the system must not be used in high winds above _____ km/h.","options":["45","65","90"],"correct":1,"page":11,"fb":"65 km/h. The system must also not be used during a thunderstorm."},{"type":"multi","text":"Where are the four emergency stops located? Check the four correct locations.","options":["Low-voltage control panel (below the HMI)","On the rod basket","Radio remote (center, bottom)","RodBot chassis (lower front right corner)","Manual controls (at the rear)"],"correct":[0,2,3,4],"page":12,"fb":"The 4 e-Stops: low-voltage panel, radio remote, chassis (lower front right corner) and rear manual controls. Nothing on the rod basket. A coupled e-Stop stops both the RodBot AND the drill."},{"type":"order","text":"Rank the manual's three pictograms from most severe to least severe.","options":["CAUTION","DANGER","WARNING"],"correct":[1,2,0],"page":10,"fb":"DANGER (life-threatening situation) → WARNING (safety-critical information) → CAUTION (preventing injury/property damage)."}],"2":[{"type":"qcm","text":"Which function does mast segment J1 correspond to?","options":["The TELESCOPE","The SLEW","The TILT"],"correct":1,"page":13,"fb":"J1 = SLEW. The segments run from J1 (slew) to J6 (tilt), with the end effector being the GRIPPER."},{"type":"vf","text":"In LOCAL mode, the motion signals sent by the radio remote are acted upon.","options":["True","False"],"correct":1,"page":14,"fb":"FALSE — in LOCAL mode, the remote's motion signals are ignored and the 'No Radio' icon is displayed. The OPERATOR CONTROL switch must be set to REMOTE."},{"type":"cloze","text":"To operate the radio remote, the panel's OPERATOR CONTROL switch must be in the _____ position.","options":["LOCAL","REMOTE","STANDBY"],"correct":1,"page":14,"fb":"REMOTE. In LOCAL, radio motion commands are ignored."},{"type":"qcm","text":"What happens to the two hydraulic isolation valves in the event of a power failure?","options":["They stay in their last state","They open to release the pressure","They close — no more hydraulic operation"],"correct":2,"page":16,"fb":"Normally closed, they default to closed on a power loss: all hydraulic operation becomes impossible (they can be forced open by hand, counterclockwise)."},{"type":"order","text":"Put the first three mast segments back in order J1 → J2 → J3.","options":["TELESCOPE","SLEW","JOINT (shoulder)"],"correct":[1,2,0],"page":13,"fb":"J1 SLEW → J2 JOINT (shoulder) → J3 TELESCOPE."}],"3":[{"type":"vf","text":"Removing the physical key from the remote during operation has no consequences.","options":["True","False"],"correct":1,"page":17,"fb":"FALSE — without the key the RRC will not power on, and removing it during operation breaks the link with the receiver and triggers a stop."},{"type":"qcm","text":"By how much does Slow mode (Turtle) reduce joint speed?","options":["25%","50%, except the gripper","75%, including the gripper"],"correct":1,"page":19,"fb":"Turtle applies −50% to all joints in DIRECT, LINEAR and TRAJECTORY modes — except the gripper, which keeps its speed."},{"type":"qcm","text":"The remote is tilted or falls to the ground. What does the RodBot do?","options":["It continues its movement","It goes into a safety stop: hydraulics cut off","It triggers the drill's wired e-Stop"],"correct":1,"page":19,"fb":"The tilt switch puts the RodBot into a safety stop (hydraulics cut off) WITHOUT triggering the drill's wired e-Stop. It returns to standby as soon as the RRC is brought back to horizontal with the joysticks at neutral."},{"type":"vf","text":"A FLASHING amber beacon means the mast is in TRAJECTORY mode or the machine is moving (CRAWL).","options":["True","False"],"correct":0,"page":20,"fb":"TRUE. Beacon: steady = remote control active · flashing = trajectory or movement · off = LOCAL mode."},{"type":"order","text":"To change the battery WITHOUT triggering an emergency stop, put the steps back in order.","options":["Set the selector back to REMOTE","Set the OPERATOR CONTROL selector to LOCAL","Replace the battery","Turn off the RRC (emergency stop)","Turn the RRC back ON"],"correct":[1,3,2,4,0],"page":44,"fb":"LOCAL → turn off the RRC (e-Stop) → replace the battery → RRC ON → check the radio link → set the selector back to REMOTE."}],"4":[{"type":"qcm","text":"Before resuming operation after faults, what must be cleared?","options":["Only the active faults","Both active AND inactive faults","Restart the machine, nothing else"],"correct":1,"page":27,"fb":"All faults, both active AND inactive, must be cleared (select the row, then 'Clear fault')."},{"type":"cloze","text":"The slew mechanical stops are at ±165°, giving a total travel of _____°.","options":["180","330","360"],"correct":1,"page":32,"fb":"330° (±165°, with a 30° dead zone at the front). The default software limits are 10° and 320°."},{"type":"vf","text":"A valve error bypass ignores only the specific selected fault.","options":["True","False"],"correct":1,"page":32,"fb":"FALSE — an active bypass ignores ALL faults on that valve. Reserved for an experienced operator, only for a known non-critical fault."},{"type":"qcm","text":"The mast becomes jerky in LINEAR mode even though the encoders are properly calibrated. What should you do?","options":["A joint adjustment (PPU calibration)","Replace the pump","Switch to Rabbit mode"],"correct":0,"page":35,"fb":"A joint calibration (PPU): adjusting the Threshold and Dynamics. During calibration, the joints move without direct command — allow for the required clearance."},{"type":"vf","text":"CRAWL-mode valves showing a fault DURING MAST mode indicate a serious problem.","options":["True","False"],"correct":1,"page":41,"fb":"FALSE — this is normal: valves outside their designated mode show a fault. Only be concerned if the fault appears in the designated mode."}],"5":[{"type":"qcm","text":"How must the RodBot be set up relative to the operator?","options":["A barrier separates them — radio control from either side","Side by side for better visibility","It doesn't matter, the radio reaches 100 m"],"correct":0,"page":45,"fb":"A BARRIER must separate the operator from the machine and the drill; control is done by radio from either side. The RodBot has no vision system."},{"type":"vf","text":"You can switch to CRAWL mode (movement) even if the gripper jaws are closed.","options":["True","False"],"correct":1,"page":51,"fb":"FALSE — switching to CRAWL is impossible if the gripper jaws are closed."},{"type":"multi","text":"What is the transport pose to adopt before any movement? Check all the conditions.","options":["Slew parallel to the chassis","Hoist lowered fully","Gripper closed on a rod","Telescope retracted","Wrist pointing down","Gripper open"],"correct":[0,1,3,4,5],"page":51,"fb":"Transport pose: slew parallel to the chassis, hoist lowered, telescope retracted, wrist down, gripper OPEN. A gripper closed on a rod is not part of it (and prevents CRAWL)."},{"type":"qcm","text":"A manual lever is operated while the machine is in REMOTE mode. What happens?","options":["The lever takes priority","Valve error → protective stop, hydraulics cut off","The movement adds to the radio command"],"correct":1,"page":50,"fb":"The system detects a valve error and goes into a protective stop (hydraulics cut off). To clear: switch to LOCAL + safety reset button."},{"type":"order","text":"Put the first steps of the start-up sequence back in order.","options":["Press the green start button","Connect the RodBot to the power supply (link cable)","Press the panel's safety reset","Wait for the HMI to power up (~30 s)"],"correct":[1,3,0,2],"page":49,"fb":"Connect the power supply → wait for the HMI (~30 s) → green start button (then pair the RRC) → safety reset → sequence ends in STANDBY mode."}],"6":[{"type":"qcm","text":"How do you open the gripper (jaws)?","options":["Hold the green GRIPPER button + hold the rocker up ≥ 1 s","A single press of the rocker","A quick double-press of the green button"],"correct":0,"page":55,"fb":"OPEN: hold the green GRIPPER button + hold the rocker up for at least 1 second (protection against dropping rods). CLOSE: green button + rocker down."},{"type":"vf","text":"The RodBot automatically detects a person entering its work area.","options":["True","False"],"correct":1,"page":63,"fb":"FALSE — the RodBot has NO vision system: it detects neither personnel, nor vehicles, nor equipment. Barriers and access restrictions are mandatory."},{"type":"multi","text":"Which points/limits are MANDATORY to use TRAJECTORY mode? Check all.","options":["DRILL","POINT 1","WAIT","UPPER LIMIT","LOWER LIMIT"],"correct":[0,2,3,4],"page":61,"fb":"TRAJECTORY prerequisites: DRILL, WAIT and the upper and lower LIMITS. POINT 1 (and POINT 2) are only optional waypoints."},{"type":"qcm","text":"After moving in CRAWL mode, what happens to the recorded setpoints?","options":["They are all kept","They are all deleted except DECK POINT 1","They are converted to default points"],"correct":1,"page":63,"fb":"Built-in safety: switching to CRAWL and moving the machine deletes all points EXCEPT DECK 1. The others must be redefined from the new location."},{"type":"cloze","text":"The rod basket is not rigidly fixed: it is not _____, only held by the chassis retention devices.","options":["bolted","painted","graduated"],"correct":0,"page":65,"fb":"It is not bolted: fork pockets + retention brackets ensure its alignment and holding."}],"7":[{"type":"qcm","text":"Before any maintenance — including washing — what must you do?","options":["Power down, disconnect and apply lockout-tagout (LOTO)","Switch to STANDBY mode","Close the gripper"],"correct":0,"page":71,"fb":"Powered down, power supply disconnected and LOTO on all systems — washing counts as maintenance. Warning: some cylinders with counterbalance valves store hydraulic energy."},{"type":"qcm","text":"The mast functions are abnormally slow. Most likely cause?","options":["Worn pump","Slow mode (Turtle) is active → switch to Rabbit","Low RRC battery"],"correct":1,"page":67,"fb":"Slow mode (Turtle) reduces speed by 50%. Switch to Fast mode (Rabbit)."},{"type":"cloze","text":"The correct track sag (slack) is between 20 and _____ mm.","options":["25","30","40"],"correct":0,"page":75,"fb":"20 to 25 mm. Never exceed 30 mm or over-tension. Replace the track when the 'X' wear drops below 8 mm."},{"type":"vf","text":"After towing, it is not necessary to reinstall the SAHR brake plugs.","options":["True","False"],"correct":1,"page":76,"fb":"FALSE — without the SAHR plugs reinstalled, the machine has NO brakes. Towing requires removing the plugs from both tracks (M16 wrench) after securing the machine, then reinstalling them afterward."},{"type":"qcm","text":"Which hydraulic oil is approved for the RodBot?","options":["ISO 46","SAE 80W90","ATF Dexron III"],"correct":0,"page":72,"fb":"Hydraulic oil of viscosity grade ISO 46. Joint grease: EP2. Final drive gearbox oil: SAE 80W90."}]};
+
+var RRC_SPOTS_EN = [
+  { x:50, y:22, name:"Remote display", page:23, desc:"Non-touch screen: the keypad buttons above correspond to the on-screen icons (MAGNET, TRAJ, LINEAR on the left; DIRECT, STABS, CRAWL on the right). It shows the system status, the active mode, the gripper and magnet status, the battery and the trajectory points. The yellow box marks the selected item." },
+  { x:26, y:52, name:"Left joystick (JS1)", page:21, desc:"Proportional, self-centering. In DIRECT: slew (L/R) and hoist (U/D). In LINEAR: end effector up/down and left/right. The detented JAW TILT thumbwheel on top controls the jaw tilt (J6)." },
+  { x:73, y:50, name:"Right joystick (JS2)", page:21, desc:"In DIRECT: telescope (extend/retract) and wrist (U/D). In LINEAR: end effector toward the drill or toward the basket. In TRAJECTORY: held right = toward the DECK, held left = toward the DRILL. JAW ROTATE thumbwheel: jaw rotation (J5)." },
+  { x:50.5, y:74, name:"Emergency stop (e-Stop)", page:18, desc:"Red mushroom button wired to a relay in series with the e-Stops of the RodBot and the parent drill: one press stops BOTH machines. Warning: in LOCAL mode, this button does not work. Click it to test!", estop:true },
+  { x:40.5, y:76, name:"TRAJ button (yellow)", page:64, desc:"Activates TRAJECTORY mode: hold this button + right joystick to start the automatic movement of the mast between the recorded points. Once the movement has begun, the button can be released; releasing the joystick stops the mast." },
+  { x:60, y:76, name:"GRIPPER button (green)", page:55, desc:"Gripper activation — two simultaneous actions required: CLOSE = green button + rocker down. OPEN = hold green button + hold rocker up for at least 1 second (protection against dropping rods)." },
+  { x:41, y:60, name:"Trajectory point (selection)", page:58, desc:"Setpoint selection switch (DECK, WAIT, DRILL, POINT 1-2…). To access the setup screen: hold the DIRECT or LINEAR button for 3 seconds." },
+  { x:59.5, y:60, name:"SAVE / DELETE", page:58, desc:"Saves (up — a checkmark appears on screen) or deletes (down) the selected trajectory point. The upper and lower anti-collision limits are set the same way." },
+  { x:20.5, y:76, name:"Electromagnet (ON / OFF)", page:21, desc:"Controls the gripper electromagnet to pick up rods one at a time — maximum lifting load of 120 lb per magnet." },
+  { x:26, y:76, name:"Fast / Slow (Rabbit-Turtle)", page:19, desc:"Scaling factor applied to all joints in DIRECT, LINEAR and TRAJECTORY modes. Turtle = speed reduced by 50% — except the gripper, which keeps its speed." },
+  { x:33.5, y:76, name:"Horn & beacon", page:21, desc:"Audible alarm and lights. The horn sounds automatically at every mode change to warn nearby personnel." },
+  { x:79, y:76, name:"MAST / CRAWL", page:50, desc:"Selects the major modes: mast control (DIRECT / LINEAR / TRAJECTORY) or machine movement (CRAWL — tracks). Switching to CRAWL is impossible if the gripper jaws are closed." },
+  { x:11, y:86, name:"Tilt switch (internal)", page:19, desc:"Internal sensor: if the remote is tilted or falls (operator in distress), the RodBot goes into a safety stop — hydraulic supply cut off. Return to horizontal + joysticks at neutral = automatic return to standby. Test it at the start of every shift." }
+];
+
+var SIM_MODES_EN = [
+  { id:"VEILLE",   tag:"SAFETY", desc:"No command is processed. E-Stop, tilt switch and lights remain active. Safe mode for pairing the remote.", beacon:"on",    tracks:false, mast:false },
+  { id:"RALENTI",  tag:"TRAM",     desc:"Machine movement — tracks only. Prohibited if the gripper jaws are closed. The beacon flashes to warn personnel.", beacon:"blink", tracks:true, mast:false },
+  { id:"STABILISATEURS", tag:"TRAM", desc:"Controls the 4 stabilizer cylinders only.", beacon:"on", tracks:true, mast:false },
+  { id:"DIRECT",   tag:"MAST",      desc:"Each mast joint is controlled individually with the joystick, like a conventional crane (white markings).", beacon:"on", tracks:false, mast:true },
+  { id:"LINÉAIRE", tag:"MAST",      desc:"The end effector follows straight X-Y-Z lines: the system coordinates several valves simultaneously (orange labels). The simplest for most operators.", beacon:"on", tracks:false, mast:true },
+  { id:"TRAJECTOIRE", tag:"MAST",   desc:"The mast moves automatically between the recorded points while avoiding collisions. Prerequisites: DRILL, WAIT and defined limits. The beacon flashes.", beacon:"blink", tracks:false, mast:true },
+  { id:"LOCAL",    tag:"PANEL",  desc:"Control by manual levers only. Radio signals are ignored — and the remote's e-Stop DOES NOT WORK. Beacon off.", beacon:"off", tracks:false, mast:false }
+];
 
 /* --------- Démarrage --------- */
 var __deferredPrompt = null;
@@ -1052,10 +3596,13 @@ try {
 
 function bootRodbot() {
   ROOT = document.getElementById('app');
-  var tplSrc = document.getElementById('rb-template').textContent;
-  var doc = new DOMParser().parseFromString('<div id="rb-wrap">' + tplSrc + '</div>', 'text/html');
-  TPL_ROOT = doc.getElementById('rb-wrap');
   COMP = new Component({});
+  // Choisit le gabarit selon la langue enregistrée (repli sur FR si l'anglais manque)
+  var tplId = (COMP.state.lang === 'en') ? 'rb-template-en' : 'rb-template';
+  var tplNode = document.getElementById(tplId) || document.getElementById('rb-template');
+  var doc = new DOMParser().parseFromString('<div id="rb-wrap">' + tplNode.textContent + '</div>', 'text/html');
+  TPL_ROOT = doc.getElementById('rb-wrap');
+  try { document.documentElement.setAttribute('lang', COMP.state.lang); } catch (e) {}
   fullRender();
   // PWA : installation + usage hors-ligne (service worker)
   // Mise à jour automatique : quand une nouvelle version est déployée, le nouveau
