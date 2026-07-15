@@ -58,52 +58,10 @@
       <section class="mr-ghost mr-ghost-dark mr-grain" data-ghost="RodBot" style="position:relative;background:#141413;color:#FAF9F5;overflow:hidden">
         <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%)"></div>
 
-        <!-- ===== MACHINE ANIMÉE EN ARRIÈRE-PLAN (cycle de travail du RodBot) ===== -->
-        <div aria-hidden="true" class="rb-hero-machine" style="position:absolute;right:-1%;bottom:-2%;top:2%;width:min(1040px,72%);pointer-events:none;z-index:0;mask-image:linear-gradient(90deg,transparent 0%,#000 30%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 30%)">
-          <svg class="rb-anim" viewBox="0 0 640 430" preserveAspectRatio="xMidYMax meet" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
-            <line x1="10" y1="400" x2="640" y2="400" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
-            <g fill="none" stroke="rgba(255,255,255,.17)" stroke-width="2">
-              <rect x="40" y="364" width="152" height="36"/>
-              <line x1="56" y1="373" x2="176" y2="373"/><line x1="56" y1="382" x2="176" y2="382"/><line x1="56" y1="391" x2="176" y2="391"/>
-            </g>
-            <g fill="none" stroke="rgba(255,255,255,.17)" stroke-width="2">
-              <rect x="478" y="384" width="134" height="18"/>
-              <circle cx="492" cy="393" r="5"/><circle cx="596" cy="393" r="5"/><circle cx="544" cy="393" r="5"/>
-              <rect x="500" y="352" width="90" height="34"/>
-              <rect x="524" y="320" width="42" height="34"/>
-            </g>
-            <g transform="translate(545,330)">
-              <circle cx="0" cy="0" r="12" fill="none" stroke="rgba(217,38,36,.55)" stroke-width="2"/>
-              <circle cx="0" cy="0" r="3.5" fill="rgba(217,38,36,.7)"/>
-              <g>
-                <animateTransform attributeName="transform" type="rotate" values="200;248;248;200;200;200" keyTimes="0;0.2;0.32;0.42;0.62;1" dur="16s" repeatCount="indefinite"/>
-                <rect x="-15" y="-17" width="214" height="34" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
-                <rect x="150" y="-10" width="60" height="20" fill="none" stroke="rgba(217,38,36,.5)" stroke-width="2">
-                  <animate attributeName="width" values="60;60;150;150;150;60" keyTimes="0;0.42;0.5;0.62;0.82;1" dur="16s" repeatCount="indefinite"/>
-                </rect>
-                <g>
-                  <animateTransform attributeName="transform" type="translate" values="210,0;210,0;300,0;300,0;300,0;210,0" keyTimes="0;0.42;0.5;0.62;0.82;1" dur="16s" repeatCount="indefinite"/>
-                  <g>
-                    <animateTransform attributeName="transform" type="rotate" values="-200;-248;-248;-200;-200;-200" keyTimes="0;0.2;0.32;0.42;0.62;1" dur="16s" repeatCount="indefinite"/>
-                    <circle cx="0" cy="0" r="9" fill="none" stroke="rgba(217,38,36,.5)" stroke-width="2"/>
-                    <rect x="-5" y="0" width="10" height="44" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
-                    <rect x="-25" y="44" width="50" height="22" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
-                    <rect x="-88" y="86" width="176" height="10" fill="rgba(217,38,36,.6)" opacity="0">
-                      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.34;0.4;0.72;0.78;1" dur="16s" repeatCount="indefinite"/>
-                    </rect>
-                    <g transform="translate(-15,66)"><g>
-                      <animateTransform attributeName="transform" type="rotate" values="-34;-34;-4;-4;-34;-34" keyTimes="0;0.3;0.36;0.72;0.78;1" dur="16s" repeatCount="indefinite"/>
-                      <rect x="-4" y="0" width="9" height="28" fill="rgba(217,38,36,.6)"/>
-                    </g></g>
-                    <g transform="translate(15,66)"><g>
-                      <animateTransform attributeName="transform" type="rotate" values="34;34;4;4;34;34" keyTimes="0;0.3;0.36;0.72;0.78;1" dur="16s" repeatCount="indefinite"/>
-                      <rect x="-5" y="0" width="9" height="28" fill="rgba(217,38,36,.6)"/>
-                    </g></g>
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
+        <!-- ===== MACHINE RÉELLE EN ARRIÈRE-PLAN (animée) ===== -->
+        <div aria-hidden="true" class="rb-hero-machine" style="position:absolute;right:-2%;bottom:-3%;top:5%;width:min(940px,68%);pointer-events:none;z-index:0;mask-image:linear-gradient(90deg,transparent 0%,#000 36%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 36%)">
+          <div class="rb-machine-glow" style="position:absolute;right:12%;top:22%;width:52%;height:52%;background:radial-gradient(circle,rgba(217,38,36,.5),transparent 62%);filter:blur(26px)"></div>
+          <img class="rb-machine-img" src="img/hero-machine.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:right bottom;opacity:.9;filter:saturate(.95) drop-shadow(0 26px 46px rgba(0,0,0,.55))">
         </div>
 
         <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative">
@@ -813,23 +771,25 @@
     </div>
     </sc-if>
 
-    <!-- ============ VISIONNEUR DU MANUEL (fenêtre intégrée, fiable partout) ============ -->
+    <!-- ============ VISIONNEUR DU MANUEL (fenêtre pop-up flottante — ne quitte jamais la page) ============ -->
     <sc-if value="{{ manual }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;inset:0;z-index:200;background:rgba(20,20,19,.92);display:flex;flex-direction:column;animation:rbFade .2s ease both">
-      <div style="flex:none;background:#141413;color:#FAF9F5;display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:3px solid #D92624">
-        <span style="font-size:18px;flex:none">📖</span>
-        <span style="font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Manuel de l'opérateur</span>
-        <span style="font-weight:700;font-size:12px;color:#B8B7B2;white-space:nowrap">Page {{ manual.page }} / {{ manual.total }}</span>
-        <div style="flex:1"></div>
-        <a href="{{ manual.pdfHref }}" target="_blank" rel="noopener" title="Ouvre le vrai PDF directement à cette page (idéal sur ordinateur)" style="font-weight:700;font-size:10.5px;letter-spacing:.06em;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:7px 11px;white-space:nowrap" style-hover="border-color:#D92624;color:#FFFFFF">PDF · PAGE {{ manual.page }} ↗</a>
-        <button onClick="{{ manual.close }}" style="flex:none;background:#D92624;color:#FFFFFF;border:none;width:38px;height:38px;font-size:18px;font-weight:800;cursor:pointer" style-hover="background:#B71F1D">✕</button>
-      </div>
-      <div style="flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px">
-        <img src="{{ manual.src }}" alt="Manuel — page {{ manual.page }}" style="max-width:920px;width:100%;height:auto;background:#FFFFFF;box-shadow:0 24px 70px -24px rgba(0,0,0,.9)">
-      </div>
-      <div style="flex:none;background:#141413;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.12)">
-        <button onClick="{{ manual.prev }}" style="background:none;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:11px 18px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FFFFFF">‹ Page précédente</button>
-        <button onClick="{{ manual.next }}" style="background:#D92624;color:#FFFFFF;border:none;padding:11px 20px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="background:#B71F1D">Page suivante ›</button>
+    <div onClick="{{ manual.close }}" style="position:fixed;inset:0;z-index:200;background:rgba(20,20,19,.7);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:18px;animation:rbFade .18s ease both">
+      <div onClick="{{ manual.noop }}" style="width:min(940px,100%);max-height:92vh;display:flex;flex-direction:column;background:#141413;border:1px solid rgba(255,255,255,.14);box-shadow:0 46px 100px -28px rgba(0,0,0,.9);animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both">
+        <div style="flex:none;background:#141413;color:#FAF9F5;display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:3px solid #D92624;border-bottom:1px solid rgba(255,255,255,.12)">
+          <span style="font-size:18px;flex:none">📖</span>
+          <span style="font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Manuel de l'opérateur</span>
+          <span style="font-weight:700;font-size:12px;color:#B8B7B2;white-space:nowrap">Page {{ manual.page }} / {{ manual.total }}</span>
+          <div style="flex:1"></div>
+          <a href="{{ manual.pdfHref }}" target="_blank" rel="noopener" title="Ouvre le vrai PDF directement à cette page (idéal sur ordinateur)" style="font-weight:700;font-size:10.5px;letter-spacing:.06em;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:7px 11px;white-space:nowrap" style-hover="border-color:#D92624;color:#FFFFFF">PDF ↗</a>
+          <button onClick="{{ manual.close }}" title="Fermer et revenir à la page" style="flex:none;background:#D92624;color:#FFFFFF;border:none;width:38px;height:38px;font-size:18px;font-weight:800;cursor:pointer" style-hover="background:#B71F1D">✕</button>
+        </div>
+        <div style="flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:14px;background:#0D0D0C">
+          <img src="{{ manual.src }}" alt="Manuel — page {{ manual.page }}" style="max-width:100%;width:auto;height:auto;background:#FFFFFF;box-shadow:0 20px 60px -22px rgba(0,0,0,.9)">
+        </div>
+        <div style="flex:none;background:#141413;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.12)">
+          <button onClick="{{ manual.prev }}" style="background:none;color:#FAF9F5;border:1px solid rgba(255,255,255,.3);padding:11px 18px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FFFFFF">‹ Précédente</button>
+          <button onClick="{{ manual.next }}" style="background:#D92624;color:#FFFFFF;border:none;padding:11px 20px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="background:#B71F1D">Suivante ›</button>
+        </div>
       </div>
     </div>
     </sc-if>

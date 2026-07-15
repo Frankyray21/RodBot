@@ -65,6 +65,15 @@ input::placeholder{color:rgba(29,30,27,.35)}
 
 @keyframes rbFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes rbPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+/* Machine réelle du hero : léger flottement + lueur rouge pulsée (gyrophare) */
+@keyframes rbFloat{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-13px) scale(1.015)}}
+@keyframes rbGlow{0%,100%{opacity:.3}50%{opacity:.8}}
+.rb-machine-img{animation:rbFloat 6.5s ease-in-out infinite alternate}
+.rb-machine-glow{animation:rbGlow 3.6s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){
+  .rb-machine-img,.rb-machine-glow{animation:none !important}
+}
 
 /* ---- Entrées en scène + cartes-images (décoratif) ---- */
 @keyframes rbRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -121,7 +130,7 @@ html,body{overflow-x:hidden;max-width:100%}
   #app [style*="padding:44px 28px"]{padding-left:16px !important;padding-right:16px !important}
 }
 
-/* Machine animée du hero : plus discrète sur mobile */
+/* Machine du hero : présente mais discrète sur mobile (derrière le texte) */
 @media (max-width:640px){
-  .rb-hero-machine{width:112% !important;opacity:.5 !important;right:-6% !important}
+  .rb-hero-machine{width:118% !important;right:-16% !important;top:auto !important;bottom:-2% !important;height:60% !important;opacity:.32 !important;mask-image:linear-gradient(90deg,transparent 0%,#000 44%) !important;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 44%) !important}
 }

@@ -17,7 +17,7 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.5.2';
+var APP_VERSION = '1.5.3';
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
