@@ -17,7 +17,7 @@
 
 /* Version de l'application — affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.5.0';
+var APP_VERSION = '1.5.1';
 var APP_VERSION_DATE = '15 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -1021,9 +1021,21 @@ function bootRodbot() {
   COMP = new Component({});
   fullRender();
   // PWA : installation + usage hors-ligne (service worker)
+  // Mise à jour automatique : quand une nouvelle version est déployée, le nouveau
+  // service worker s'installe puis prend le contrôle — on recharge alors la page
+  // une seule fois pour afficher la dernière version (fini le cache figé sur tablette).
   try {
     if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
+      // On ne recharge que si un ancien SW contrôlait déjà la page (= vraie mise à jour),
+      // jamais lors de la toute première visite (aucun contrôleur au départ).
+      var __hadController = !!navigator.serviceWorker.controller;
+      var __reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!__hadController || __reloaded) return; __reloaded = true; location.reload();
+      });
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        try { reg.update(); } catch (e) {}
+      }).catch(function () {});
     }
   } catch (e) {}
   // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
