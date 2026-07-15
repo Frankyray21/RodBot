@@ -1,48 +1,97 @@
+/* ============ MACHINES ROGER INTERNATIONAL — design system ============ */
+:root{
+  --color-accent:#D92624;   /* rouge marque — usage parcimonieux */
+  --color-ink:#1D1E1B;      /* texte sombre / fond très sombre */
+  --color-black:#141413;    /* entête / bandeaux / pied de page */
+  --color-grey-dark:#535252;
+  --color-grey-light:#989898;
+  --color-cream:#FAF9F5;
+  --color-white:#FFFFFF;
+  --radius:0px;             /* AUCUN arrondi, nulle part */
+}
 *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{background:#0A0E15;font-family:"Instrument Sans",system-ui,sans-serif;color:#E7EDF5;-webkit-font-smoothing:antialiased}
-  a{color:#7BE7F2;text-decoration:none}
-  a:hover{color:#A8F0F8}
-  ::selection{background:#45D8E8;color:#06222A}
-  input::placeholder{color:rgba(16,24,38,.35)}
-  :focus-visible{outline:2px solid rgba(69,216,232,.7);outline-offset:2px}
-  ::-webkit-scrollbar{width:11px;height:11px}
-  ::-webkit-scrollbar-track{background:#0A0E15}
-  ::-webkit-scrollbar-thumb{background:#232E40;border-radius:99px;border:3px solid #0A0E15}
-  ::-webkit-scrollbar-thumb:hover{background:#33445C}
+html,body{margin:0;padding:0}
+body{background:var(--color-cream);font-family:'Heebo',system-ui,sans-serif;color:var(--color-ink);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+#app,#app *{font-family:'Heebo',system-ui,sans-serif !important}
 
-  /* Motif "faisceau télémétrique" — remplace les hachures danger */
-  .hz-stripe{background-image:repeating-linear-gradient(90deg,rgba(10,14,21,.55) 0 2px,transparent 2px 26px),linear-gradient(90deg,#0F2E3C 0%,#2FB5CB 22%,#7BE7F2 50%,#2FB5CB 78%,#0F2E3C 100%)}
+/* Angularité absolue : zéro arrondi, y compris pseudo-éléments et curseurs */
+#app *,#app *::before,#app *::after,#app input[type=range]{border-radius:0 !important}
 
-  @keyframes rbFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
+a{color:var(--color-ink);text-decoration:none}
+a:hover{color:var(--color-accent)}
+::selection{background:#D92624;color:#FFFFFF}
+input::placeholder{color:rgba(29,30,27,.35)}
+:focus-visible{outline:2px solid rgba(217,38,36,.75);outline-offset:2px}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#EFEEE9}
+::-webkit-scrollbar-thumb{background:#C6C4BE;border-radius:0;border:3px solid #EFEEE9}
+::-webkit-scrollbar-thumb:hover{background:#989898}
 
-  /* ---- Enrichissement : entrées en scène + cartes-images (décoratif) ---- */
-  @keyframes rbRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-  @keyframes rbHero{0%{opacity:0;transform:translateY(20px) scale(1.045)}16%{opacity:1}100%{opacity:1;transform:translateY(0) scale(1)}}
-  .rb-reveal{animation:rbRise .55s cubic-bezier(.22,.61,.36,1) backwards}
-  .rb-d1{animation-delay:.08s}
-  .rb-d2{animation-delay:.16s}
-  .rb-d3{animation-delay:.26s}
-  .rb-hero-img{animation:rbHero 5.5s cubic-bezier(.22,.61,.36,1) backwards}
-  .rb-stagger>*{animation:rbRise .55s cubic-bezier(.22,.61,.36,1) backwards}
-  .rb-stagger>*:nth-child(1){animation-delay:.06s}
-  .rb-stagger>*:nth-child(2){animation-delay:.14s}
-  .rb-stagger>*:nth-child(3){animation-delay:.22s}
-  .rb-stagger>*:nth-child(4){animation-delay:.30s}
-  .rb-stagger>*:nth-child(5){animation-delay:.38s}
-  .rb-stagger>*:nth-child(6){animation-delay:.46s}
-  .rb-stagger>*:nth-child(n+7){animation-delay:.52s}
-  .rb-img-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
-  .rb-img-card:hover{transform:translateY(-4px);box-shadow:0 20px 44px -20px rgba(0,0,0,.9),0 0 26px -8px rgba(69,216,232,.3);border-color:rgba(69,216,232,.45)}
-  .rb-img-frame{overflow:hidden}
-  .rb-img-frame img{transition:transform .5s cubic-bezier(.22,.61,.36,1)}
-  .rb-img-card:hover .rb-img-frame img{transform:scale(1.035)}
+/* Curseurs (sliders) carrés, accent rouge */
+#app input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:#D8D6D0;outline:none;padding:0}
+#app input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;background:#D92624;border:none;border-radius:0;cursor:pointer}
+#app input[type=range]::-moz-range-thumb{width:16px;height:16px;background:#D92624;border:none;border-radius:0;cursor:pointer}
+#app input[type=range]::-moz-range-track{height:4px;background:#D8D6D0;border-radius:0}
 
-  @media (prefers-reduced-motion: reduce){
-    *,*::before,*::after{animation-duration:.001s !important;animation-iteration-count:1 !important;transition-duration:.001s !important}
-    .rb-reveal,.rb-hero-img,.rb-stagger>*{animation:none !important}
-    .rb-img-card,.rb-img-frame img{transition:none !important}
-    .rb-img-card:hover{transform:none;box-shadow:none}
-    .rb-img-card:hover .rb-img-frame img{transform:none}
-  }
+/* Bande signature — rayures diagonales rouges (remplace le faisceau cyan) */
+.hz-stripe{background:repeating-linear-gradient(-45deg,#B71F1D 0 10px,#D92624 10px 22px)}
+
+/* Titres filigranes fantômes — très grands, très discrets, derrière les sections */
+.mr-ghost{position:relative;overflow:hidden;z-index:0}
+.mr-ghost::before{
+  content:attr(data-ghost);
+  position:absolute;z-index:-1;right:-10px;top:-14px;
+  font-weight:900 !important;font-size:clamp(96px,14vw,176px);line-height:1;
+  letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;
+  pointer-events:none;user-select:none;color:rgba(29,30,27,.05)
+}
+.mr-ghost-dark::before{color:rgba(250,249,245,.045)}
+
+/* Traitement photo/panneau sombre : grain + vignette subtils */
+.mr-grain{position:relative}
+.mr-grain::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:
+    radial-gradient(140% 120% at 50% 0%,transparent 58%,rgba(0,0,0,.26) 100%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.013) 0 1px,transparent 1px 3px)
+}
+.mr-photo-dark{position:relative}
+.mr-photo-dark::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(20,20,19,.04) 0%,rgba(20,20,19,.38) 92%),
+             radial-gradient(130% 95% at 50% 18%,transparent 52%,rgba(20,20,19,.42) 100%)
+}
+
+@keyframes rbFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+/* ---- Entrées en scène + cartes-images (décoratif) ---- */
+@keyframes rbRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes rbHero{0%{opacity:0;transform:translateY(20px) scale(1.045)}16%{opacity:1}100%{opacity:1;transform:translateY(0) scale(1)}}
+.rb-reveal{animation:rbRise .55s cubic-bezier(.22,.61,.36,1) backwards}
+.rb-d1{animation-delay:.08s}
+.rb-d2{animation-delay:.16s}
+.rb-d3{animation-delay:.26s}
+.rb-hero-img{animation:rbHero 5.5s cubic-bezier(.22,.61,.36,1) backwards}
+.rb-stagger>*{animation:rbRise .55s cubic-bezier(.22,.61,.36,1) backwards}
+.rb-stagger>*:nth-child(1){animation-delay:.06s}
+.rb-stagger>*:nth-child(2){animation-delay:.14s}
+.rb-stagger>*:nth-child(3){animation-delay:.22s}
+.rb-stagger>*:nth-child(4){animation-delay:.30s}
+.rb-stagger>*:nth-child(5){animation-delay:.38s}
+.rb-stagger>*:nth-child(6){animation-delay:.46s}
+.rb-stagger>*:nth-child(n+7){animation-delay:.52s}
+.rb-img-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.rb-img-card:hover{transform:translateY(-4px);box-shadow:0 20px 44px -22px rgba(0,0,0,.65);border-color:rgba(217,38,36,.6)}
+.rb-img-frame{overflow:hidden}
+.rb-img-frame img{transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+.rb-img-card:hover .rb-img-frame img{transform:scale(1.035)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001s !important;animation-iteration-count:1 !important;transition-duration:.001s !important}
+  .rb-reveal,.rb-hero-img,.rb-stagger>*{animation:none !important}
+  .rb-img-card,.rb-img-frame img{transition:none !important}
+  .rb-img-card:hover{transform:none;box-shadow:none}
+  .rb-img-card:hover .rb-img-frame img{transform:none}
+}

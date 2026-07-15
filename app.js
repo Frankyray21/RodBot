@@ -591,9 +591,9 @@ class Component extends DCLogic {
 
   pdfAt(page){ return this.MANUAL + "#page=" + page; }
   warnStyle(w){
-    if(w==="danger") return { wBg:"rgba(255,84,73,.09)", wBorder:"rgba(255,84,73,.32)", wSolid:"#FF5449", wFg:"#FF8A80", wLabel:"⚠ DANGER" };
-    if(w==="warn")   return { wBg:"rgba(255,176,32,.08)", wBorder:"rgba(255,176,32,.3)",  wSolid:"#FFB020", wFg:"#FFC46A", wLabel:"AVERTISSEMENT" };
-    return { wBg:"rgba(91,141,239,.09)", wBorder:"rgba(91,141,239,.28)", wSolid:"#5B8DEF", wFg:"#96B8F7", wLabel:"REMARQUE" };
+    if(w==="danger") return { wBg:"rgba(217,38,36,.09)", wBorder:"rgba(217,38,36,.5)", wSolid:"#D92624", wFg:"#B71F1D", wLabel:"⚠ DANGER" };
+    if(w==="warn")   return { wBg:"rgba(232,163,58,.13)", wBorder:"rgba(214,144,36,.45)",  wSolid:"#E8A33A", wFg:"#8A5A10", wLabel:"AVERTISSEMENT" };
+    return { wBg:"rgba(83,82,82,.06)", wBorder:"rgba(83,82,82,.28)", wSolid:"#989898", wFg:"#535252", wLabel:"REMARQUE" };
   }
 
   moduleDone(i){ return !!this.state.completed[i]; }
@@ -650,10 +650,10 @@ class Component extends DCLogic {
       const done=this.moduleDone(i);
       return {
         num:m.num, title:m.title, subtitle:m.subtitle, sectionCount:m.sections.length, pages:m.pages,
-        bar: done ? "linear-gradient(90deg,#3ED598,rgba(62,213,152,.25))" : "linear-gradient(90deg,#45D8E8,rgba(69,216,232,.2))",
+        bar: done ? "#3E9C5A" : "#1D1E1B",
         statusLabel: done ? ("VALIDÉ "+this.moduleScore(i)+"%") : "À FAIRE",
-        statusBg: done ? "rgba(62,213,152,.14)" : "rgba(151,180,220,.1)",
-        statusFg: done ? "#67E8B9" : "#8899AE",
+        statusBg: done ? "#3E9C5A" : "#1D1E1B",
+        statusFg: done ? "#FFFFFF" : "#FFFFFF",
         open: ()=>this.openModule(i)
       };
     });
@@ -681,7 +681,7 @@ class Component extends DCLogic {
           const hasDanger=sec.blocks.some(b=>b.t==="warn"&&b.w==="danger");
           return {
             ref:modNum+"."+(si+1), title:sec.title, page:sec.page, pdfHref:this.pdfAt(sec.page),
-            accent: hasDanger ? "#FF5449" : "#45D8E8",
+            accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             blocks: sec.blocks.map(b=>{
               const o={ isP:b.t==="p", isUl:b.t==="ul", isSteps:b.t==="steps", isSpecs:b.t==="specs", isWarn:b.t==="warn", text:b.text||"" };
@@ -704,18 +704,18 @@ class Component extends DCLogic {
           const chosen=S.answers[qi]===oi;
           return {
             text:o, letter:letters[oi], pick:()=>this.pickAnswer(qi,oi),
-            bg: chosen?"rgba(69,216,232,.1)":"rgba(151,180,220,.05)",
-            border: chosen?"#45D8E8":"rgba(151,180,220,.16)",
-            dot: chosen?"#45D8E8":"rgba(151,180,220,.3)",
-            dotBg: chosen?"#45D8E8":"transparent",
-            dotFg: chosen?"#06222A":"#8899AE"
+            bg: chosen?"rgba(217,38,36,.06)":"#FFFFFF",
+            border: chosen?"#D92624":"rgba(29,30,27,.18)",
+            dot: chosen?"#D92624":"rgba(29,30,27,.3)",
+            dotBg: chosen?"#D92624":"transparent",
+            dotFg: chosen?"#FFFFFF":"#535252"
           };
         })
       }));
       const allAnswered=Object.keys(S.answers).length>=mod.quiz.length;
       base.submitLabel= allAnswered?"Valider mes réponses":"Répondez à toutes les questions";
-      base.submitBg= allAnswered?"#45D8E8":"rgba(151,180,220,.14)";
-      base.submitFg= allAnswered?"#06222A":"rgba(231,237,245,.45)";
+      base.submitBg= allAnswered?"#D92624":"rgba(29,30,27,.12)";
+      base.submitFg= allAnswered?"#FFFFFF":"rgba(29,30,27,.42)";
       base.submitCursor= allAnswered?"pointer":"not-allowed";
       base.submitQuiz=this.submitQuiz;
 
@@ -723,8 +723,8 @@ class Component extends DCLogic {
       const lastModule=S.activeId===M.length-1;
       base.result={
         scorePct:S.lastScore,
-        ringBg: passed?"rgba(62,213,152,.14)":"rgba(255,84,73,.12)",
-        ringFg: passed?"#5CE3A8":"#FF8A80",
+        ringBg: passed?"rgba(62,156,90,.14)":"rgba(217,38,36,.1)",
+        ringFg: passed?"#2F7D48":"#B71F1D",
         title: passed?"Module validé !":"Pas tout à fait…",
         message: passed
           ? "Vous maîtrisez les points clés de ce module. Poursuivez avec le module suivant ou revenez au parcours."
@@ -743,7 +743,7 @@ class Component extends DCLogic {
     base.simTabRrc = S.simTab==="rrc";
     base.simTabMast = S.simTab==="mast";
     base.simTabModes = S.simTab==="modes";
-    const tabOn=["#45D8E8","#06222A"], tabOff=["rgba(151,180,220,.1)","#AEBDD1"];
+    const tabOn=["#FAF9F5","#1D1E1B"], tabOff=["rgba(255,255,255,.08)","#989898"];
     [["Rrc","rrc"],["Mast","mast"],["Modes","modes"]].forEach(([cap,id])=>{
       const on=S.simTab===id;
       base["tab"+cap+"Bg"]=on?tabOn[0]:tabOff[0];
@@ -758,10 +758,10 @@ class Component extends DCLogic {
       const isE = !!sp.estop;
       return {
         n:i+1, x:sp.x, y:sp.y, name:sp.name, pick:()=>this.pickSpot(i),
-        bg: sel ? (isE?"#E03A2F":"#45D8E8") : "rgba(6,10,16,.78)",
-        fg: sel ? (isE?"#fff":"#06222A") : "#EAF2FA",
-        ring: isE ? "#FF5449" : "#45D8E8",
-        halo: sel ? (isE?"rgba(255,84,73,.35)":"rgba(69,216,232,.35)") : "rgba(69,216,232,.16)"
+        bg: sel ? (isE?"#D92624":"#1D1E1B") : "rgba(20,20,19,.82)",
+        fg: sel ? (isE?"#fff":"#FFFFFF") : "#FAF9F5",
+        ring: isE ? "#D92624" : "#1D1E1B",
+        halo: sel ? (isE?"rgba(217,38,36,.32)":"rgba(29,30,27,.24)") : "rgba(29,30,27,.12)"
       };
     });
     const selSp = this.RRC_SPOTS[S.rrcSel] || this.RRC_SPOTS[0];
@@ -788,8 +788,8 @@ class Component extends DCLogic {
     base.rodDropped = S.jawOpen;
     base.toggleJaw = this.toggleJaw;
     base.jawBtnLabel = S.jawOpen ? "✊ FERMER le grappin (saisir la tige)" : "🖐 OUVRIR le grappin (bouton vert + bascule ≥ 1 s)";
-    base.jawBtnBg = S.jawOpen ? "#3ED598" : "#45D8E8";
-    base.jawBtnFg = S.jawOpen ? "#04231A" : "#06222A";
+    base.jawBtnBg = S.jawOpen ? "#3E9C5A" : "#1D1E1B";
+    base.jawBtnFg = S.jawOpen ? "#FFFFFF" : "#FFFFFF";
     base.mastReadout = "J2 "+S.hoist+"° · J3 "+base.extPct+"% · J6 "+S.tilt+"°";
 
     // MODES
@@ -798,21 +798,21 @@ class Component extends DCLogic {
       const on = m.id===S.simMode;
       return {
         name:m.id, tag:m.tag, pick:()=>this.pickMode(m.id),
-        bg: on?"rgba(69,216,232,.12)":"rgba(151,180,220,.04)", fg: on?"#F1F5FB":"#C5D0DF",
-        border: on?"#45D8E8":"rgba(151,180,220,.15)",
-        tagFg: on?"#7BE7F2":"#66788F"
+        bg: on?"rgba(217,38,36,.06)":"#FFFFFF", fg: on?"#1D1E1B":"#535252",
+        border: on?"#D92624":"rgba(29,30,27,.16)",
+        tagFg: on?"#D92624":"#989898"
       };
     });
     base.simModeName = curMode.id;
     base.simModeDesc = curMode.desc;
-    base.beaconColor = curMode.beacon==="off" ? "#39424F" : "#FFB020";
-    base.beaconGlow = curMode.beacon==="off" ? "none" : "0 0 26px rgba(255,176,32,.85)";
+    base.beaconColor = curMode.beacon==="off" ? "#3A3B38" : "#F0A81E";
+    base.beaconGlow = curMode.beacon==="off" ? "none" : "0 0 26px rgba(240,168,30,.85)";
     base.beaconAnim = curMode.beacon==="blink" ? "rbPulse 1s ease-in-out infinite" : "none";
     base.klaxonOn = S.klaxon;
     base.valveTracks = curMode.tracks ? "OUVERTE" : "FERMÉE";
-    base.valveTracksFg = curMode.tracks ? "#4FE3A3" : "#FF7A70";
+    base.valveTracksFg = curMode.tracks ? "#2F7D48" : "#535252";
     base.valveMast = curMode.mast ? "OUVERTE" : "FERMÉE";
-    base.valveMastFg = curMode.mast ? "#4FE3A3" : "#FF7A70";
+    base.valveMastFg = curMode.mast ? "#2F7D48" : "#535252";
 
     base.traineeName=S.name; base.setName=this.setName;
     base.certDate=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
