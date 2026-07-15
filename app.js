@@ -15,6 +15,11 @@
  */
 'use strict';
 
+/* Version de l'application — affichée dans le pied de page et utilisée pour
+   nommer le cache du service worker. À incrémenter à CHAQUE changement. */
+var APP_VERSION = '1.5.0';
+var APP_VERSION_DATE = '15 JUIL. 2026';
+
 var SVG_NS = 'http://www.w3.org/2000/svg';
 var ROOT = null;      // conteneur DOM (#app)
 var COMP = null;      // instance Component
@@ -982,6 +987,8 @@ class Component extends DCLogic {
     base.showInstallHelp = S.showInstallHelp;
     base.closeInstallHelp = this.closeInstallHelp;
     base.isIOS = /iP(hone|ad|od)/.test(navigator.userAgent||"");
+    base.appVersion = APP_VERSION;
+    base.appVersionDate = APP_VERSION_DATE;
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
     const scores=M.map((m,i)=>this.moduleScore(i));

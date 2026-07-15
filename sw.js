@@ -1,6 +1,8 @@
 /* Service worker — permet l'installation et l'usage HORS-LIGNE (terrain, mine).
    Précache la coquille de l'app ; met en cache les images/PDF au fil de la consultation. */
-const CACHE = 'rodbot-formation-v1';
+/* Nom du cache aligné sur APP_VERSION (app.js) — à incrémenter à chaque changement.
+   Le changement de nom force le rafraîchissement de la coquille mise en cache. */
+const CACHE = 'rodbot-formation-v1.5.0';
 const CORE = [
   './', './index.html', './app.js', './styles.css',
   './manifest.webmanifest', './icon-192.png', './icon-512.png'
