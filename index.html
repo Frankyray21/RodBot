@@ -50,30 +50,40 @@
       <!-- HERO -->
       <section style="position:relative;background:#17150e;color:#f4f2ea;overflow:hidden">
         <div style="position:absolute;inset:0;opacity:.10;background-image:radial-gradient(circle at 1px 1px,#f4f2ea 1px,transparent 0);background-size:26px 26px"></div>
-        <div style="max-width:1180px;margin:0 auto;padding:60px 28px 52px;position:relative;display:grid;grid-template-columns:1.35fr .9fr;gap:48px;align-items:center">
-          <div>
-            <div style="display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(232,163,58,.4);border-radius:99px;padding:6px 14px;margin-bottom:24px">
-              <span style="width:7px;height:7px;border-radius:50%;background:#e8a33a;animation:rbPulse 2s ease-in-out infinite"></span>
-              <span style="font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.14em;color:#d8cdb4">MANUEL DE L'OPÉRATEUR · OM 10667 · R0</span>
+        <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative">
+          <div style="display:grid;grid-template-columns:1.08fr .92fr;gap:46px;align-items:center">
+            <div class="rb-reveal">
+              <div style="display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(232,163,58,.4);border-radius:99px;padding:6px 14px;margin-bottom:24px">
+                <span style="width:7px;height:7px;border-radius:50%;background:#e8a33a;animation:rbPulse 2s ease-in-out infinite"></span>
+                <span style="font-family:'IBM Plex Mono';font-size:10.5px;letter-spacing:.14em;color:#d8cdb4">MANUEL DE L'OPÉRATEUR · OM 10667 · R0</span>
+              </div>
+              <h1 style="font-family:'Archivo';font-weight:900;font-size:54px;line-height:.98;letter-spacing:-.02em;margin:0 0 20px">Maîtriser le<br><span style="color:#e8a33a">RodBot LP</span></h1>
+              <p style="font-size:17.5px;line-height:1.55;color:#c9c0aa;max-width:530px;margin:0 0 30px">Formation complète à l'exploitation du système robotisé de manutention de tiges de forage — bâtie sur l'intégralité du manuel de l'opérateur. Chaque leçon renvoie à la page exacte du document.</p>
+              <div style="display:flex;gap:14px;flex-wrap:wrap">
+                <button onClick="{{ startFirst }}" style="background:#e8a33a;color:#17150e;border:none;border-radius:8px;padding:15px 26px;font-family:'Archivo';font-weight:800;font-size:15px;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#f0b64a;transform:translateY(-2px)">{{ ctaLabel }} →</button>
+                <button onClick="{{ scrollToSafety }}" style="background:transparent;color:#f4f2ea;border:1px solid rgba(255,255,255,.28);border-radius:8px;padding:15px 24px;font-family:'Archivo';font-weight:700;font-size:15px;cursor:pointer;transition:border-color .15s" style-hover="border-color:#e8a33a">L'essentiel sécurité</button>
+              </div>
             </div>
-            <h1 style="font-family:'Archivo';font-weight:900;font-size:54px;line-height:.98;letter-spacing:-.02em;margin:0 0 20px">Maîtriser le<br><span style="color:#e8a33a">RodBot LP</span></h1>
-            <p style="font-size:17.5px;line-height:1.55;color:#c9c0aa;max-width:530px;margin:0 0 30px">Formation complète à l'exploitation du système robotisé de manutention de tiges de forage — bâtie sur l'intégralité du manuel de l'opérateur. Chaque leçon renvoie à la page exacte du document.</p>
-            <div style="display:flex;gap:14px;flex-wrap:wrap">
-              <button onClick="{{ startFirst }}" style="background:#e8a33a;color:#17150e;border:none;border-radius:8px;padding:15px 26px;font-family:'Archivo';font-weight:800;font-size:15px;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#f0b64a;transform:translateY(-2px)">{{ ctaLabel }} →</button>
-              <button onClick="{{ scrollToSafety }}" style="background:transparent;color:#f4f2ea;border:1px solid rgba(255,255,255,.28);border-radius:8px;padding:15px 24px;font-family:'Archivo';font-weight:700;font-size:15px;cursor:pointer;transition:border-color .15s" style-hover="border-color:#e8a33a">L'essentiel sécurité</button>
+            <div class="rb-hero-img" style="position:relative">
+              <div style="position:absolute;left:-16px;top:20px;right:16px;bottom:-20px;border:1px solid rgba(232,163,58,.3);border-radius:14px"></div>
+              <div style="position:relative;background:linear-gradient(165deg,#fbfaf5 0%,#e6e2d4 100%);border:1px solid rgba(255,255,255,.14);border-radius:14px;overflow:hidden;box-shadow:0 34px 80px -38px rgba(0,0,0,.85)">
+                <div class="hz-stripe" style="height:10px"></div>
+                <img src="img/eq-machine.png" alt="Le RodBot LP — mât replié sur le bac à tiges, porteur à chenilles" style="display:block;width:100%;height:auto;padding:12px 16px 0">
+                <div style="display:flex;justify-content:space-between;gap:12px;padding:10px 16px 12px;font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.12em;color:#6a6350">
+                  <span>BORTERRA RODBOT LP · RENDU 3D</span>
+                  <span>BAC 38×5"×6'</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div style="position:relative">
-            <div class="hz-stripe" style="height:12px;border-radius:6px 6px 0 0"></div>
-            <div style="background:#211e15;border:1px solid rgba(255,255,255,.1);border-top:none;padding:24px;border-radius:0 0 10px 10px">
-              <div style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.16em;color:#8f866f;margin-bottom:16px">FICHE MACHINE</div>
-              <div style="display:flex;flex-direction:column;gap:14px">
-                <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed rgba(255,255,255,.14);padding-bottom:11px"><span style="color:#c9c0aa;font-size:13.5px">Système</span><span style="font-family:'Archivo';font-weight:700;font-size:13.5px">Borterra RodBot LP</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed rgba(255,255,255,.14);padding-bottom:11px"><span style="color:#c9c0aa;font-size:13.5px">Tâche / Client</span><span style="font-family:'Archivo';font-weight:700;font-size:13.5px">BM260024 · Machines Roger Intl</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed rgba(255,255,255,.14);padding-bottom:11px"><span style="color:#c9c0aa;font-size:13.5px">Commande</span><span style="font-family:'Archivo';font-weight:700;font-size:13.5px">Radio (RRC) · 6 modes</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed rgba(255,255,255,.14);padding-bottom:11px"><span style="color:#c9c0aa;font-size:13.5px">Arrêts d'urgence</span><span style="font-family:'Archivo';font-weight:700;font-size:13.5px">4 emplacements</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="color:#c9c0aa;font-size:13.5px">Contenu</span><span style="font-family:'Archivo';font-weight:700;font-size:13.5px">{{ totalSections }} leçons · {{ totalModules }} modules</span></div>
-              </div>
+          <div class="rb-reveal rb-d3" style="margin-top:38px;background:#211e15;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+            <div style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.16em;color:#8f866f;flex:none;line-height:1.6">FICHE<br>MACHINE</div>
+            <div style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,1fr);gap:20px">
+              <div style="border-left:1px dashed rgba(255,255,255,.16);padding-left:18px"><div style="color:#c9c0aa;font-size:12px;margin-bottom:5px">Système</div><div style="font-family:'Archivo';font-weight:700;font-size:13.5px">Borterra RodBot LP</div></div>
+              <div style="border-left:1px dashed rgba(255,255,255,.16);padding-left:18px"><div style="color:#c9c0aa;font-size:12px;margin-bottom:5px">Tâche / Client</div><div style="font-family:'Archivo';font-weight:700;font-size:13.5px">BM260024 · Machines Roger Intl</div></div>
+              <div style="border-left:1px dashed rgba(255,255,255,.16);padding-left:18px"><div style="color:#c9c0aa;font-size:12px;margin-bottom:5px">Commande</div><div style="font-family:'Archivo';font-weight:700;font-size:13.5px">Radio (RRC) · 6 modes</div></div>
+              <div style="border-left:1px dashed rgba(255,255,255,.16);padding-left:18px"><div style="color:#c9c0aa;font-size:12px;margin-bottom:5px">Arrêts d'urgence</div><div style="font-family:'Archivo';font-weight:700;font-size:13.5px">4 emplacements</div></div>
+              <div style="border-left:1px dashed rgba(255,255,255,.16);padding-left:18px"><div style="color:#c9c0aa;font-size:12px;margin-bottom:5px">Contenu</div><div style="font-family:'Archivo';font-weight:700;font-size:13.5px">{{ totalSections }} leçons · {{ totalModules }} modules</div></div>
             </div>
           </div>
         </div>
@@ -89,7 +99,7 @@
           <div style="font-size:14px;color:#5c5645;max-width:340px;text-align:right">Complétez chaque module et réussissez son quiz pour débloquer votre attestation.</div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+        <div class="rb-stagger" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
           <sc-for list="{{ moduleCards }}" as="m" hint-placeholder-count="8">
             <button onClick="{{ m.open }}" style="text-align:left;background:#fbfaf5;border:1px solid rgba(23,21,14,.13);border-radius:12px;padding:0;overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column" style-hover="transform:translateY(-4px);box-shadow:0 14px 34px -18px rgba(23,21,14,.5);border-color:rgba(23,21,14,.28)">
               <div style="height:6px;background: {{ m.bar }}"></div>
@@ -107,6 +117,48 @@
               </div>
             </button>
           </sc-for>
+        </div>
+      </section>
+
+      <!-- L'ÉQUIPEMENT EN UN COUP D'ŒIL -->
+      <section style="background:#17150e;color:#f4f2ea;margin:46px 0 8px;border-top:3px solid #e8a33a;border-bottom:1px solid rgba(23,21,14,.2)">
+        <div style="max-width:1180px;margin:0 auto;padding:42px 28px 46px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap">
+            <div>
+              <div style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;color:#a49a80;margin-bottom:8px">L'ÉQUIPEMENT — EN UN COUP D'ŒIL</div>
+              <h2 style="font-family:'Archivo';font-weight:800;font-size:26px;letter-spacing:-.01em;margin:0;color:#f4f2ea">La machine, telle que vous la retrouverez</h2>
+            </div>
+            <div style="font-family:'IBM Plex Mono';font-size:10.5px;color:#8f866f;letter-spacing:.06em">FIGURES & ÉCRANS DU MANUEL</div>
+          </div>
+          <div class="rb-stagger" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <div class="rb-img-card" style="background:#211e15;border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden">
+              <div class="rb-img-frame" style="background:#fbfaf5;height:190px">
+                <img src="img/eq-labeled.png" alt="Rendu annoté du bac à tiges — pattes de retenue latérales et fourreaux de fourches" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover;object-position:50% 42%">
+              </div>
+              <div style="padding:15px 17px 16px">
+                <div style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.12em;color:#e8a33a;margin-bottom:6px">LE BAC À TIGES</div>
+                <div style="font-size:12.5px;line-height:1.5;color:#c9c0aa">Plateau amovible de 35 tiges — pattes de retenue latérales et fourreaux de fourches pour la manutention.</div>
+              </div>
+            </div>
+            <div class="rb-img-card" style="background:#211e15;border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden">
+              <div class="rb-img-frame" style="background:#fbfaf5;height:190px">
+                <img src="img/eq-transport.png" alt="Position du mât pour le transport — bac plein et bac vide" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover;object-position:50% 60%">
+              </div>
+              <div style="padding:15px 17px 16px">
+                <div style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.12em;color:#e8a33a;margin-bottom:6px">POSITION TRANSPORT</div>
+                <div style="font-size:12.5px;line-height:1.5;color:#c9c0aa">Mât replié sur le bac, plein ou vide — la pose de déplacement qui garantit la stabilité de la machine.</div>
+              </div>
+            </div>
+            <div class="rb-img-card" style="background:#211e15;border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden">
+              <div class="rb-img-frame" style="background:#fbfaf5;height:190px">
+                <img src="img/eq-hmi.png" alt="Écran tactile IHM du RodBot — Direct Mode" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%">
+              </div>
+              <div style="padding:15px 17px 16px">
+                <div style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.12em;color:#e8a33a;margin-bottom:6px">L'IHM EMBARQUÉE</div>
+                <div style="font-size:12.5px;line-height:1.5;color:#c9c0aa">L'écran tactile du panneau — modes, diagnostics, alarmes et calibrage, couverts au module 05.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -131,6 +183,10 @@
               </sc-for>
             </div>
             <div style="margin-top:14px;font-size:12.5px;line-height:1.5;color:#a49a80">Couplé à la foreuse mère : un arrêt d'urgence sur l'une déclenche l'arrêt des <strong style="color:#d8cdb4">deux machines</strong>.</div>
+            <div style="margin-top:14px;flex:1;min-height:150px;position:relative;border:1px solid rgba(255,255,255,.12);border-radius:9px;overflow:hidden">
+              <img src="img/eq-panel.png" alt="Champignon d'arrêt d'urgence sur le panneau hydraulique du RodBot" style="position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:50% 12%">
+              <div style="position:absolute;left:10px;bottom:9px;background:rgba(23,21,14,.8);border-radius:5px;padding:4px 9px;font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.1em;color:#e9e6dd">LE CHAMPIGNON DU PANNEAU — PHOTO</div>
+            </div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:18px">
@@ -155,7 +211,7 @@
         <div style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;color:#9a8f74;margin-bottom:8px">03 — APPRENDRE EN MANIPULANT</div>
         <h2 style="font-family:'Archivo';font-weight:800;font-size:32px;letter-spacing:-.01em;margin:0 0 6px">Les simulateurs interactifs</h2>
         <p style="font-size:15px;line-height:1.55;color:#5c5645;max-width:640px;margin:0 0 28px">Explorez les composants réels de la machine — photos du manuel à l'appui — avant de poser les mains dessus.</p>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+        <div class="rb-stagger" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
           <button onClick="{{ openSimRrc }}" style="text-align:left;background:#17150e;color:#f4f2ea;border:none;border-radius:12px;padding:22px;cursor:pointer;transition:transform .18s,box-shadow .18s;display:flex;flex-direction:column;gap:10px" style-hover="transform:translateY(-4px);box-shadow:0 14px 34px -18px rgba(23,21,14,.7)">
             <span style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;color:#e8a33a">SIMULATEUR 1</span>
             <span style="font-family:'Archivo';font-weight:800;font-size:19px;line-height:1.15">La télécommande radio</span>
@@ -181,7 +237,7 @@
       <section style="max-width:1180px;margin:0 auto;padding:44px 28px 24px">
         <div style="font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.16em;color:#9a8f74;margin-bottom:8px">04 — DOCUMENTS DE RÉFÉRENCE</div>
         <h2 style="font-family:'Archivo';font-weight:800;font-size:32px;letter-spacing:-.01em;margin:0 0 24px">Toujours à portée de main</h2>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="rb-stagger" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
           <a href="{{ manualUrl }}" target="_blank" rel="noopener" style="display:flex;gap:18px;align-items:flex-start;background:#fbfaf5;border:1px solid rgba(23,21,14,.13);border-radius:12px;padding:22px;color:#17150e;transition:transform .18s,box-shadow .18s" style-hover="transform:translateY(-3px);box-shadow:0 14px 34px -18px rgba(23,21,14,.5)">
             <span style="width:46px;height:56px;flex:none;background:#17150e;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Archivo';font-weight:900;font-size:12px;color:#e8a33a;border-bottom:4px solid #e8a33a">PDF</span>
             <span>
@@ -268,8 +324,38 @@
       <!-- ===== TAB MÂT ===== -->
       <sc-if value="{{ simTabMast }}" hint-placeholder-val="{{ false }}">
       <section style="max-width:1180px;margin:0 auto;padding:30px 28px 60px">
-        <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:24px;align-items:start">
+        <div style="display:grid;grid-template-columns:1.12fr 1fr;gap:24px;align-items:start">
+
+          <!-- FIGURE DU MANUEL — visuel principal -->
+          <div style="background:#fbfaf5;border:1px solid rgba(23,21,14,.13);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
+            <div style="padding:18px 22px 15px;border-bottom:1px solid rgba(23,21,14,.1);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
+              <div>
+                <div style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;color:#9a8f74;margin-bottom:6px">LE MÂT ARTICULÉ — FIGURE DU MANUEL</div>
+                <div style="font-family:'Archivo';font-weight:800;font-size:20px;letter-spacing:-.01em;color:#17150e">Chaque mouvement, du pivot au grappin</div>
+              </div>
+              <span style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.06em;color:#b5641b;border:1px solid rgba(181,100,27,.35);border-radius:6px;padding:5px 10px;white-space:nowrap">MANUEL · P. 13</span>
+            </div>
+            <div style="background:#fff;padding:24px 28px 12px">
+              <img src="img/mat-annote.png" alt="Figure annotée du mât articulé — pivotement, articulation (épaule), télescope, joint rotatif (poignet), rotation, inclinaison, grappin" loading="lazy" style="display:block;width:100%;max-width:530px;margin:0 auto;height:auto">
+            </div>
+            <div style="padding:14px 22px 18px;border-top:1px solid rgba(23,21,14,.08);display:flex;flex-wrap:wrap;gap:7px;align-items:center">
+              <span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:#5c5645;background:#f1eee4;border:1px solid rgba(23,21,14,.1);border-radius:99px;padding:5px 11px">PIVOTEMENT</span>
+              <span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:#5c5645;background:#f1eee4;border:1px solid rgba(23,21,14,.1);border-radius:99px;padding:5px 11px">ARTICULATION (ÉPAULE)</span>
+              <span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:#5c5645;background:#f1eee4;border:1px solid rgba(23,21,14,.1);border-radius:99px;padding:5px 11px">TÉLESCOPE</span>
+              <span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:#5c5645;background:#f1eee4;border:1px solid rgba(23,21,14,.1);border-radius:99px;padding:5px 11px">POIGNET</span>
+              <span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:#5c5645;background:#f1eee4;border:1px solid rgba(23,21,14,.1);border-radius:99px;padding:5px 11px">ROTATION</span>
+              <span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:#5c5645;background:#f1eee4;border:1px solid rgba(23,21,14,.1);border-radius:99px;padding:5px 11px">INCLINAISON</span>
+              <span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:#5c5645;background:#f1eee4;border:1px solid rgba(23,21,14,.1);border-radius:99px;padding:5px 11px">GRAPPIN</span>
+            </div>
+          </div>
+
+          <!-- Colonne secondaire : schéma interactif + commandes -->
+          <div style="display:flex;flex-direction:column;gap:12px">
           <div style="background:#fbfaf5;border:1px solid rgba(23,21,14,.13);border-radius:14px;overflow:hidden">
+            <div style="padding:13px 18px 11px;border-bottom:1px solid rgba(23,21,14,.1);display:flex;align-items:center;justify-content:space-between;gap:10px">
+              <div style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;color:#9a8f74">OUTIL D'ENTRAÎNEMENT — SCHÉMA INTERACTIF</div>
+              <span style="width:8px;height:8px;border-radius:50%;background:#e8a33a;flex:none;animation:rbPulse 2s ease-in-out infinite"></span>
+            </div>
             <svg viewBox="0 0 640 430" style="display:block;width:100%;height:auto;background:linear-gradient(180deg,#efece2 0%,#e6e2d4 100%)">
               <line x1="0" y1="400" x2="640" y2="400" stroke="#8f866f" stroke-width="2"></line>
               <rect x="0" y="400" width="640" height="30" fill="#dcd6c6"></rect>
@@ -305,7 +391,7 @@
                 <text x="30" y="52" font-family="IBM Plex Mono" font-size="11" fill="#c33a29">⚠ Grappin ouvert : la tige a été relâchée</text>
               </sc-if>
             </svg>
-            <div style="padding:14px 18px;border-top:1px solid rgba(23,21,14,.12);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div style="padding:12px 18px;border-top:1px solid rgba(23,21,14,.12);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
               <div style="display:flex;align-items:center;gap:10px">
                 <svg viewBox="0 0 80 80" style="width:64px;height:64px">
                   <circle cx="40" cy="40" r="34" fill="#f1eee4" stroke="#c9c0aa"></circle>
@@ -316,11 +402,10 @@
                 <div style="font-family:'IBM Plex Mono';font-size:10px;line-height:1.5;color:#6a6350">J1 PIVOTEMENT<br>vue de dessus · zone morte 30° à l'avant<br>butées ±165°</div>
               </div>
               <div style="flex:1"></div>
-              <div style="font-family:'IBM Plex Mono';font-size:10px;color:#9a8f74">SCHÉMA DES ARTICULATIONS : MANUEL P. 13</div>
+              <div style="font-family:'IBM Plex Mono';font-size:10px;color:#9a8f74;text-align:right">RÉPOND AUX<br>CURSEURS CI-DESSOUS</div>
             </div>
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:12px">
             <div style="background:#fbfaf5;border:1px solid rgba(23,21,14,.13);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:16px">
               <div style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;color:#9a8f74">PILOTEZ LES ARTICULATIONS</div>
               <label style="display:flex;flex-direction:column;gap:6px">
@@ -341,10 +426,6 @@
               </label>
               <button onClick="{{ toggleJaw }}" style="border:none;border-radius:9px;padding:13px;font-family:'Archivo';font-weight:800;font-size:14px;cursor:pointer;background: {{ jawBtnBg }};color: {{ jawBtnFg }}">{{ jawBtnLabel }}</button>
               <div style="font-size:12px;line-height:1.5;color:#7a7360">Sur la vraie machine : bouton vert PINCE + bascule (ouverture maintenue ≥ 1 s) — manuel p. 55.</div>
-            </div>
-            <div style="background:#fbfaf5;border:1px solid rgba(23,21,14,.13);border-radius:14px;padding:18px 20px">
-              <div style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.14em;color:#9a8f74;margin-bottom:10px">RÉFÉRENCE J1–J7</div>
-              <img src="img/p13-0.png" alt="Schéma des articulations du mât" style="display:block;width:100%;height:auto;border-radius:8px;background:#fff">
             </div>
           </div>
         </div>

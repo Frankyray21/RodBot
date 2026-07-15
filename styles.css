@@ -7,3 +7,33 @@
   .hz-stripe{background-image:repeating-linear-gradient(-45deg,#17150e 0 22px,#e8a33a 22px 44px)}
   @keyframes rbFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+  /* ---- Enrichissement : entrées en scène + cartes-images (décoratif) ---- */
+  @keyframes rbRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes rbHero{0%{opacity:0;transform:translateY(20px) scale(1.045)}16%{opacity:1}100%{opacity:1;transform:translateY(0) scale(1)}}
+  .rb-reveal{animation:rbRise .55s cubic-bezier(.22,.61,.36,1) backwards}
+  .rb-d1{animation-delay:.08s}
+  .rb-d2{animation-delay:.16s}
+  .rb-d3{animation-delay:.26s}
+  .rb-hero-img{animation:rbHero 5.5s cubic-bezier(.22,.61,.36,1) backwards}
+  .rb-stagger>*{animation:rbRise .55s cubic-bezier(.22,.61,.36,1) backwards}
+  .rb-stagger>*:nth-child(1){animation-delay:.06s}
+  .rb-stagger>*:nth-child(2){animation-delay:.14s}
+  .rb-stagger>*:nth-child(3){animation-delay:.22s}
+  .rb-stagger>*:nth-child(4){animation-delay:.30s}
+  .rb-stagger>*:nth-child(5){animation-delay:.38s}
+  .rb-stagger>*:nth-child(6){animation-delay:.46s}
+  .rb-stagger>*:nth-child(n+7){animation-delay:.52s}
+  .rb-img-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+  .rb-img-card:hover{transform:translateY(-4px);box-shadow:0 20px 44px -20px rgba(0,0,0,.55);border-color:rgba(255,255,255,.24)}
+  .rb-img-frame{overflow:hidden}
+  .rb-img-frame img{transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+  .rb-img-card:hover .rb-img-frame img{transform:scale(1.035)}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001s !important;animation-iteration-count:1 !important;transition-duration:.001s !important}
+    .rb-reveal,.rb-hero-img,.rb-stagger>*{animation:none !important}
+    .rb-img-card,.rb-img-frame img{transition:none !important}
+    .rb-img-card:hover{transform:none;box-shadow:none}
+    .rb-img-card:hover .rb-img-frame img{transform:none}
+  }
