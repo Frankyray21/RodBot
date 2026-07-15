@@ -566,21 +566,25 @@
                   <sc-for list="{{ s.blocks }}" as="b" hint-placeholder-count="3">
                     <div style="display:contents">
                       <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}">
-                        <p style="margin:0;font-size:14px;line-height:1.6;color:#3A3B38">{{ b.text }}</p>
+                        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px">
+                          <sc-for list="{{ b.lines }}" as="ln" hint-placeholder-count="2">
+                            <li style="display:flex;gap:11px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="color:#D92624;font-weight:900;flex:none;font-size:17px;line-height:1.35">▸</span><span>{{ ln }}</span></li>
+                          </sc-for>
+                        </ul>
                       </sc-if>
                       <sc-if value="{{ b.isUl }}" hint-placeholder-val="{{ false }}">
-                        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px">
+                        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px">
                           <sc-for list="{{ b.items }}" as="it" hint-placeholder-count="3">
-                            <li style="display:flex;gap:9px;font-size:13.5px;line-height:1.5;color:#3A3B38"><span style="color:#D92624;font-weight:800;flex:none">›</span><span>{{ it }}</span></li>
+                            <li style="display:flex;gap:11px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="width:20px;height:20px;flex:none;background:#D92624;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;margin-top:1px">✓</span><span>{{ it }}</span></li>
                           </sc-for>
                         </ul>
                       </sc-if>
                       <sc-if value="{{ b.isSteps }}" hint-placeholder-val="{{ false }}">
-                        <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px">
+                        <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px">
                           <sc-for list="{{ b.steps }}" as="st" hint-placeholder-count="3">
-                            <li style="display:flex;gap:11px;font-size:13.5px;line-height:1.5;color:#3A3B38;align-items:flex-start">
-                              <span style="width:22px;height:22px;background:#1D1E1B;color:#FFFFFF;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px">{{ st.n }}</span>
-                              <span style="padding-top:2px">{{ st.text }}</span>
+                            <li style="display:flex;gap:13px;font-size:15px;line-height:1.5;color:#2A2B28;align-items:flex-start">
+                              <span style="width:28px;height:28px;background:#D92624;color:#FFFFFF;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px">{{ st.n }}</span>
+                              <span style="padding-top:4px">{{ st.text }}</span>
                             </li>
                           </sc-for>
                         </ol>
@@ -588,17 +592,20 @@
                       <sc-if value="{{ b.isSpecs }}" hint-placeholder-val="{{ false }}">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                           <sc-for list="{{ b.rows }}" as="r" hint-placeholder-count="4">
-                            <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;background:#F4F3EE;border:1px solid rgba(29,30,27,.1);padding:10px 14px">
-                              <span style="font-size:12.5px;color:#535252">{{ r.k }}</span>
-                              <span style="font-weight:700;font-size:13px;text-align:right;color:#1D1E1B">{{ r.v }}</span>
+                            <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;background:#F4F3EE;border:1px solid rgba(29,30,27,.1);border-left:3px solid #D92624;padding:11px 14px">
+                              <span style="font-size:13.5px;color:#535252">{{ r.k }}</span>
+                              <span style="font-weight:800;font-size:14px;text-align:right;color:#1D1E1B">{{ r.v }}</span>
                             </div>
                           </sc-for>
                         </div>
                       </sc-if>
                       <sc-if value="{{ b.isWarn }}" hint-placeholder-val="{{ false }}">
-                        <div style="padding:14px 16px;border:1px solid {{ b.wBorder }};border-left:6px solid {{ b.wSolid }};background: {{ b.wBg }}">
-                          <div style="font-weight:800;font-size:9.5px;letter-spacing:.14em;color: {{ b.wFg }};margin-bottom:5px">{{ b.wLabel }}</div>
-                          <div style="font-size:13.5px;line-height:1.55;color:#2A2B28">{{ b.text }}</div>
+                        <div style="padding:15px 17px;border:1px solid {{ b.wBorder }};border-left:7px solid {{ b.wSolid }};background: {{ b.wBg }};display:flex;gap:13px;align-items:flex-start">
+                          <span style="font-size:24px;flex:none;line-height:1.1">{{ b.wIcon }}</span>
+                          <div style="flex:1">
+                            <div style="font-weight:900;font-size:12.5px;letter-spacing:.1em;color: {{ b.wFg }};margin-bottom:6px">{{ b.wLabel }}</div>
+                            <div style="font-size:15px;line-height:1.5;color:#1D1E1B">{{ b.text }}</div>
+                          </div>
                         </div>
                       </sc-if>
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">

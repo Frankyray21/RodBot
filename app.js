@@ -626,11 +626,19 @@ class Component extends DCLogic {
     }, this);
   }
   warnStyle(w){
-    if(w==="danger") return { wBg:"rgba(217,38,36,.09)", wBorder:"rgba(217,38,36,.5)", wSolid:"#D92624", wFg:"#B71F1D", wLabel:"⚠ DANGER" };
-    if(w==="warn")   return { wBg:"rgba(232,163,58,.13)", wBorder:"rgba(214,144,36,.45)",  wSolid:"#E8A33A", wFg:"#8A5A10", wLabel:"AVERTISSEMENT" };
-    return { wBg:"rgba(83,82,82,.06)", wBorder:"rgba(83,82,82,.28)", wSolid:"#989898", wFg:"#535252", wLabel:"REMARQUE" };
+    if(w==="danger") return { wIcon:"⛔", wBg:"rgba(217,38,36,.1)", wBorder:"rgba(217,38,36,.55)", wSolid:"#D92624", wFg:"#B71F1D", wLabel:"DANGER" };
+    if(w==="warn")   return { wIcon:"⚠️", wBg:"rgba(232,163,58,.15)", wBorder:"rgba(214,144,36,.5)",  wSolid:"#E8A33A", wFg:"#8A5A10", wLabel:"ATTENTION" };
+    return { wIcon:"ℹ️", wBg:"rgba(55,99,168,.09)", wBorder:"rgba(55,99,168,.32)", wSolid:"#3763A8", wFg:"#2F4F83", wLabel:"À SAVOIR" };
   }
-  optStyle(checked,isSel,isCorrectOpt){
+  // Découpe un paragraphe en phrases courtes (pour un affichage en points, lecture facilitée)
+  splitSentences(t){
+    if(!t) return [];
+    var SENT=String.fromCharCode(1);
+    var s=String(t).replace(/\b(p|pp|ex|cf|no|art|min|max|env|réf|fig|sect|iso|sae|ep|vg|m|n)\.\s/gi, function(m){ return m.slice(0,-1)+SENT; });
+    var parts=s.split(/(?<=[.!?:])\s+(?=[A-ZÀ-Ÿ«])/);
+    var re=new RegExp(SENT,"g");
+    return parts.map(function(x){ return x.replace(re," ").trim(); }).filter(function(x){ return x.length>0; });
+  }  optStyle(checked,isSel,isCorrectOpt){
     if(!checked){
       return isSel
         ? { bg:"rgba(217,38,36,.06)", border:"#D92624", badgeBg:"#D92624", badgeFg:"#FFFFFF", badgeBorder:"#D92624", textColor:"#1D1E1B" }
@@ -765,6 +773,7 @@ class Component extends DCLogic {
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             blocks: allBlocks.map(b=>{
               const o={ isP:b.t==="p", isUl:b.t==="ul", isSteps:b.t==="steps", isSpecs:b.t==="specs", isWarn:b.t==="warn", isImg:b.t==="img", text:b.text||"" };
+              if(b.t==="p") o.lines=this.splitSentences(b.text);
               if(b.t==="ul") o.items=b.items;
               if(b.t==="steps") o.steps=b.items.map((tx,ix)=>({ n:ix+1, text:tx }));
               if(b.t==="specs") o.rows=b.rows.map(r=>({ k:r[0], v:r[1] }));
