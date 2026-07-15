@@ -1,6 +1,6 @@
-/* ============ MACHINES ROGER INTERNATIONAL — design system ============ */
+/* ============ MACHINES ROGER INTERNATIONAL : design system ============ */
 :root{
-  --color-accent:#D92624;   /* rouge marque — usage parcimonieux */
+  --color-accent:#D92624;   /* rouge marque : usage parcimonieux */
   --color-ink:#1D1E1B;      /* texte sombre / fond très sombre */
   --color-black:#141413;    /* entête / bandeaux / pied de page */
   --color-grey-dark:#535252;
@@ -33,10 +33,10 @@ input::placeholder{color:rgba(29,30,27,.35)}
 #app input[type=range]::-moz-range-thumb{width:16px;height:16px;background:#D92624;border:none;border-radius:0;cursor:pointer}
 #app input[type=range]::-moz-range-track{height:4px;background:#D8D6D0;border-radius:0}
 
-/* Bande signature — rayures diagonales rouges (remplace le faisceau cyan) */
+/* Bande signature : rayures diagonales rouges (remplace le faisceau cyan) */
 .hz-stripe{background:repeating-linear-gradient(-45deg,#B71F1D 0 10px,#D92624 10px 22px)}
 
-/* Titres filigranes fantômes — très grands, très discrets, derrière les sections */
+/* Titres filigranes fantômes : très grands, très discrets, derrière les sections */
 .mr-ghost{position:relative;overflow:hidden;z-index:0}
 .mr-ghost::before{
   content:attr(data-ghost);
