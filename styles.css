@@ -1,10 +1,19 @@
 *{box-sizing:border-box}
   html,body{margin:0;padding:0}
-  body{background:#e9e6dd;font-family:"Public Sans",system-ui,sans-serif;color:#17150e;-webkit-font-smoothing:antialiased}
-  a{color:#b5641b;text-decoration:none}
-  a:hover{color:#8f4d13}
-  ::selection{background:#f0b64a;color:#17150e}
-  .hz-stripe{background-image:repeating-linear-gradient(-45deg,#17150e 0 22px,#e8a33a 22px 44px)}
+  body{background:#0A0E15;font-family:"Instrument Sans",system-ui,sans-serif;color:#E7EDF5;-webkit-font-smoothing:antialiased}
+  a{color:#7BE7F2;text-decoration:none}
+  a:hover{color:#A8F0F8}
+  ::selection{background:#45D8E8;color:#06222A}
+  input::placeholder{color:rgba(16,24,38,.35)}
+  :focus-visible{outline:2px solid rgba(69,216,232,.7);outline-offset:2px}
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-track{background:#0A0E15}
+  ::-webkit-scrollbar-thumb{background:#232E40;border-radius:99px;border:3px solid #0A0E15}
+  ::-webkit-scrollbar-thumb:hover{background:#33445C}
+
+  /* Motif "faisceau télémétrique" — remplace les hachures danger */
+  .hz-stripe{background-image:repeating-linear-gradient(90deg,rgba(10,14,21,.55) 0 2px,transparent 2px 26px),linear-gradient(90deg,#0F2E3C 0%,#2FB5CB 22%,#7BE7F2 50%,#2FB5CB 78%,#0F2E3C 100%)}
+
   @keyframes rbFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
 
@@ -25,7 +34,7 @@
   .rb-stagger>*:nth-child(6){animation-delay:.46s}
   .rb-stagger>*:nth-child(n+7){animation-delay:.52s}
   .rb-img-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
-  .rb-img-card:hover{transform:translateY(-4px);box-shadow:0 20px 44px -20px rgba(0,0,0,.55);border-color:rgba(255,255,255,.24)}
+  .rb-img-card:hover{transform:translateY(-4px);box-shadow:0 20px 44px -20px rgba(0,0,0,.9),0 0 26px -8px rgba(69,216,232,.3);border-color:rgba(69,216,232,.45)}
   .rb-img-frame{overflow:hidden}
   .rb-img-frame img{transition:transform .5s cubic-bezier(.22,.61,.36,1)}
   .rb-img-card:hover .rb-img-frame img{transform:scale(1.035)}
