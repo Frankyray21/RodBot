@@ -1,0 +1,9 @@
+*{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:#e9e6dd;font-family:"Public Sans",system-ui,sans-serif;color:#17150e;-webkit-font-smoothing:antialiased}
+  a{color:#b5641b;text-decoration:none}
+  a:hover{color:#8f4d13}
+  ::selection{background:#f0b64a;color:#17150e}
+  .hz-stripe{background-image:repeating-linear-gradient(-45deg,#17150e 0 22px,#e8a33a 22px 44px)}
+  @keyframes rbFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
