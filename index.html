@@ -796,8 +796,8 @@
     <!-- ============ VISIONNEUSE D'IMAGE (photos d'équipement — pop-up, ne quitte pas la page) ============ -->
     <!-- Fiche commande (mobile) : pop-up a l'appui d'une pastille de la telecommande -->
     <sc-if value="{{ rrcInfoOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeRrcInfo }}" style="position:fixed;inset:0;z-index:190;background:rgba(20,20,19,.5);display:flex;align-items:flex-end;animation:rbFade .15s ease both">
-      <div onClick="{{ stopEvt }}" style="width:100%;background:#FFFFFF;border-top:4px solid #D92624;padding:18px 20px 24px;box-shadow:0 -20px 50px -18px rgba(0,0,0,.55);animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both;max-height:82vh;overflow:auto">
+    <div onClick="{{ closeRrcInfo }}" class="rb-rrc-pop" style="position:fixed;inset:0;z-index:190;background:rgba(20,20,19,.5);display:flex;align-items:flex-end;animation:rbFade .15s ease both">
+      <div onClick="{{ stopEvt }}" class="rb-rrc-card" style="width:100%;background:#FFFFFF;border-top:4px solid #D92624;padding:18px 20px 24px;box-shadow:0 -20px 50px -18px rgba(0,0,0,.55);animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both;max-height:82vh;overflow:auto">
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
           <span style="width:30px;height:30px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none">{{ rrcSelN }}</span>
           <span style="flex:1;font-weight:800;font-size:18px;line-height:1.15;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
@@ -1635,8 +1635,8 @@
     <!-- ============ IMAGE VIEWER (equipment photos — pop-up, does not leave the page) ============ -->
     <!-- Fiche commande (mobile) : pop-up a l'appui d'une pastille de la telecommande -->
     <sc-if value="{{ rrcInfoOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeRrcInfo }}" style="position:fixed;inset:0;z-index:190;background:rgba(20,20,19,.5);display:flex;align-items:flex-end;animation:rbFade .15s ease both">
-      <div onClick="{{ stopEvt }}" style="width:100%;background:#FFFFFF;border-top:4px solid #D92624;padding:18px 20px 24px;box-shadow:0 -20px 50px -18px rgba(0,0,0,.55);animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both;max-height:82vh;overflow:auto">
+    <div onClick="{{ closeRrcInfo }}" class="rb-rrc-pop" style="position:fixed;inset:0;z-index:190;background:rgba(20,20,19,.5);display:flex;align-items:flex-end;animation:rbFade .15s ease both">
+      <div onClick="{{ stopEvt }}" class="rb-rrc-card" style="width:100%;background:#FFFFFF;border-top:4px solid #D92624;padding:18px 20px 24px;box-shadow:0 -20px 50px -18px rgba(0,0,0,.55);animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both;max-height:82vh;overflow:auto">
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
           <span style="width:30px;height:30px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none">{{ rrcSelN }}</span>
           <span style="flex:1;font-weight:800;font-size:18px;line-height:1.15;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>

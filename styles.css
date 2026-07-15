@@ -67,6 +67,11 @@ input::placeholder{color:rgba(29,30,27,.35)}
 @keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes rbPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes rbSheet{from{transform:translateY(100%)}to{transform:none}}
+/* Fiche commande télécommande : feuille du bas sur mobile, carte centrée sur ordinateur */
+@media (min-width:821px){
+  .rb-rrc-pop{align-items:center !important;justify-content:center !important;padding:24px !important}
+  .rb-rrc-card{max-width:460px !important;border:1px solid rgba(29,30,27,.16) !important;border-top:4px solid #D92624 !important;box-shadow:0 40px 90px -28px rgba(0,0,0,.55) !important;animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both !important;max-height:88vh !important}
+}
 /* Machine réelle du hero : léger flottement + lueur rouge pulsée (gyrophare) */
 @keyframes rbFloat{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-13px) scale(1.015)}}
 @keyframes rbGlow{0%,100%{opacity:.3}50%{opacity:.8}}
