@@ -351,7 +351,9 @@
                 <div style="position:absolute;inset:0;background:rgba(217,38,36,.15);border:4px solid #D92624;pointer-events:none;animation:rbPulse 1s ease-in-out infinite"></div>
               </sc-if>
               <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
-                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;transition:transform .15s;border:2px solid {{ s.ring }};background: {{ s.bg }};color: {{ s.fg }};box-shadow:0 2px 7px rgba(0,0,0,.5),0 0 0 3px {{ s.halo }}" style-hover="transform:translate(-50%,-50%) scale(1.28)">{{ s.n }}</button>
+                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:32px;height:32px;background:transparent;border:2.5px solid {{ s.ring }};cursor:pointer;box-shadow:0 0 0 2px {{ s.halo }};transition:transform .15s" style-hover="transform:translate(-50%,-50%) scale(1.18)">
+                  <span style="position:absolute;top:-11px;left:-11px;width:19px;height:19px;background: {{ s.bg }};color: {{ s.fg }};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,.55)">{{ s.n }}</span>
+                </button>
               </sc-for>
             </div>
             <div style="margin-top:12px;font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898;text-align:center">Photo du manuel, p. 21 — cliquez sur les pastilles pour identifier chaque commande</div>

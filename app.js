@@ -873,10 +873,10 @@ class Component extends DCLogic {
       const isE = !!sp.estop;
       return {
         n:i+1, x:sp.x, y:sp.y, name:sp.name, pick:()=>this.pickSpot(i),
-        bg: isE ? "#D92624" : (sel ? "#1D1E1B" : "#FAF9F5"),
-        fg: isE ? "#FFFFFF" : (sel ? "#FFFFFF" : "#1D1E1B"),
-        ring: sel ? "#D92624" : (isE ? "#FFFFFF" : "rgba(29,30,27,.55)"),
-        halo: sel ? "rgba(217,38,36,.4)" : "rgba(20,20,19,.5)"
+        bg: (sel||isE) ? "#D92624" : "#1D1E1B",   // badge (coin) : rempli
+        fg: "#FFFFFF",                             // numéro
+        ring: (sel||isE) ? "#D92624" : "#FAF9F5",  // anneau autour de la commande (centre vide)
+        halo: sel ? "rgba(217,38,36,.5)" : "rgba(20,20,19,.6)"
       };
     });
     const selSp = this.RRC_SPOTS[S.rrcSel] || this.RRC_SPOTS[0];
