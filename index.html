@@ -566,16 +566,16 @@
                   <sc-for list="{{ s.blocks }}" as="b" hint-placeholder-count="3">
                     <div style="display:contents">
                       <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}">
-                        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px">
+                        <div style="display:flex;flex-direction:column;gap:7px">
                           <sc-for list="{{ b.lines }}" as="ln" hint-placeholder-count="2">
-                            <li style="display:flex;gap:11px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="color:#D92624;font-weight:900;flex:none;font-size:17px;line-height:1.35">▸</span><span>{{ ln }}</span></li>
+                            <div style="font-size:15px;line-height:1.55;color:#2A2B28">{{ ln }}</div>
                           </sc-for>
-                        </ul>
+                        </div>
                       </sc-if>
                       <sc-if value="{{ b.isUl }}" hint-placeholder-val="{{ false }}">
                         <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px">
                           <sc-for list="{{ b.items }}" as="it" hint-placeholder-count="3">
-                            <li style="display:flex;gap:11px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="width:20px;height:20px;flex:none;background:#D92624;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;margin-top:1px">✓</span><span>{{ it }}</span></li>
+                            <li style="display:flex;gap:12px;font-size:15px;line-height:1.5;color:#2A2B28"><span style="width:7px;height:7px;background:#D92624;flex:none;margin-top:8px"></span><span>{{ it }}</span></li>
                           </sc-for>
                         </ul>
                       </sc-if>
