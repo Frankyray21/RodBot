@@ -1,0 +1,15 @@
+# Configuration Wrangler : Worker « Attestations RodBot (web) »
+# Déploiement CLI (optionnel) depuis ce dossier :
+#     cd worker && npx wrangler deploy
+# Le secret AIRTABLE_TOKEN se règle dans le tableau de bord Cloudflare
+# (Settings → Variables and Secrets), pas ici.
+#
+# Ce fichier est dans worker/ (et non à la racine) pour ne pas interférer
+# avec GitHub Pages qui sert le SITE depuis la racine du dépôt.
+# Recommandé : connecter le Worker au dépôt GitHub (Cloudflare → Workers →
+# Create → Import a repository, root directory = worker) : chaque push
+# le redéploie automatiquement, comme attestations-procedures.
+
+name = "attestations-rodbot"
+main = "worker.js"
+compatibility_date = "2025-09-01"

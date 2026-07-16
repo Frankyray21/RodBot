@@ -17,7 +17,12 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.8.24';
+var APP_VERSION = '1.9.0';
+/* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
+   (même mécanique que les sites Prévention TMS et Procédures de forage).
+   Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
+   indique simplement « service injoignable ». */
+var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
@@ -763,6 +768,7 @@ class Component extends DCLogic {
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
       canInstall:false, showInstallHelp:false,
+      attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId:"",
       completed: saved.completed || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
@@ -1027,7 +1033,51 @@ class Component extends DCLogic {
   startQuiz = ()=> { this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
   backToModule = ()=> this.setState({ view:"module", graded:false });
   retryQuiz = ()=> { this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
-  setName = (e)=>{ const v=e.target.value; this.setState({name:v}, ()=>this.persist()); };
+  setName = (e)=>{
+    const v=e.target.value;
+    // Si le nom tapé correspond exactement à une suggestion, on garde son id (liaison sûre).
+    const hit=(this.state.attSug||[]).find(sg=>sg.name===v);
+    this.setState({name:v, attEmpId: hit?hit.id:"", attDone:false, attError:""}, ()=>this.persist());
+    this.fetchEmpSuggestions(v);
+  };
+  fetchEmpSuggestions(v){
+    if(!ATTEST_ENDPOINT || !v || v.trim().length<2) return;
+    clearTimeout(this._sugT);
+    this._sugT=setTimeout(()=>{
+      fetch(ATTEST_ENDPOINT+"?q="+encodeURIComponent(v.trim()))
+        .then(r=>r.json())
+        .then(d=>{
+          if(!(d && d.ok && Array.isArray(d.results))) return;
+          // Mise à jour SANS re-render (sinon le champ perd le focus pendant la frappe).
+          this.state.attSug=d.results.slice(0,8);
+          var dl=document.getElementById("rb-emp-list");
+          if(dl){ dl.innerHTML=""; this.state.attSug.forEach(function(sg){ var o=document.createElement("option"); o.value=sg.name; dl.appendChild(o); }); }
+        })
+        .catch(()=>{});
+    }, 250);
+  }
+  submitAttestation = ()=>{
+    const S=this.state;
+    if(S.attSending || S.attDone) return;
+    const name=(S.name||"").trim();
+    if(name.length<2){ this.setState({ attError:this.tr("Écrivez d'abord votre nom sur l'attestation.","Write your name on the certificate first.") }); return; }
+    if(!this.allDone()){ this.setState({ attError:this.tr("Terminez d'abord les 8 modules.","Finish all 8 modules first.") }); return; }
+    const M=this.M();
+    const detail=M.map((m,i)=>m.num+" : "+this.moduleScore(i)+" %").join("\n");
+    const scores=M.map((m,i)=>this.moduleScore(i));
+    const overall=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
+    const payload={ name:name, employeeId:S.attEmpId||"", score:overall+" %", modules:detail,
+      date:new Date().toISOString().slice(0,10),
+      langue:(S.lang==="en"?"English":"Français"), version:APP_VERSION };
+    this.setState({ attSending:true, attError:"" });
+    fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
+      .then(r=>r.json())
+      .then(d=>{
+        if(d && d.ok) this.setState({ attSending:false, attDone:true, attLinked:!!d.linked });
+        else this.setState({ attSending:false, attError:(d&&d.error)||this.tr("Envoi refusé.","Submission refused.") });
+      })
+      .catch(()=>this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }));
+  };
   scrollToSafety = ()=>this.scrollHomeSection("safety");
   startFirst = ()=>{ const first=this.M().findIndex((m,i)=>!this.moduleDone(i)); this.openModule(first===-1?0:first); };
 
@@ -1350,6 +1400,15 @@ class Component extends DCLogic {
     base.valveMastFg = curMode.mast ? "#2F7D48" : "#535252";
 
     base.traineeName=S.name; base.setName=this.setName;
+    base.attest={
+      sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
+      idle:!S.attSending && !S.attDone,
+      linkedMsg: S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
+                             : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
+      send:this.submitAttestation,
+      btnLabel: S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate"),
+      sug:(S.attSug||[]).map(sg=>({ name:sg.name }))
+    };
     base.certDate=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
     // ===== Visionneur intégré du manuel (fiable sur tout appareil) =====
     base.manual = S.mpage ? {
