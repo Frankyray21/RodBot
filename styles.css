@@ -72,7 +72,11 @@ input::placeholder{color:rgba(29,30,27,.35)}
   .rb-rrc-pop{align-items:center !important;justify-content:center !important;padding:24px !important}
   .rb-rrc-card{max-width:460px !important;border:1px solid rgba(29,30,27,.16) !important;border-top:4px solid #D92624 !important;box-shadow:0 40px 90px -28px rgba(0,0,0,.55) !important;animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both !important;max-height:88vh !important}
 }
-/* La machine reste fixe; le mouvement appartient au contenu de formation. */
+/* Zoom très lent: la machine reste un fond stable, sans panoramique ni balayage. */
+@keyframes rbHeroZoom{
+  from{transform:scale(1)}
+  to{transform:scale(1.04)}
+}
 @keyframes rbHeroTextIn{
   from{opacity:0;transform:translateY(22px)}
   to{opacity:1;transform:none}
@@ -90,7 +94,7 @@ input::placeholder{color:rgba(29,30,27,.35)}
   60%{opacity:.28}
   78%,100%{transform:translateX(160%) skewX(-16deg);opacity:0}
 }
-.rb-hero-photo{animation:none;transform:none;filter:saturate(1.05) contrast(1.06)}
+.rb-hero-photo{animation:rbHeroZoom 24s cubic-bezier(.45,0,.55,1) infinite alternate;transform-origin:64% 48%;will-change:transform;filter:saturate(1.05) contrast(1.06)}
 .rb-hero-photo-vignette{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 72% 40%,rgba(217,38,36,.08),transparent 34%),linear-gradient(180deg,transparent 58%,rgba(20,20,19,.68) 100%)}
 .rb-hero-stage>.rb-reveal{animation:none}
 .rb-hero-badges{animation:rbHeroTextIn .56s cubic-bezier(.22,.61,.36,1) .06s both}
@@ -125,7 +129,7 @@ input::placeholder{color:rgba(29,30,27,.35)}
   .rb-side-toc{left:18px;width:178px}
 }
 @media (prefers-reduced-motion: reduce){
-  .rb-hero-badges,.rb-hero-stage h1,.rb-hero-stage h1 span,.rb-hero-copy,.rb-hero-copy strong,.rb-hero-actions,.rb-hero-cta::after{animation:none !important}
+  .rb-hero-photo,.rb-hero-badges,.rb-hero-stage h1,.rb-hero-stage h1 span,.rb-hero-copy,.rb-hero-copy strong,.rb-hero-actions,.rb-hero-cta::after{animation:none !important}
   .rb-toc-item{transition:none !important}
   .rb-toc-item:hover{transform:none}
 }
