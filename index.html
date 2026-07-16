@@ -283,6 +283,27 @@
           </a>
         </div>
       </section>
+      <!-- ===== ANALYSE DE RISQUES : document complet ===== -->
+      <section class="mr-ghost" data-ghost="Risques" style="max-width:1180px;margin:0 auto;padding:34px 28px 24px">
+        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">05 : SÉCURITÉ DOCUMENTÉE</div>
+        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;color:#1D1E1B">Analyse de risques</h2>
+        <p style="font-size:14.5px;line-height:1.55;color:#535252;max-width:640px;margin:0 0 20px">Le document officiel d'évaluation des risques du RodBot (BM260024, rév. 01), établi selon ISO 12100:2010 et ISO 14121-2. Touchez une page pour l'agrandir.</p>
+        <div class="mr-gal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+          <sc-for list="{{ raPages }}" as="rp" hint-placeholder-count="4">
+            <button onClick="{{ rp.open }}" class="mr-plate" style="display:block;width:100%;text-align:left;padding:0;background:#FFFFFF;border:1px solid rgba(29,30,27,.18);cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px -22px rgba(20,20,19,.7);border-color:#D92624">
+              <div style="background:#F4F1EA;border-bottom:1px solid rgba(29,30,27,.12);aspect-ratio:22/17;overflow:hidden">
+                <img src="{{ rp.src }}" loading="lazy" alt="Analyse de risques : page {{ rp.n }}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top left">
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px">
+                <span style="font-weight:800;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#535252">Page {{ rp.n }} / 4</span>
+                <span style="font-weight:900;font-size:12px;color:#D92624">🔍</span>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+        <a href="{{ raUrl }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:#141413;color:#FAF9F5;padding:13px 20px;font-weight:800;font-size:12px;letter-spacing:.06em;border-left:4px solid #D92624" style-hover="background:#221;color:#FFFFFF">📋 OUVRIR LE PDF ↗</a>
+      </section>
+
 
       <footer style="background:#141413;color:#8A8985;margin-top:40px">
         <div style="max-width:1180px;margin:0 auto;padding:30px 28px 46px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-weight:600;font-size:11px;letter-spacing:.08em">
@@ -626,6 +647,14 @@
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
                           </figcaption>
                         </figure>
+                      </sc-if>
+                      <sc-if value="{{ b.isLinks }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:4px">
+                          <span style="font-weight:800;font-size:11px;letter-spacing:.1em;color:#989898">🔗 NOTIONS LIÉES</span>
+                          <sc-for list="{{ b.links }}" as="lk" hint-placeholder-count="2">
+                            <button onClick="{{ lk.open }}" style="background:#FFFFFF;border:1px solid rgba(217,38,36,.4);color:#B71F1D;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;transition:background .15s" style-hover="background:rgba(217,38,36,.07)">{{ lk.label }} · p. {{ lk.page }}</button>
+                          </sc-for>
+                        </div>
                       </sc-if>
                     </div>
                   </sc-for>
@@ -1128,6 +1157,27 @@
           </a>
         </div>
       </section>
+      <!-- ===== ANALYSE DE RISQUES : document complet ===== -->
+      <section class="mr-ghost" data-ghost="Risques" style="max-width:1180px;margin:0 auto;padding:34px 28px 24px">
+        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">05 : DOCUMENTED SAFETY</div>
+        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;color:#1D1E1B">Risk assessment</h2>
+        <p style="font-size:14.5px;line-height:1.55;color:#535252;max-width:640px;margin:0 0 20px">The official RodBot risk assessment document (BM260024, rev. 01), prepared to ISO 12100:2010 and ISO 14121-2. Tap a page to enlarge it.</p>
+        <div class="mr-gal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+          <sc-for list="{{ raPages }}" as="rp" hint-placeholder-count="4">
+            <button onClick="{{ rp.open }}" class="mr-plate" style="display:block;width:100%;text-align:left;padding:0;background:#FFFFFF;border:1px solid rgba(29,30,27,.18);cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px -22px rgba(20,20,19,.7);border-color:#D92624">
+              <div style="background:#F4F1EA;border-bottom:1px solid rgba(29,30,27,.12);aspect-ratio:22/17;overflow:hidden">
+                <img src="{{ rp.src }}" loading="lazy" alt="Risk assessment : page {{ rp.n }}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top left">
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px">
+                <span style="font-weight:800;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#535252">Page {{ rp.n }} / 4</span>
+                <span style="font-weight:900;font-size:12px;color:#D92624">🔍</span>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+        <a href="{{ raUrl }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;background:#141413;color:#FAF9F5;padding:13px 20px;font-weight:800;font-size:12px;letter-spacing:.06em;border-left:4px solid #D92624" style-hover="background:#221;color:#FFFFFF">📋 OPEN THE PDF ↗</a>
+      </section>
+
 
       <footer style="background:#141413;color:#8A8985;margin-top:40px">
         <div style="max-width:1180px;margin:0 auto;padding:30px 28px 46px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-weight:600;font-size:11px;letter-spacing:.08em">
@@ -1471,6 +1521,14 @@
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
                           </figcaption>
                         </figure>
+                      </sc-if>
+                      <sc-if value="{{ b.isLinks }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:4px">
+                          <span style="font-weight:800;font-size:11px;letter-spacing:.1em;color:#989898">🔗 RELATED TOPICS</span>
+                          <sc-for list="{{ b.links }}" as="lk" hint-placeholder-count="2">
+                            <button onClick="{{ lk.open }}" style="background:#FFFFFF;border:1px solid rgba(217,38,36,.4);color:#B71F1D;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;transition:background .15s" style-hover="background:rgba(217,38,36,.07)">{{ lk.label }} · p. {{ lk.page }}</button>
+                          </sc-for>
+                        </div>
                       </sc-if>
                     </div>
                   </sc-for>

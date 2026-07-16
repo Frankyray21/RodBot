@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.8.21';
+var APP_VERSION = '1.8.22';
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
@@ -1206,6 +1206,7 @@ class Component extends DCLogic {
               if(b.t==="specs") o.rows=b.rows.map(r=>({ k:r[0], v:r[1] }));
               if(b.t==="warn") Object.assign(o, this.warnStyle(b.w));
               if(b.t==="img"){ o.src=b.src; o.cap=b.cap||""; o.imgPage=this.mp(b.page); o.imgHref=this.pdfAt(this.mp(b.page)); o.openPage=()=>this.openManual(this.mp(b.page)); }
+              if(b.t==="links"){ o.isLinks=true; o.links=(b.items||[]).map(it=>({ label:it.label, page:this.mp(it.page), open:(()=>this.openManual(this.mp(it.page))) })); }
               return o;
             })
           };
@@ -1379,6 +1380,10 @@ class Component extends DCLogic {
         tag:this.tr("LES CHENILLES","THE TRACKS"),
         desc:this.tr("Train de roulement en caoutchouc, contrôle de la flèche (mou) de 20 à 25 mm, couvert à l'entretien (module 08).","Rubber track undercarriage, track sag check of 20 to 25 mm, covered under maintenance (module 08).") }
     ].map(function(x){ return { src:x.src, tag:x.tag, desc:x.desc, pos:x.pos, open:(function(s,c){ return function(){ self.openImg(s,c); }; })(x.src,x.tag) }; });
+
+    // Analyse de risques : 4 pages présentées dans une section dédiée
+    var raCap=this.tr("Analyse de risques","Risk assessment");
+    base.raPages=[1,2,3,4].map(function(n){ var src="img/ra/p"+n+".jpg"; return { n:n, src:src, open:(function(sr,cp){ return function(){ self.openImg(sr,cp+" : page "+n+" / 4"); }; })(src,raCap) }; });
 
     base.imgView = S.imgView;
     base.closeImg = this.closeImg;
