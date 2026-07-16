@@ -569,30 +569,8 @@
               <div style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
 
-                  <div class="rb-field-guide" style="padding:0 2px 2px">
-                    <ul style="margin:0;padding:0;list-style:none;border-top:1px solid rgba(29,30,27,.12)">
-                      <sc-for list="{{ s.guideItems }}" as="g" hint-placeholder-count="3">
-                        <li style="display:flex;gap:11px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid rgba(29,30,27,.12);font-size:15.5px;line-height:1.4;color:#1D1E1B">
-                          <span style="width:6px;height:6px;flex:none;background:#D92624;margin-top:8px"></span>
-                          <span>{{ g.text }}</span>
-                        </li>
-                      </sc-for>
-                    </ul>
-                    <sc-if value="{{ s.hasGuideStop }}" hint-placeholder-val="true">
-                      <div style="margin-top:15px;padding:12px 14px;background:#D92624;color:#FFFFFF;display:flex;gap:12px;align-items:flex-start">
-                        <span style="font-weight:900;font-size:11px;letter-spacing:.08em;white-space:nowrap;padding-top:2px">ARRÊTER</span>
-                        <span style="font-weight:700;font-size:15px;line-height:1.4">{{ s.guideStop }}</span>
-                      </div>
-                    </sc-if>
-                  </div>
-
-                  <div class="rb-manual-details {{ s.manualDetailClass }}" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
-                    <button class="rb-manual-details-trigger" onClick="{{ s.toggleManualDetails }}" aria-expanded="{{ s.manualDetailExpanded }}">
-                      <span>Voir les détails et les images du manuel</span>
-                      <span class="rb-manual-details-page">PAGE {{ s.page }}</span>
-                    </button>
-                    <sc-if value="{{ s.manualDetailOpen }}" hint-placeholder-val="false">
-                    <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px">
+                                    <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
+                    <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
                   <sc-for list="{{ s.blocks }}" as="b" hint-placeholder-count="3">
                     <div style="display:contents">
                       <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}">
@@ -653,7 +631,6 @@
                     </div>
                   </sc-for>
                     </div>
-                    </sc-if>
                   </div>
 
                   <div style="display:flex;justify-content:flex-end">
@@ -1459,30 +1436,8 @@
               <div style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
 
-                  <div class="rb-field-guide" style="padding:0 2px 2px">
-                    <ul style="margin:0;padding:0;list-style:none;border-top:1px solid rgba(29,30,27,.12)">
-                      <sc-for list="{{ s.guideItems }}" as="g" hint-placeholder-count="3">
-                        <li style="display:flex;gap:11px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid rgba(29,30,27,.12);font-size:15.5px;line-height:1.4;color:#1D1E1B">
-                          <span style="width:6px;height:6px;flex:none;background:#D92624;margin-top:8px"></span>
-                          <span>{{ g.text }}</span>
-                        </li>
-                      </sc-for>
-                    </ul>
-                    <sc-if value="{{ s.hasGuideStop }}" hint-placeholder-val="true">
-                      <div style="margin-top:15px;padding:12px 14px;background:#D92624;color:#FFFFFF;display:flex;gap:12px;align-items:flex-start">
-                        <span style="font-weight:900;font-size:11px;letter-spacing:.08em;white-space:nowrap;padding-top:2px">STOP</span>
-                        <span style="font-weight:700;font-size:15px;line-height:1.4">{{ s.guideStop }}</span>
-                      </div>
-                    </sc-if>
-                  </div>
-
-                  <div class="rb-manual-details {{ s.manualDetailClass }}" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
-                    <button class="rb-manual-details-trigger" onClick="{{ s.toggleManualDetails }}" aria-expanded="{{ s.manualDetailExpanded }}">
-                      <span>See manual details and images</span>
-                      <span class="rb-manual-details-page">PAGE {{ s.page }}</span>
-                    </button>
-                    <sc-if value="{{ s.manualDetailOpen }}" hint-placeholder-val="false">
-                    <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px">
+                                    <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
+                    <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
                   <sc-for list="{{ s.blocks }}" as="b" hint-placeholder-count="3">
                     <div style="display:contents">
                       <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}">
@@ -1543,7 +1498,6 @@
                     </div>
                   </sc-for>
                     </div>
-                    </sc-if>
                   </div>
 
                   <div style="display:flex;justify-content:flex-end">
