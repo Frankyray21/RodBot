@@ -72,55 +72,62 @@ input::placeholder{color:rgba(29,30,27,.35)}
   .rb-rrc-pop{align-items:center !important;justify-content:center !important;padding:24px !important}
   .rb-rrc-card{max-width:460px !important;border:1px solid rgba(29,30,27,.16) !important;border-top:4px solid #D92624 !important;box-shadow:0 40px 90px -28px rgba(0,0,0,.55) !important;animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both !important;max-height:88vh !important}
 }
-/* Machine du hero : vraie photo, animation lente et lisible. */
-@keyframes rbHeroPhoto{
-  0%{transform:scale(1.035) translate3d(0,0,0)}
-  100%{transform:scale(1.08) translate3d(-1.4%,-.8%,0)}
+/* La machine reste fixe; le mouvement appartient au contenu de formation. */
+@keyframes rbHeroTextIn{
+  from{opacity:0;transform:translateY(22px)}
+  to{opacity:1;transform:none}
 }
-@keyframes rbBeaconGlow{
-  0%,64%,100%{opacity:.16;transform:scale(.9)}
-  70%{opacity:.7;transform:scale(1.08)}
-  76%{opacity:.24;transform:scale(.98)}
-  82%{opacity:.58;transform:scale(1.03)}
+@keyframes rbHeroTitleIn{
+  from{opacity:0;transform:translateY(28px);clip-path:inset(0 0 100% 0)}
+  to{opacity:1;transform:none;clip-path:inset(0)}
 }
-@keyframes rbHeroSweep{
-  0%,24%{opacity:0;transform:translateX(-38%)}
-  38%{opacity:.22}
-  62%{opacity:.12}
-  78%,100%{opacity:0;transform:translateX(42%)}
-}
-@keyframes rbHotspotPulse{
-  0%,100%{transform:scale(.78);opacity:.38}
-  42%{transform:scale(1);opacity:.95}
-  64%{transform:scale(.86);opacity:.5}
-}
-@keyframes rbHotspotRing{
-  0%{transform:scale(.65);opacity:.55}
-  100%{transform:scale(2.65);opacity:0}
+@keyframes rbHeroStepIn{
+  from{opacity:0;transform:translateX(-18px)}
+  to{opacity:1;transform:none}
 }
 @keyframes rbButtonSheen{
   0%,45%{transform:translateX(-130%) skewX(-16deg);opacity:0}
   60%{opacity:.28}
   78%,100%{transform:translateX(160%) skewX(-16deg);opacity:0}
 }
-.rb-hero-photo{animation:rbHeroPhoto 18s ease-in-out infinite alternate;transform-origin:62% 44%;will-change:transform;filter:saturate(1.05) contrast(1.06)}
-.rb-hero-photo-glow{animation:rbBeaconGlow 3.25s ease-in-out infinite;mix-blend-mode:screen}
+.rb-hero-photo{animation:none;transform:none;filter:saturate(1.05) contrast(1.06)}
 .rb-hero-photo-vignette{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 72% 40%,rgba(217,38,36,.08),transparent 34%),linear-gradient(180deg,transparent 58%,rgba(20,20,19,.68) 100%)}
-.rb-hero-scan{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(102deg,transparent 0%,transparent 42%,rgba(255,255,255,.2) 49%,rgba(217,38,36,.2) 51%,transparent 58%,transparent 100%);mix-blend-mode:screen;animation:rbHeroSweep 7.6s ease-in-out infinite}
-.rb-hero-hotspots{position:absolute;inset:0;z-index:1;pointer-events:none}
-.rb-hotspot{position:absolute;width:12px;height:12px;background:#F0A81E;border:2px solid rgba(255,255,255,.86);box-shadow:0 0 0 1px rgba(240,168,30,.34),0 0 22px rgba(240,168,30,.72);animation:rbHotspotPulse 2.8s ease-in-out infinite}
-.rb-hotspot::after{content:"";position:absolute;inset:-7px;border:1px solid rgba(240,168,30,.72);animation:rbHotspotRing 2.8s ease-out infinite}
-.rb-hotspot-danger{background:#D92624;box-shadow:0 0 0 1px rgba(217,38,36,.38),0 0 24px rgba(217,38,36,.75)}
-.rb-hotspot-danger::after{border-color:rgba(217,38,36,.7)}
-.rb-hotspot-beacon{right:23.5%;top:36%}
-.rb-hotspot-panel{right:7.8%;top:55%}
-.rb-hotspot-zone{right:39%;top:60%;animation-delay:.6s}
+.rb-hero-stage>.rb-reveal{animation:none}
+.rb-hero-badges{animation:rbHeroTextIn .56s cubic-bezier(.22,.61,.36,1) .06s both}
+.rb-hero-stage h1{animation:rbHeroTitleIn .72s cubic-bezier(.16,1,.3,1) .18s both}
+.rb-hero-stage h1 span{display:inline-block;animation:rbHeroTextIn .58s cubic-bezier(.22,.61,.36,1) .36s both}
+.rb-hero-copy{animation:rbHeroTextIn .58s cubic-bezier(.22,.61,.36,1) .4s both}
+.rb-hero-copy strong{display:inline-block;animation:rbHeroStepIn .46s cubic-bezier(.22,.61,.36,1) both}
+.rb-hero-copy strong:nth-of-type(1){animation-delay:.52s}
+.rb-hero-copy strong:nth-of-type(2){animation-delay:.62s}
+.rb-hero-copy strong:nth-of-type(3){animation-delay:.72s}
+.rb-hero-actions{animation:rbHeroTextIn .58s cubic-bezier(.22,.61,.36,1) .82s both}
 .rb-hero-cta,.rb-hero-secondary{position:relative;overflow:hidden}
 .rb-hero-cta{box-shadow:0 14px 30px -16px rgba(217,38,36,.85)}
 .rb-hero-cta::after{content:"";position:absolute;inset:-20% -35%;background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.34) 48%,transparent 58%);animation:rbButtonSheen 5.8s ease-in-out infinite;pointer-events:none}
 .rb-hero-secondary{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.rb-side-toc{display:none}
+.rb-toc-kicker{font-weight:900;font-size:9.5px;letter-spacing:.18em;color:#D92624;margin-bottom:9px}
+.rb-toc-home{width:100%;height:34px;background:#141413;color:#FFFFFF;border:0;font-weight:900;font-size:10px;letter-spacing:.12em;text-align:left;padding:0 10px;cursor:pointer}
+.rb-toc-list{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.rb-toc-item{width:100%;border:1px solid rgba(29,30,27,.14);padding:8px 8px;display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;text-align:left;cursor:pointer;transition:transform .15s,border-color .15s,background .15s}
+.rb-toc-item:hover{transform:translateX(3px);border-color:#D92624 !important}
+.rb-toc-num{height:28px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;letter-spacing:.04em}
+.rb-toc-copy{min-width:0;display:block;line-height:1.08;padding-top:1px}
+.rb-toc-short{display:none}
+.rb-toc-title{display:block;font-weight:900;font-size:11px;line-height:1.16;text-transform:uppercase;letter-spacing:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+@media (min-width:1240px){
+  #app main{margin-left:194px !important}
+  .rb-side-toc{display:block;position:fixed;left:16px;top:82px;z-index:45;width:166px;max-height:calc(100vh - 100px);overflow:auto;background:#FAF9F5;border:1px solid rgba(29,30,27,.16);padding:12px;box-shadow:0 18px 40px -28px rgba(20,20,19,.45)}
+}
+@media (min-width:1440px){
+  #app main{margin-left:208px !important}
+  .rb-side-toc{left:18px;width:178px}
+}
 @media (prefers-reduced-motion: reduce){
-  .rb-hero-photo,.rb-hero-photo-glow,.rb-hero-scan,.rb-hotspot,.rb-hotspot::after,.rb-hero-cta::after{animation:none !important}
+  .rb-hero-badges,.rb-hero-stage h1,.rb-hero-stage h1 span,.rb-hero-copy,.rb-hero-copy strong,.rb-hero-actions,.rb-hero-cta::after{animation:none !important}
+  .rb-toc-item{transition:none !important}
+  .rb-toc-item:hover{transform:none}
 }
 
 /* ---- Entrées en scène + cartes-images (décoratif) ---- */
@@ -212,11 +219,6 @@ html,body{overflow-x:hidden;max-width:100%}
 @media (max-width:640px){
   .rb-hero-photo{inset:-2% -42% -2% -18% !important;background-position:62% 48% !important;filter:saturate(1.04) contrast(1.04) brightness(.9)}
   .rb-hero-photo-vignette{background:linear-gradient(90deg,rgba(20,20,19,.96) 0%,rgba(20,20,19,.9) 48%,rgba(20,20,19,.54) 100%),linear-gradient(180deg,transparent 54%,rgba(20,20,19,.76) 100%)}
-  .rb-hero-scan{display:none}
-  .rb-hotspot{width:9px;height:9px}
-  .rb-hotspot-beacon{right:22%;top:28%}
-  .rb-hotspot-panel{display:none}
-  .rb-hotspot-zone{right:34%;top:62%}
 }
 
 @media (max-width:340px){
