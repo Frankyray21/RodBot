@@ -174,12 +174,32 @@ html,body{overflow-x:hidden;max-width:100%}
 
 /* Téléphones : typographie réduite + en-tête compact */
 @media (max-width:640px){
+  .rb-topbar-inner{height:56px !important;padding:0 12px !important;gap:8px !important}
+  .rb-brand{flex:0 0 96px !important;min-width:96px !important;max-width:96px !important}
+  .rb-brand-title{font-size:13px !important;letter-spacing:.045em !important;white-space:nowrap !important}
+  .rb-brand-subtitle{font-size:7px !important;letter-spacing:.12em !important;white-space:nowrap !important;margin-top:2px !important}
+  .rb-lang-switch{margin-left:auto !important}
+  .rb-lang-switch button{min-width:37px !important;padding:9px 9px !important;font-size:10px !important}
+  .rb-manual-link{padding:8px 8px !important;gap:5px !important;font-size:9.5px !important;letter-spacing:.06em !important;white-space:nowrap !important}
+  .rb-manual-link span{font-size:9px !important;padding:2px 5px !important}
   #app [style*="font-size:64px"]{font-size:40px !important}
   #app [style*="font-size:54px"]{font-size:31px !important;line-height:1.06 !important}
   #app [style*="font-size:38px"]{font-size:26px !important}
   #app [style*="font-size:32px"]{font-size:23px !important}
   #app [style*="font-size:30px"]{font-size:22px !important}
   .rb-hdr-prog{display:none !important}
+  .rb-hero-inner{padding:30px 16px 28px !important}
+  .rb-hero-stage{min-height:0 !important;align-items:flex-start !important}
+  .rb-hero-stage>.rb-reveal{width:100% !important;max-width:100% !important}
+  .rb-hero-badges{gap:8px !important;margin-bottom:18px !important}
+  .rb-hero-manual-badge{max-width:100% !important;padding:8px 10px !important;gap:8px !important}
+  .rb-hero-manual-badge span:last-child{font-size:9.4px !important;letter-spacing:.09em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
+  .rb-version-badge{display:none !important}
+  .rb-hero-copy{font-size:16px !important;line-height:1.47 !important;margin-bottom:24px !important;max-width:330px !important}
+  .rb-hero-copy strong{display:block !important;margin-top:4px !important}
+  .rb-hero-copy span{font-size:13.2px !important}
+  .rb-hero-actions{display:grid !important;grid-template-columns:1fr !important;gap:10px !important;width:100% !important;max-width:100% !important}
+  .rb-hero-cta,.rb-hero-secondary{width:100% !important;min-width:0 !important;min-height:56px !important;display:flex !important;align-items:center !important;justify-content:center !important;padding:0 18px !important;font-size:14px !important}
   .mr-ghost::before{font-size:clamp(60px,19vw,104px) !important}
   /* paddings horizontaux resserrés sur les grands blocs */
   #app [style*="padding:60px 28px"],
@@ -199,11 +219,17 @@ html,body{overflow-x:hidden;max-width:100%}
   .rb-hotspot-beacon{right:22%;top:28%}
   .rb-hotspot-panel{display:none}
   .rb-hotspot-zone{right:34%;top:62%}
-  .rb-machine-facts{margin-top:28px !important;padding:16px !important;display:block !important;background:rgba(20,20,19,.56) !important;border-color:rgba(255,255,255,.16) !important}
-  .rb-machine-facts-label{display:flex !important;gap:7px !important;width:100% !important;margin-bottom:13px !important;line-height:1 !important}
+  .rb-machine-facts{margin-top:22px !important;padding:15px !important;display:block !important;background:rgba(20,20,19,.62) !important;border-color:rgba(255,255,255,.18) !important}
+  .rb-machine-facts-label{display:flex !important;gap:7px !important;width:100% !important;margin-bottom:12px !important;line-height:1 !important;letter-spacing:.16em !important}
   .rb-machine-facts-label br{display:none}
-  #app .rb-machine-facts-grid{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:14px 8px !important;width:100% !important}
+  #app .rb-machine-facts-grid{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:12px 8px !important;width:100% !important}
   .rb-machine-facts-grid>div{padding-left:11px !important}
   .rb-machine-facts-grid>div div:last-child{font-size:12.8px !important;line-height:1.32 !important}
-  .rb-hero-cta,.rb-hero-secondary{min-width:166px;text-align:center}
+  .rb-machine-facts-grid>div:last-child{grid-column:1/-1 !important}
+}
+
+@media (max-width:340px){
+  .rb-brand{flex-basis:92px !important;min-width:92px !important;max-width:92px !important}
+  .rb-manual-link{font-size:0 !important;gap:0 !important;padding:8px 7px !important}
+  .rb-manual-link span{font-size:9px !important}
 }
