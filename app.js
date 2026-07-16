@@ -17,11 +17,11 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.8.13';
+var APP_VERSION = '1.8.14';
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '15 JUIL. 2026';
+var APP_VERSION_DATE = '16 JUIL. 2026';
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
 var ROOT = null;      // conteneur DOM (#app)
@@ -764,7 +764,7 @@ class Component extends DCLogic {
       lang: (savedLang==="en" ? "en" : "fr"),
       view:"home", activeId:null, openKey:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
-      qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null,
+      qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
       canInstall:false, showInstallHelp:false,
       completed: saved.completed || {}, name: saved.name || "",
@@ -1017,9 +1017,16 @@ class Component extends DCLogic {
   moduleScore(i){ return this.state.completed[i] ? this.state.completed[i].score : 0; }
   allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
-  goHome = ()=> this.setState({ view:"home", graded:false, answers:{} },()=>window.scrollTo(0,0));
-  openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null },()=>window.scrollTo(0,0));
-  toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key }));
+  goHome = ()=> this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0));
+  openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null },()=>window.scrollTo(0,0));
+  toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key, manualDetailKey:null }));
+  toggleManualDetails = (key,page)=>{
+    if(this.state.manualDetailKey===key){
+      this.setState({ manualDetailKey:null });
+      return;
+    }
+    this.setState({ manualDetailKey:key, mpage:page });
+  };
   startQuiz = ()=> { this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
   backToModule = ()=> this.setState({ view:"module", graded:false });
   retryQuiz = ()=> { this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
@@ -1184,10 +1191,13 @@ class Component extends DCLogic {
           const hasDanger=allBlocks.some(b=>b.t==="warn"&&b.w==="danger");
           const guideSource = this.state.lang==="en" ? FIELD_GUIDES_EN : FIELD_GUIDES_FR;
           const guide = (guideSource[S.activeId]&&guideSource[S.activeId][si]) || { title:sec.title, items:[] };
+          const manualDetailOpen=S.manualDetailKey===key;
           return {
             index:si, ref:modNum+"."+(si+1), title:guide.title, topic:sec.title, page:this.mp(sec.page), pdfHref:this.pdfAt(this.mp(sec.page)), openPage:()=>this.openManual(this.mp(sec.page)),
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
+            manualDetailOpen, manualDetailClass:manualDetailOpen?"is-open":"", manualDetailExpanded:manualDetailOpen?"true":"false",
+            toggleManualDetails:()=>this.toggleManualDetails(key,this.mp(sec.page)),
             guideItems:(guide.items||[]).map((text,ix)=>({ n:ix+1, text })),
             guideStop:guide.stop||"", hasGuideStop:!!guide.stop,
             blocks: allBlocks.map(b=>{
@@ -1394,7 +1404,7 @@ class Component extends DCLogic {
     base.langFrStyle = (S.lang==="en") ? _inS : _actS;
     base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = this.tr(APP_VERSION_DATE, "JUL 15, 2026");
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "JUL 16, 2026");
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
     const scores=M.map((m,i)=>this.moduleScore(i));

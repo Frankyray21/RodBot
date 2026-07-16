@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
-<link rel="stylesheet" href="styles.css?v=1.8.11">
+<link rel="stylesheet" href="styles.css?v=1.8.14">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -586,8 +586,12 @@
                     </sc-if>
                   </div>
 
-                  <details class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
-                    <summary style="cursor:pointer;padding:13px 2px;font-weight:800;font-size:13px;color:#535252">Voir les détails et les images du manuel</summary>
+                  <div class="rb-manual-details {{ s.manualDetailClass }}" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
+                    <button class="rb-manual-details-trigger" onClick="{{ s.toggleManualDetails }}" aria-expanded="{{ s.manualDetailExpanded }}">
+                      <span>Voir les détails et les images du manuel</span>
+                      <span class="rb-manual-details-page">PAGE {{ s.page }}</span>
+                    </button>
+                    <sc-if value="{{ s.manualDetailOpen }}" hint-placeholder-val="false">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px">
                   <sc-for list="{{ s.blocks }}" as="b" hint-placeholder-count="3">
                     <div style="display:contents">
@@ -649,7 +653,8 @@
                     </div>
                   </sc-for>
                     </div>
-                  </details>
+                    </sc-if>
+                  </div>
 
                   <div style="display:flex;justify-content:flex-end">
                     <button onClick="{{ s.openPage }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer;transition:background .15s" style-hover="background:rgba(217,38,36,.07)">
@@ -1471,8 +1476,12 @@
                     </sc-if>
                   </div>
 
-                  <details class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
-                    <summary style="cursor:pointer;padding:13px 2px;font-weight:800;font-size:13px;color:#535252">See manual details and images</summary>
+                  <div class="rb-manual-details {{ s.manualDetailClass }}" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
+                    <button class="rb-manual-details-trigger" onClick="{{ s.toggleManualDetails }}" aria-expanded="{{ s.manualDetailExpanded }}">
+                      <span>See manual details and images</span>
+                      <span class="rb-manual-details-page">PAGE {{ s.page }}</span>
+                    </button>
+                    <sc-if value="{{ s.manualDetailOpen }}" hint-placeholder-val="false">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px">
                   <sc-for list="{{ s.blocks }}" as="b" hint-placeholder-count="3">
                     <div style="display:contents">
@@ -1534,7 +1543,8 @@
                     </div>
                   </sc-for>
                     </div>
-                  </details>
+                    </sc-if>
+                  </div>
 
                   <div style="display:flex;justify-content:flex-end">
                     <button onClick="{{ s.openPage }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer;transition:background .15s" style-hover="background:rgba(217,38,36,.07)">
@@ -1792,6 +1802,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.8.11"></script>
+<script src="app.js?v=1.8.14"></script>
 </body>
 </html>
