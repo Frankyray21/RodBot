@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=1.8.4">
+<link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.5" type="image/webp">
+<link rel="stylesheet" href="styles.css?v=1.8.5">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -63,9 +64,15 @@
         <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%)"></div>
 
         <!-- ===== MACHINE RÉELLE EN ARRIÈRE-PLAN (animée) ===== -->
-        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.4');background-size:cover;background-position:58% 46%"></div>
+        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.5');background-size:cover;background-position:58% 46%"></div>
         <div aria-hidden="true" class="rb-hero-photo-glow" style="position:absolute;right:17%;top:31%;width:22%;height:22%;background:radial-gradient(circle,rgba(240,168,30,.58),rgba(217,38,36,.22) 34%,transparent 64%);filter:blur(24px);pointer-events:none;z-index:1"></div>
         <div aria-hidden="true" class="rb-hero-photo-vignette"></div>
+        <div aria-hidden="true" class="rb-hero-scan"></div>
+        <div aria-hidden="true" class="rb-hero-hotspots">
+          <span class="rb-hotspot rb-hotspot-beacon"></span>
+          <span class="rb-hotspot rb-hotspot-danger rb-hotspot-panel"></span>
+          <span class="rb-hotspot rb-hotspot-danger rb-hotspot-zone"></span>
+        </div>
 
         <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative;z-index:2">
           <div style="min-height:340px;display:flex;align-items:center">
@@ -80,14 +87,14 @@
               <h1 style="font-weight:900;font-size:54px;line-height:1.12;letter-spacing:.005em;text-transform:uppercase;margin:0 0 20px;color:#FAF9F5">Utiliser le<br><span style="color:#D92624">RodBot LP</span></h1>
               <p style="font-size:17px;line-height:1.65;color:#B8B7B2;max-width:560px;margin:0 0 30px">Formation pratique pour travailleurs.<br><strong style="color:#FAF9F5">1. Voir les risques.</strong><br><strong style="color:#FAF9F5">2. Trouver les commandes.</strong><br><strong style="color:#FAF9F5">3. Pratiquer les bons gestes.</strong><br><span style="font-size:14px">Chaque leçon montre la bonne page du manuel.</span></p>
               <div style="display:flex;gap:14px;flex-wrap:wrap">
-                <button onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;padding:16px 28px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ ctaLabel }} →</button>
-                <button onClick="{{ scrollToSafety }}" style="background:transparent;color:#FAF9F5;border:1px solid rgba(255,255,255,.34);padding:16px 24px;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#FFFFFF">Voir la sécurité</button>
+                <button class="rb-hero-cta" onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;padding:16px 28px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ ctaLabel }} →</button>
+                <button class="rb-hero-secondary" onClick="{{ scrollToSafety }}" style="background:transparent;color:#FAF9F5;border:1px solid rgba(255,255,255,.34);padding:16px 24px;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#FFFFFF">Voir la sécurité</button>
               </div>
             </div>
           </div>
-          <div class="rb-reveal rb-d3" style="margin-top:38px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);padding:18px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-            <div style="font-weight:800;font-size:10px;letter-spacing:.2em;color:#989898;flex:none;line-height:1.6">FICHE<br>MACHINE</div>
-            <div style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,1fr);gap:20px">
+          <div class="rb-machine-facts rb-reveal rb-d3" style="margin-top:38px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);padding:18px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+            <div class="rb-machine-facts-label" style="font-weight:800;font-size:10px;letter-spacing:.2em;color:#989898;flex:none;line-height:1.6">FICHE <br>MACHINE</div>
+            <div class="rb-machine-facts-grid" style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,1fr);gap:20px">
               <div style="border-left:1px solid rgba(255,255,255,.18);padding-left:18px"><div style="color:#989898;font-size:12px;margin-bottom:5px">Système</div><div style="font-weight:700;font-size:13.5px;color:#FAF9F5">Borterra RodBot LP</div></div>
               <div style="border-left:1px solid rgba(255,255,255,.18);padding-left:18px"><div style="color:#989898;font-size:12px;margin-bottom:5px">Tâche / Client</div><div style="font-weight:700;font-size:13.5px;color:#FAF9F5">BM260024 · Machines Roger Intl</div></div>
               <div style="border-left:1px solid rgba(255,255,255,.18);padding-left:18px"><div style="color:#989898;font-size:12px;margin-bottom:5px">Commande</div><div style="font-weight:700;font-size:13.5px;color:#FAF9F5">Radio (RRC) · 6 modes</div></div>
@@ -927,9 +934,15 @@
         <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%)"></div>
 
         <!-- ===== REAL MACHINE IN BACKGROUND (animated) ===== -->
-        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.4');background-size:cover;background-position:58% 46%"></div>
+        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.5');background-size:cover;background-position:58% 46%"></div>
         <div aria-hidden="true" class="rb-hero-photo-glow" style="position:absolute;right:17%;top:31%;width:22%;height:22%;background:radial-gradient(circle,rgba(240,168,30,.58),rgba(217,38,36,.22) 34%,transparent 64%);filter:blur(24px);pointer-events:none;z-index:1"></div>
         <div aria-hidden="true" class="rb-hero-photo-vignette"></div>
+        <div aria-hidden="true" class="rb-hero-scan"></div>
+        <div aria-hidden="true" class="rb-hero-hotspots">
+          <span class="rb-hotspot rb-hotspot-beacon"></span>
+          <span class="rb-hotspot rb-hotspot-danger rb-hotspot-panel"></span>
+          <span class="rb-hotspot rb-hotspot-danger rb-hotspot-zone"></span>
+        </div>
 
         <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative;z-index:2">
           <div style="min-height:340px;display:flex;align-items:center">
@@ -944,14 +957,14 @@
               <h1 style="font-weight:900;font-size:54px;line-height:1.12;letter-spacing:.005em;text-transform:uppercase;margin:0 0 20px;color:#FAF9F5">Use the<br><span style="color:#D92624">RodBot LP</span></h1>
               <p style="font-size:17px;line-height:1.65;color:#B8B7B2;max-width:560px;margin:0 0 30px">Hands-on training for workers.<br><strong style="color:#FAF9F5">1. See the hazards.</strong><br><strong style="color:#FAF9F5">2. Find the controls.</strong><br><strong style="color:#FAF9F5">3. Practise the right moves.</strong><br><span style="font-size:14px">Every lesson shows the right manual page.</span></p>
               <div style="display:flex;gap:14px;flex-wrap:wrap">
-                <button onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;padding:16px 28px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ ctaLabel }} →</button>
-                <button onClick="{{ scrollToSafety }}" style="background:transparent;color:#FAF9F5;border:1px solid rgba(255,255,255,.34);padding:16px 24px;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#FFFFFF">See safety</button>
+                <button class="rb-hero-cta" onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;padding:16px 28px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ ctaLabel }} →</button>
+                <button class="rb-hero-secondary" onClick="{{ scrollToSafety }}" style="background:transparent;color:#FAF9F5;border:1px solid rgba(255,255,255,.34);padding:16px 24px;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#FFFFFF">See safety</button>
               </div>
             </div>
           </div>
-          <div class="rb-reveal rb-d3" style="margin-top:38px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);padding:18px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-            <div style="font-weight:800;font-size:10px;letter-spacing:.2em;color:#989898;flex:none;line-height:1.6">MACHINE<br>DATA</div>
-            <div style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,1fr);gap:20px">
+          <div class="rb-machine-facts rb-reveal rb-d3" style="margin-top:38px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);padding:18px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+            <div class="rb-machine-facts-label" style="font-weight:800;font-size:10px;letter-spacing:.2em;color:#989898;flex:none;line-height:1.6">MACHINE <br>DATA</div>
+            <div class="rb-machine-facts-grid" style="flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,1fr);gap:20px">
               <div style="border-left:1px solid rgba(255,255,255,.18);padding-left:18px"><div style="color:#989898;font-size:12px;margin-bottom:5px">System</div><div style="font-weight:700;font-size:13.5px;color:#FAF9F5">Borterra RodBot LP</div></div>
               <div style="border-left:1px solid rgba(255,255,255,.18);padding-left:18px"><div style="color:#989898;font-size:12px;margin-bottom:5px">Job / Customer</div><div style="font-weight:700;font-size:13.5px;color:#FAF9F5">BM260024 · Machines Roger Intl</div></div>
               <div style="border-left:1px solid rgba(255,255,255,.18);padding-left:18px"><div style="color:#989898;font-size:12px;margin-bottom:5px">Control</div><div style="font-weight:700;font-size:13.5px;color:#FAF9F5">Radio (RRC) · 6 modes</div></div>
@@ -1749,6 +1762,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.8.4"></script>
+<script src="app.js?v=1.8.5"></script>
 </body>
 </html>
