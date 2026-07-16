@@ -119,8 +119,6 @@ input::placeholder{color:rgba(29,30,27,.35)}
 .rb-hero-cta{box-shadow:0 14px 30px -16px rgba(217,38,36,.85)}
 .rb-hero-cta::after{content:"";position:absolute;inset:-20% -35%;background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.34) 48%,transparent 58%);animation:rbButtonSheen 5.8s ease-in-out infinite;pointer-events:none}
 .rb-hero-secondary{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.rb-machine-facts{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.rb-machine-facts-grid>div{min-width:0}
 @media (prefers-reduced-motion: reduce){
   .rb-hero-photo,.rb-hero-photo-glow,.rb-hero-scan,.rb-hotspot,.rb-hotspot::after,.rb-hero-cta::after{animation:none !important}
 }
@@ -219,13 +217,6 @@ html,body{overflow-x:hidden;max-width:100%}
   .rb-hotspot-beacon{right:22%;top:28%}
   .rb-hotspot-panel{display:none}
   .rb-hotspot-zone{right:34%;top:62%}
-  .rb-machine-facts{margin-top:22px !important;padding:15px !important;display:block !important;background:rgba(20,20,19,.62) !important;border-color:rgba(255,255,255,.18) !important}
-  .rb-machine-facts-label{display:flex !important;gap:7px !important;width:100% !important;margin-bottom:12px !important;line-height:1 !important;letter-spacing:.16em !important}
-  .rb-machine-facts-label br{display:none}
-  #app .rb-machine-facts-grid{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:12px 8px !important;width:100% !important}
-  .rb-machine-facts-grid>div{padding-left:11px !important}
-  .rb-machine-facts-grid>div div:last-child{font-size:12.8px !important;line-height:1.32 !important}
-  .rb-machine-facts-grid>div:last-child{grid-column:1/-1 !important}
 }
 
 @media (max-width:340px){
