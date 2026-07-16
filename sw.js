@@ -2,11 +2,11 @@
    Précache la coquille de l'app ; met en cache les images/PDF au fil de la consultation. */
 /* Nom du cache aligné sur APP_VERSION (app.js) : à incrémenter à chaque changement.
    Le changement de nom force le rafraîchissement de la coquille mise en cache. */
-const CACHE = 'rodbot-formation-v1.8.10';
+const CACHE = 'rodbot-formation-v1.8.11';
 const CORE = [
   './', './index.html', './app.js', './styles.css',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
-  './img/hero-machine-photo.webp?v=1.8.10'
+  './img/hero-machine-photo.webp?v=1.8.11'
 ];
 
 self.addEventListener('install', (e) => {

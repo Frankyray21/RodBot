@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.8.10';
+var APP_VERSION = '1.8.11';
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
@@ -78,6 +78,7 @@ function fullRender() {
     }
   } catch (e) {}
   try { if (COMP && COMP.syncHistory) COMP.syncHistory(); } catch (e) {}
+  try { if (COMP && COMP.setupTocSpy) COMP.setupTocSpy(); } catch (e) {}
 }
 
 /* --------- Mise à jour douce : réévalue les liaisons en place (aucun nœud recréé) --------- */
@@ -793,6 +794,93 @@ class Component extends DCLogic {
   };
   persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, name:this.state.name })); } catch(e){} }
 
+  scrollHomeSection = (key)=>{
+    const scroll = ()=>{
+      const el=ROOT&&ROOT.querySelector('[data-rb-scroll-section="'+key+'"]');
+      if(!el) return;
+      const y=el.getBoundingClientRect().top+window.scrollY-78;
+      window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
+    };
+    if(this.state.view!=="home"){
+      this.setState({view:"home",graded:false,answers:{}},()=>requestAnimationFrame(scroll));
+    } else scroll();
+  };
+
+  teardownTocSpy(){
+    if(this._tocScrollHandler){
+      window.removeEventListener("scroll",this._tocScrollHandler);
+      window.removeEventListener("resize",this._tocScrollHandler);
+      this._tocScrollHandler=null;
+    }
+    if(this._tocRaf){ cancelAnimationFrame(this._tocRaf); this._tocRaf=0; }
+  }
+
+  setupTocSpy(){
+    this.teardownTocSpy();
+    if(!ROOT) return;
+    const nav=ROOT.querySelector(".rb-side-toc");
+    if(!nav) return;
+    const nowLabel=nav.querySelector("[data-rb-toc-now-label]");
+    const nowTitle=nav.querySelector("[data-rb-toc-now-title]");
+    const bind=(update)=>{
+      this._tocScrollHandler=()=>{
+        if(this._tocRaf) return;
+        this._tocRaf=requestAnimationFrame(()=>{ this._tocRaf=0; update(); });
+      };
+      window.addEventListener("scroll",this._tocScrollHandler,{passive:true});
+      window.addEventListener("resize",this._tocScrollHandler);
+      update();
+    };
+
+    if(this.state.view==="home"){
+      const sections=Array.from(ROOT.querySelectorAll("[data-rb-scroll-section]"));
+      const buttons=Array.from(nav.querySelectorAll("[data-rb-toc-key]"));
+      if(!sections.length) return;
+      bind(()=>{
+        const marker=Math.min(240,Math.max(120,window.innerHeight*.3));
+        let current=sections[0];
+        for(let i=0;i<sections.length;i++){
+          if(sections[i].getBoundingClientRect().top<=marker) current=sections[i];
+          else break;
+        }
+        if(window.scrollY+window.innerHeight>=document.documentElement.scrollHeight-30) current=sections[sections.length-1];
+        const key=current.getAttribute("data-rb-scroll-section")||"overview";
+        let title="";
+        buttons.forEach((button)=>{
+          const active=button.getAttribute("data-rb-toc-key")===key;
+          button.classList.toggle("is-current",active);
+          button.setAttribute("aria-current",active?"location":"false");
+          if(active) title=button.getAttribute("data-rb-toc-title")||button.textContent.trim();
+        });
+        if(nowLabel) nowLabel.textContent=this.tr("SECTION EN COURS","CURRENT SECTION");
+        if(nowTitle) nowTitle.textContent=title;
+      });
+      return;
+    }
+
+    if(this.state.view==="module"){
+      const lessons=Array.from(ROOT.querySelectorAll("[data-rb-lesson-index]"));
+      if(!lessons.length) return;
+      const mod=this.M()[this.state.activeId];
+      const progress=nav.querySelector('[aria-current="page"] .rb-toc-status');
+      bind(()=>{
+        const marker=Math.min(250,Math.max(135,window.innerHeight*.3));
+        let current=lessons[0];
+        for(let i=0;i<lessons.length;i++){
+          if(lessons[i].getBoundingClientRect().top<=marker) current=lessons[i];
+          else break;
+        }
+        if(window.scrollY+window.innerHeight>=document.documentElement.scrollHeight-30) current=lessons[lessons.length-1];
+        const index=Number(current.getAttribute("data-rb-lesson-index")||0);
+        const status=this.tr("LEÇON ","LESSON ")+(index+1)+"/"+lessons.length;
+        lessons.forEach((lesson)=>lesson.classList.toggle("rb-lesson-current",lesson===current));
+        if(nowLabel) nowLabel.textContent=this.tr("MODULE ","MODULE ")+mod.num+" · "+status;
+        if(nowTitle) nowTitle.textContent=current.getAttribute("data-rb-lesson-title")||mod.title;
+        if(progress) progress.textContent=status;
+      });
+    }
+  }
+
   // ===== Bilingue FR / EN =====
   tr(fr,en){ return this.state.lang==="en" ? en : fr; }               // choisit la chaîne selon la langue
   M(){ return (this.state.lang==="en" && typeof MODULES_EN!=="undefined") ? MODULES_EN : this.MODULES; }
@@ -929,14 +1017,14 @@ class Component extends DCLogic {
   moduleScore(i){ return this.state.completed[i] ? this.state.completed[i].score : 0; }
   allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
-  goHome = ()=> this.setState({ view:"home", graded:false, answers:{} });
-  openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null });
+  goHome = ()=> this.setState({ view:"home", graded:false, answers:{} },()=>window.scrollTo(0,0));
+  openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null },()=>window.scrollTo(0,0));
   toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key }));
   startQuiz = ()=> { this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
   backToModule = ()=> this.setState({ view:"module", graded:false });
   retryQuiz = ()=> { this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
   setName = (e)=>{ const v=e.target.value; this.setState({name:v}, ()=>this.persist()); };
-  scrollToSafety = ()=>{ const el=document.getElementById("rb-safety"); if(el){ const y=el.getBoundingClientRect().top+window.scrollY-80; window.scrollTo({top:y,behavior:"smooth"}); } };
+  scrollToSafety = ()=>this.scrollHomeSection("safety");
   startFirst = ()=>{ const first=this.M().findIndex((m,i)=>!this.moduleDone(i)); this.openModule(first===-1?0:first); };
 
   // ===== Moteur de quiz typé (choix unique, vrai/faux, sélection multiple, remise en ordre, texte à trou) =====
@@ -1000,20 +1088,43 @@ class Component extends DCLogic {
       ? this.tr("Commencer", "Start")
       : (this.allDone() ? this.tr("Revoir les gestes", "Review key moves") : this.tr("Continuer", "Continue"));
 
+    const activeMod=S.activeId!=null?M[S.activeId]:null;
+    const tocHomeMode=S.view==="home";
+    const tocModuleMode=!tocHomeMode;
+    let tocNowLabel=this.tr("SECTION EN COURS","CURRENT SECTION");
+    let tocNowTitle=this.tr("Accueil","Home");
+    if(S.view==="module"&&activeMod){ tocNowLabel=this.tr("MODULE ","MODULE ")+activeMod.num+" · "+this.tr("LEÇON 1/","LESSON 1/")+activeMod.sections.length; tocNowTitle=activeMod.sections[0].title; }
+    else if(S.view==="quiz"&&activeMod){ tocNowLabel=this.tr("MODULE ","MODULE ")+activeMod.num+" · QUIZ"; tocNowTitle=this.tr("Petit quiz","Short quiz"); }
+    else if(S.view==="sim"){ tocNowLabel=this.tr("PRATIQUE","PRACTICE"); tocNowTitle=this.tr("Simulateur interactif","Interactive simulator"); }
+    else if(S.view==="cert"){ tocNowLabel=this.tr("PROGRESSION","PROGRESS"); tocNowTitle=this.tr("Attestation","Certificate"); }
+
     const base={
       isHome:S.view==="home", isModule:S.view==="module", isQuiz:S.view==="quiz", isCert:S.view==="cert",
       totalModules:total, doneCount, totalSections,
       progressPct: Math.round(doneCount/total*100), passPct:70,
       manualUrl:this.manualBase(), raUrl:this.RA,
       goHome:this.goHome, startFirst:this.startFirst, scrollToSafety:this.scrollToSafety,
-      ctaLabel
+      ctaLabel, tocHomeMode, tocModuleMode, tocNowLabel, tocNowTitle
     };
+
+    const homeTocData=[
+      ["overview","01",this.tr("Accueil","Home")],
+      ["path","02",this.tr("Parcours","Training path")],
+      ["equipment","03",this.tr("Équipement","Equipment")],
+      ["safety","04",this.tr("Sécurité","Safety")],
+      ["practice","05",this.tr("Pratique","Practice")],
+      ["documents","06",this.tr("Documents","Documents")]
+    ];
+    base.homeToc=homeTocData.map((item,index)=>({
+      key:item[0],num:item[1],title:item[2],activeClass:index===0?"is-current":"",ariaCurrent:index===0?"location":"false",
+      open:()=>this.scrollHomeSection(item[0])
+    }));
 
     base.moduleCards = M.map((m,i)=>{
       const done=this.moduleDone(i);
-      const active=(S.activeId===i && S.view!=="home" && S.view!=="cert");
+      const active=(S.activeId===i && (S.view==="module" || S.view==="quiz"));
       return {
-        num:m.num, title:m.title, short:m.short, subtitle:m.subtitle, sectionCount:m.sections.length, pages:m.pages,
+        index:i, num:m.num, title:m.title, short:m.short, subtitle:m.subtitle, sectionCount:m.sections.length, pages:m.pages,
         bar: done ? "#3E9C5A" : "#1D1E1B",
         statusLabel: done ? (this.tr("VALIDÉ ","PASSED ")+this.moduleScore(i)+"%") : this.tr("À FAIRE","TO DO"),
         statusBg: done ? "#3E9C5A" : "#1D1E1B",
@@ -1024,6 +1135,8 @@ class Component extends DCLogic {
         tocBorder: active ? "#D92624" : "rgba(29,30,27,.14)",
         tocNumBg: done ? "#3E9C5A" : (active ? "#D92624" : "#1D1E1B"),
         tocNumFg: "#FFFFFF",
+        tocAriaCurrent:active?"page":"false",
+        tocStatus:active?(S.view==="quiz"?"QUIZ":this.tr("LEÇON 1/","LESSON 1/")+m.sections.length):"",
         open: ()=>this.openModule(i)
       };
     });
@@ -1067,7 +1180,7 @@ class Component extends DCLogic {
           const guideSource = this.state.lang==="en" ? FIELD_GUIDES_EN : FIELD_GUIDES_FR;
           const guide = (guideSource[S.activeId]&&guideSource[S.activeId][si]) || { title:sec.title, items:[] };
           return {
-            ref:modNum+"."+(si+1), title:guide.title, topic:sec.title, page:this.mp(sec.page), pdfHref:this.pdfAt(this.mp(sec.page)), openPage:()=>this.openManual(this.mp(sec.page)),
+            index:si, ref:modNum+"."+(si+1), title:guide.title, topic:sec.title, page:this.mp(sec.page), pdfHref:this.pdfAt(this.mp(sec.page)), openPage:()=>this.openManual(this.mp(sec.page)),
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             guideItems:(guide.items||[]).map((text,ix)=>({ n:ix+1, text })),
