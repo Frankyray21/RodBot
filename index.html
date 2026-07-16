@@ -637,9 +637,9 @@
                       </sc-if>
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
                         <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
-                          <div style="background:#F4F1EA;border-bottom:1px solid rgba(29,30,27,.12);padding:8px">
+                          <button onClick="{{ b.openPage }}" title="Ouvrir la page {{ b.imgPage }} du manuel" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
                             <img src="{{ b.src }}" loading="lazy" alt="Figure du manuel, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
-                          </div>
+                          </button>
                           <figcaption style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px">
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
                             <button onClick="{{ b.openPage }}" style="flex:none;background:none;border:none;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#D92624;cursor:pointer;white-space:nowrap;padding:0">Voir la page {{ b.imgPage }} 🔍</button>
@@ -1522,9 +1522,9 @@
                       </sc-if>
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
                         <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
-                          <div style="background:#F4F1EA;border-bottom:1px solid rgba(29,30,27,.12);padding:8px">
+                          <button onClick="{{ b.openPage }}" title="Open manual page {{ b.imgPage }}" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
                             <img src="{{ b.src }}" loading="lazy" alt="Manual figure, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
-                          </div>
+                          </button>
                           <figcaption style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px">
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
                             <button onClick="{{ b.openPage }}" style="flex:none;background:none;border:none;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#D92624;cursor:pointer;white-space:nowrap;padding:0">View page {{ b.imgPage }} 🔍</button>
