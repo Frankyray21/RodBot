@@ -1383,7 +1383,8 @@ class Component extends DCLogic {
 
     // Analyse de risques : 4 pages présentées dans une section dédiée
     var raCap=this.tr("Analyse de risques","Risk assessment");
-    base.raPages=[1,2,3,4].map(function(n){ var src="img/ra/p"+n+".jpg"; return { n:n, src:src, open:(function(sr,cp){ return function(){ self.openImg(sr,cp+" : page "+n+" / 4"); }; })(src,raCap) }; });
+    var RA_SRC=["img/ra/p1.jpg","img/ra/p2.jpg","img/ra/p3.jpg","img/ra/p4.jpg"];
+    base.raPages=RA_SRC.map(function(src,ix){ var n=ix+1; return { n:n, src:src, open:(function(sr,nn){ return function(){ self.openImg(sr,raCap+" : page "+nn+" / 4"); }; })(src,n) }; });
 
     base.imgView = S.imgView;
     base.closeImg = this.closeImg;
