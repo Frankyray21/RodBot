@@ -72,10 +72,14 @@ input::placeholder{color:rgba(29,30,27,.35)}
   .rb-rrc-pop{align-items:center !important;justify-content:center !important;padding:24px !important}
   .rb-rrc-card{max-width:460px !important;border:1px solid rgba(29,30,27,.16) !important;border-top:4px solid #D92624 !important;box-shadow:0 40px 90px -28px rgba(0,0,0,.55) !important;animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both !important;max-height:88vh !important}
 }
-/* Zoom très lent: la machine reste un fond stable, sans panoramique ni balayage. */
+/* La photo zoome dans un cadre qui conserve toujours l'équipement au complet. */
 @keyframes rbHeroZoom{
-  from{transform:scale(1)}
-  to{transform:scale(1.04)}
+  from{background-size:100% 100%,auto 96%}
+  to{background-size:100% 100%,auto 88%}
+}
+@keyframes rbHeroZoomMobile{
+  from{background-size:100% 100%,auto 60%}
+  to{background-size:100% 100%,auto 52%}
 }
 @keyframes rbHeroTextIn{
   from{opacity:0;transform:translateY(22px)}
@@ -94,7 +98,7 @@ input::placeholder{color:rgba(29,30,27,.35)}
   60%{opacity:.28}
   78%,100%{transform:translateX(160%) skewX(-16deg);opacity:0}
 }
-.rb-hero-photo{animation:rbHeroZoom 24s cubic-bezier(.45,0,.55,1) infinite alternate;transform-origin:64% 48%;will-change:transform;filter:saturate(1.05) contrast(1.06)}
+.rb-hero-photo{background-color:#141413;background-repeat:no-repeat;background-position:center,right 50%;background-size:100% 100%,auto 96%;animation:rbHeroZoom 20s cubic-bezier(.45,0,.55,1) infinite alternate;will-change:background-size;filter:saturate(1.05) contrast(1.06)}
 .rb-hero-photo-vignette{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at 72% 40%,rgba(217,38,36,.08),transparent 34%),linear-gradient(180deg,transparent 58%,rgba(20,20,19,.68) 100%)}
 .rb-hero-stage>.rb-reveal{animation:none}
 .rb-hero-badges{animation:rbHeroTextIn .56s cubic-bezier(.22,.61,.36,1) .06s both}
@@ -221,7 +225,7 @@ html,body{overflow-x:hidden;max-width:100%}
 
 /* Machine du hero : présente mais discrète sur mobile (derrière le texte) */
 @media (max-width:640px){
-  .rb-hero-photo{inset:-2% -42% -2% -18% !important;background-position:62% 48% !important;filter:saturate(1.04) contrast(1.04) brightness(.9)}
+  .rb-hero-photo{inset:-2% 0 !important;background-position:center,45% 58% !important;background-size:100% 100%,auto 60%;animation-name:rbHeroZoomMobile;filter:saturate(1.04) contrast(1.04) brightness(.9)}
   .rb-hero-photo-vignette{background:linear-gradient(90deg,rgba(20,20,19,.96) 0%,rgba(20,20,19,.9) 48%,rgba(20,20,19,.54) 100%),linear-gradient(180deg,transparent 54%,rgba(20,20,19,.76) 100%)}
 }
 
