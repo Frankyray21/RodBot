@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=1.8.3">
+<link rel="stylesheet" href="styles.css?v=1.8.4">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -63,12 +63,11 @@
         <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%)"></div>
 
         <!-- ===== MACHINE RÉELLE EN ARRIÈRE-PLAN (animée) ===== -->
-        <div aria-hidden="true" class="rb-hero-machine" style="position:absolute;right:-2%;bottom:-3%;top:5%;width:min(940px,68%);pointer-events:none;z-index:0;mask-image:linear-gradient(90deg,transparent 0%,#000 36%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 36%)">
-          <div class="rb-machine-glow" style="position:absolute;right:12%;top:22%;width:52%;height:52%;background:radial-gradient(circle,rgba(217,38,36,.5),transparent 62%);filter:blur(26px)"></div>
-          <img class="rb-machine-img" src="img/hero-machine.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:right bottom;opacity:.9;filter:saturate(.95) drop-shadow(0 26px 46px rgba(0,0,0,.55))">
-        </div>
+        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.4');background-size:cover;background-position:58% 46%"></div>
+        <div aria-hidden="true" class="rb-hero-photo-glow" style="position:absolute;right:17%;top:31%;width:22%;height:22%;background:radial-gradient(circle,rgba(240,168,30,.58),rgba(217,38,36,.22) 34%,transparent 64%);filter:blur(24px);pointer-events:none;z-index:1"></div>
+        <div aria-hidden="true" class="rb-hero-photo-vignette"></div>
 
-        <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative">
+        <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative;z-index:2">
           <div style="min-height:340px;display:flex;align-items:center">
             <div class="rb-reveal" style="max-width:600px">
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:26px">
@@ -928,12 +927,11 @@
         <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%)"></div>
 
         <!-- ===== REAL MACHINE IN BACKGROUND (animated) ===== -->
-        <div aria-hidden="true" class="rb-hero-machine" style="position:absolute;right:-2%;bottom:-3%;top:5%;width:min(940px,68%);pointer-events:none;z-index:0;mask-image:linear-gradient(90deg,transparent 0%,#000 36%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 36%)">
-          <div class="rb-machine-glow" style="position:absolute;right:12%;top:22%;width:52%;height:52%;background:radial-gradient(circle,rgba(217,38,36,.5),transparent 62%);filter:blur(26px)"></div>
-          <img class="rb-machine-img" src="img/hero-machine.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:right bottom;opacity:.9;filter:saturate(.95) drop-shadow(0 26px 46px rgba(0,0,0,.55))">
-        </div>
+        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.4');background-size:cover;background-position:58% 46%"></div>
+        <div aria-hidden="true" class="rb-hero-photo-glow" style="position:absolute;right:17%;top:31%;width:22%;height:22%;background:radial-gradient(circle,rgba(240,168,30,.58),rgba(217,38,36,.22) 34%,transparent 64%);filter:blur(24px);pointer-events:none;z-index:1"></div>
+        <div aria-hidden="true" class="rb-hero-photo-vignette"></div>
 
-        <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative">
+        <div style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative;z-index:2">
           <div style="min-height:340px;display:flex;align-items:center">
             <div class="rb-reveal" style="max-width:600px">
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:26px">
@@ -1751,6 +1749,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.8.3"></script>
+<script src="app.js?v=1.8.4"></script>
 </body>
 </html>
