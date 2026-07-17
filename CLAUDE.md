@@ -20,15 +20,21 @@ redéployé à chaque push) relie le site à Airtable (base « Formations »).
 1. **Une notion = une seule question par module.** Jamais deux questions qui
    mesurent le même fait ; jamais une option ou une rétroaction (fb) qui donne
    la réponse d'une autre question du même module.
-2. Sécurité et opération d'abord : pas de trivia de specs sans enjeu (psi,
-   L/min, vitesses moteur, graisses). Les limites de sécurité chiffrées
-   (charges, pentes, distances) sont permises.
-   - Chaque question doit **améliorer l'utilisation réelle** de la machine :
-     gestes, décisions de terrain, où trouver les commandes. Pas de
-     nomenclature par cœur (numéros de joints) ni de fonctionnement interne
-     (répartition des circuits hydrauliques).
+2. But des quiz (critère validé par l'utilisateur) : **évaluer la formation et
+   la lecture du manuel, sans être trop technique. Prioriser ce qui améliore
+   les opérations et prévient les accidents.**
+   - Chaque question met l'opérateur devant la machine : geste, bouton,
+     décision, dépannage. Les limites de sécurité chiffrées (charges, pentes)
+     sont bonnes, idéalement posées en décision (« franchir ou pas »).
+   - Les opérateurs font l'**entretien de base** : les questions d'entretien
+     (vérifications quotidiennes, précautions) sont pertinentes.
+   - EXCLUS : premiers soins, règles administratives (qui a le droit de...),
+     vocabulaire/pictogrammes, nomenclature (numéros de joints, anatomie du
+     mât), fonctionnement interne (valves, circuits), trivia de specs.
    - L'équipement est utilisé **sous terre** : aucune question sur
      l'utilisation en surface ou en extérieur (météo, orage, vent).
+   - Toute nouvelle question ou remplacement doit être **proposé à
+     l'utilisateur pour validation avant** la mise en ligne.
 3. Distracteurs = erreurs de terrain crédibles, exactement fausses selon le
    manuel. La bonne réponse jamais repérable à sa forme (pas la plus longue).
 4. FR et EN jumelles : mêmes options, même ordre, même index `correct` ;
