@@ -215,6 +215,7 @@ html,body{overflow-x:hidden;max-width:100%}
   #app [style*="font-size:32px"]{font-size:23px !important}
   #app [style*="font-size:30px"]{font-size:22px !important}
   .rb-hdr-prog{display:none !important}
+  .rb-worker-badge{display:none !important}
   .rb-hero-inner{padding:30px 16px 28px !important}
   .rb-hero-stage{min-height:0 !important;align-items:flex-start !important}
   .rb-hero-stage>.rb-reveal{width:100% !important;max-width:100% !important}

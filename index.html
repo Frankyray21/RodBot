@@ -35,7 +35,14 @@
           <span class="rb-brand-subtitle" style="display:block;font-weight:700;font-size:9.5px;letter-spacing:.26em;color:#989898;margin-top:3px">FORMATION OPÉRATEUR</span>
         </span>
       </button>
-      <div style="flex:1"></div>
+      <div style="flex:1;display:flex;align-items:center;min-width:0">
+        <sc-if value="{{ traineeName }}" hint-placeholder-val="{{ false }}">
+          <span class="rb-worker-badge" title="Travailleur identifié sur cet appareil" style="display:inline-flex;align-items:center;gap:7px;max-width:100%;overflow:hidden;font-weight:700;font-size:11.5px;color:#B8B7B2;letter-spacing:.01em">
+            <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#3E9C5A"></span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ traineeName }}</span>
+          </span>
+        </sc-if>
+      </div>
       <div class="rb-lang-switch" style="display:flex;flex:none;border:1px solid rgba(255,255,255,.24)">
         <button onClick="{{ setLangFr }}" title="Français" style="{{ langFrStyle }}border:none;padding:7px 11px;font-weight:800;font-size:11px;letter-spacing:.06em;cursor:pointer;font-family:inherit">FR</button>
         <button onClick="{{ setLangEn }}" title="English" style="{{ langEnStyle }}border:none;padding:7px 11px;font-weight:800;font-size:11px;letter-spacing:.06em;cursor:pointer;font-family:inherit">EN</button>
@@ -990,7 +997,14 @@
           <span class="rb-brand-subtitle" style="display:block;font-weight:700;font-size:9.5px;letter-spacing:.26em;color:#989898;margin-top:3px">OPERATOR TRAINING</span>
         </span>
       </button>
-      <div style="flex:1"></div>
+      <div style="flex:1;display:flex;align-items:center;min-width:0">
+        <sc-if value="{{ traineeName }}" hint-placeholder-val="{{ false }}">
+          <span class="rb-worker-badge" title="Worker identified on this device" style="display:inline-flex;align-items:center;gap:7px;max-width:100%;overflow:hidden;font-weight:700;font-size:11.5px;color:#B8B7B2;letter-spacing:.01em">
+            <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#3E9C5A"></span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ traineeName }}</span>
+          </span>
+        </sc-if>
+      </div>
       <div class="rb-lang-switch" style="display:flex;flex:none;border:1px solid rgba(255,255,255,.24)">
         <button onClick="{{ setLangFr }}" title="French" style="{{ langFrStyle }}border:none;padding:7px 11px;font-weight:800;font-size:11px;letter-spacing:.06em;cursor:pointer;font-family:inherit">FR</button>
         <button onClick="{{ setLangEn }}" title="English" style="{{ langEnStyle }}border:none;padding:7px 11px;font-weight:800;font-size:11px;letter-spacing:.06em;cursor:pointer;font-family:inherit">EN</button>
@@ -1932,6 +1946,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.4"></script>
+<script src="app.js?v=1.9.5"></script>
 </body>
 </html>
