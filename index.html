@@ -31,7 +31,10 @@
     <div class="rb-topbar-inner" style="max-width:1180px;margin:0 auto;padding:0 28px;height:64px;display:flex;align-items:center;gap:18px">
       <button class="rb-brand" onClick="{{ goHome }}" style="display:flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer;padding:0">
         <span style="text-align:left;line-height:1">
-          <span class="rb-brand-title" style="display:block;font-weight:900;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#FAF9F5">RODBOT LP</span>
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="rb-brand-title" style="font-weight:900;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#FAF9F5">RODBOT LP</span>
+            <span class="rb-beta-tag" style="font-weight:800;font-size:8.5px;letter-spacing:.14em;color:#1D1E1B;background:#F0A81E;padding:2px 6px">BÊTA</span>
+          </span>
           <span class="rb-brand-subtitle" style="display:block;font-weight:700;font-size:9.5px;letter-spacing:.26em;color:#989898;margin-top:3px">FORMATION OPÉRATEUR</span>
         </span>
       </button>
@@ -834,6 +837,29 @@
         <sc-if value="{{ quiz.checked }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ quiz.next }}" style="margin-top:22px;width:100%;background:#D92624;color:#FFFFFF;border:none;padding:16px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">{{ quiz.nextLabel }}</button>
         </sc-if>
+
+        <!-- Retour qualité (site bêta) : pouce haut / bas + commentaire -->
+        <div style="margin-top:26px;padding-top:16px;border-top:1px dashed rgba(29,30,27,.22)">
+          <sc-if value="{{ quiz.rate.thanks }}" hint-placeholder-val="{{ false }}">
+            <div style="font-weight:800;font-size:13px;color:#2F7D48">✓ {{ quiz.rate.thanksMsg }}</div>
+          </sc-if>
+          <sc-if value="{{ quiz.rate.ask }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span style="font-size:12.5px;color:#535252">{{ quiz.rate.label }}</span>
+              <div style="display:flex;gap:8px">
+                <button onClick="{{ quiz.rate.voteUp }}" title="Question utile" style="width:44px;height:40px;font-size:18px;background: {{ quiz.rate.upBg }};border:1.5px solid {{ quiz.rate.upBorder }};color: {{ quiz.rate.upFg }};cursor:pointer">👍</button>
+                <button onClick="{{ quiz.rate.voteDown }}" title="Question à revoir" style="width:44px;height:40px;font-size:18px;background: {{ quiz.rate.downBg }};border:1.5px solid {{ quiz.rate.downBorder }};color: {{ quiz.rate.downFg }};cursor:pointer">👎</button>
+              </div>
+            </div>
+            <sc-if value="{{ quiz.rate.commenting }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:12px">
+                <textarea id="rb-qfb-comment" onInput="{{ quiz.rate.commentInput }}" placeholder="{{ quiz.rate.commentPlaceholder }}" rows="3" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;line-height:1.5;color:#1D1E1B;border:1.5px solid rgba(29,30,27,.28);background:#FFFFFF;padding:10px 12px;resize:vertical;outline:none"></textarea>
+                <div style="font-size:11.5px;line-height:1.5;color:#B26A00;margin:8px 0 12px">⚠️ {{ quiz.rate.importantMsg }}</div>
+                <button onClick="{{ quiz.rate.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:11px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ quiz.rate.sendLabel }}</button>
+              </div>
+            </sc-if>
+          </sc-if>
+        </div>
       </sc-if>
     </div>
     </sc-if>
@@ -1065,7 +1091,10 @@
     <div class="rb-topbar-inner" style="max-width:1180px;margin:0 auto;padding:0 28px;height:64px;display:flex;align-items:center;gap:18px">
       <button class="rb-brand" onClick="{{ goHome }}" style="display:flex;align-items:center;gap:12px;background:none;border:none;cursor:pointer;padding:0">
         <span style="text-align:left;line-height:1">
-          <span class="rb-brand-title" style="display:block;font-weight:900;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#FAF9F5">RODBOT LP</span>
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="rb-brand-title" style="font-weight:900;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#FAF9F5">RODBOT LP</span>
+            <span class="rb-beta-tag" style="font-weight:800;font-size:8.5px;letter-spacing:.14em;color:#1D1E1B;background:#F0A81E;padding:2px 6px">BETA</span>
+          </span>
           <span class="rb-brand-subtitle" style="display:block;font-weight:700;font-size:9.5px;letter-spacing:.26em;color:#989898;margin-top:3px">OPERATOR TRAINING</span>
         </span>
       </button>
@@ -1868,6 +1897,29 @@
         <sc-if value="{{ quiz.checked }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ quiz.next }}" style="margin-top:22px;width:100%;background:#D92624;color:#FFFFFF;border:none;padding:16px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">{{ quiz.nextLabel }}</button>
         </sc-if>
+
+        <!-- Quality feedback (beta site): thumbs up / down + comment -->
+        <div style="margin-top:26px;padding-top:16px;border-top:1px dashed rgba(29,30,27,.22)">
+          <sc-if value="{{ quiz.rate.thanks }}" hint-placeholder-val="{{ false }}">
+            <div style="font-weight:800;font-size:13px;color:#2F7D48">✓ {{ quiz.rate.thanksMsg }}</div>
+          </sc-if>
+          <sc-if value="{{ quiz.rate.ask }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span style="font-size:12.5px;color:#535252">{{ quiz.rate.label }}</span>
+              <div style="display:flex;gap:8px">
+                <button onClick="{{ quiz.rate.voteUp }}" title="Useful question" style="width:44px;height:40px;font-size:18px;background: {{ quiz.rate.upBg }};border:1.5px solid {{ quiz.rate.upBorder }};color: {{ quiz.rate.upFg }};cursor:pointer">👍</button>
+                <button onClick="{{ quiz.rate.voteDown }}" title="Question to review" style="width:44px;height:40px;font-size:18px;background: {{ quiz.rate.downBg }};border:1.5px solid {{ quiz.rate.downBorder }};color: {{ quiz.rate.downFg }};cursor:pointer">👎</button>
+              </div>
+            </div>
+            <sc-if value="{{ quiz.rate.commenting }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:12px">
+                <textarea id="rb-qfb-comment" onInput="{{ quiz.rate.commentInput }}" placeholder="{{ quiz.rate.commentPlaceholder }}" rows="3" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;line-height:1.5;color:#1D1E1B;border:1.5px solid rgba(29,30,27,.28);background:#FFFFFF;padding:10px 12px;resize:vertical;outline:none"></textarea>
+                <div style="font-size:11.5px;line-height:1.5;color:#B26A00;margin:8px 0 12px">⚠️ {{ quiz.rate.importantMsg }}</div>
+                <button onClick="{{ quiz.rate.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:11px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ quiz.rate.sendLabel }}</button>
+              </div>
+            </sc-if>
+          </sc-if>
+        </div>
       </sc-if>
     </div>
     </sc-if>
@@ -2090,6 +2142,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.13"></script>
+<script src="app.js?v=1.9.14"></script>
 </body>
 </html>

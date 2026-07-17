@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.13';
+var APP_VERSION = '1.9.14';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -856,6 +856,7 @@ class Component extends DCLogic {
       canInstall:false, showInstallHelp:false,
       attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
       suiviHist:null, suiviHistState:"",
+      qbFb:{}, qbCommentKey:null, qbComment:"",   // retours pouce haut/bas sur les questions (bêta)
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
@@ -1117,9 +1118,9 @@ class Component extends DCLogic {
     }
     this.setState({ manualDetailKey:key, mpage:page });
   };
-  startQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
+  startQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"" }); window.scrollTo(0,0); };
   backToModule = ()=> { ptEnter(this.state.activeId,'module'); this.setState({ view:"module", graded:false }); };
-  retryQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
+  retryQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"" }); window.scrollTo(0,0); };
   /* « Choisir, pas taper » : TAPER ne confirme plus jamais l'identité, même si
      le texte correspond mot pour mot à un employé. Seul un TOUCHER sur une
      suggestion (pickSuggestion) confirme, pour éviter une liaison accidentelle
@@ -1389,10 +1390,57 @@ class Component extends DCLogic {
     this.setState(s=>({ qChecked:true, qResults:s.qResults.concat([ok]) }));
     window.scrollTo(0,0);
   };
+  // ===== Retour du travailleur sur la QUALITÉ d'une question (site bêta) =====
+  qbKey(){ return this.state.activeId + "-" + this.state.qIdx; }
+  quizFbUp = ()=>{
+    const key=this.qbKey();
+    if(this.state.qbFb[key] && this.state.qbFb[key].sent) return;
+    const fb={...this.state.qbFb}; fb[key]={ vote:"up", sent:true };
+    this.setState({ qbFb:fb, qbCommentKey:null });
+    this.sendQuizFeedback("up","");
+  };
+  quizFbDown = ()=>{
+    const key=this.qbKey();
+    if(this.state.qbFb[key] && this.state.qbFb[key].sent) return;
+    const fb={...this.state.qbFb}; fb[key]={ vote:"down", sent:false };
+    this.state.qbComment="";
+    this.setState({ qbFb:fb, qbCommentKey:key });
+  };
+  // Frappe du commentaire : mise à jour SANS re-render (le champ garde le focus).
+  quizFbCommentInput = (e)=>{ this.state.qbComment = e.target.value; };
+  quizFbSend = ()=>{
+    const key=this.qbKey();
+    const fb={...this.state.qbFb}; fb[key]={ vote:"down", sent:true };
+    const comment=(this.state.qbComment||"").trim();
+    this.setState({ qbFb:fb, qbCommentKey:null });
+    this.sendQuizFeedback("down", comment);
+  };
+  sendQuizFeedback(vote, comment){
+    if(!ATTEST_ENDPOINT) return;
+    const S=this.state, mi=S.activeId, mod=this.MODULES[mi];
+    const q=this.quizFor(mi)[S.qIdx];
+    if(!mod) return;
+    const payload={ type:"feedback", vote:vote,
+      question:"M"+mod.num+" Q"+(S.qIdx+1),
+      module:mod.num+" · "+mod.title,
+      questionText:(q&&q.text)||"",
+      comment:comment||"",
+      name:(S.name||"").trim(),
+      langue:(S.lang==="en"?"English":"Français"),
+      version:APP_VERSION,
+      date:new Date().toISOString().slice(0,10) };
+    fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) }).catch(()=>{});
+  }
   quizNext = ()=>{
+    // Avis « à revoir » choisi mais non envoyé : on le capte quand même (sans commentaire).
+    const fkey=this.qbKey(), f=this.state.qbFb[fkey];
+    if(f && f.vote==="down" && !f.sent){
+      const fb={...this.state.qbFb}; fb[fkey]={ vote:"down", sent:true }; this.state.qbFb=fb;
+      this.sendQuizFeedback("down", (this.state.qbComment||"").trim());
+    }
     const list=this.quizFor(this.state.activeId);
     const next=this.state.qIdx+1;
-    if(next<list.length){ this.setState({ qIdx:next, qSel:null, qChecked:false }); window.scrollTo(0,0); return; }
+    if(next<list.length){ this.setState({ qIdx:next, qSel:null, qChecked:false, qbCommentKey:null, qbComment:"" }); window.scrollTo(0,0); return; }
     const correct=this.state.qResults.filter(Boolean).length;
     const pct=Math.round(correct/list.length*100);
     const passed=pct>=70;
@@ -1580,6 +1628,23 @@ class Component extends DCLogic {
           bg:ok?"rgba(62,156,90,.1)":"rgba(217,38,36,.08)", bar:ok?"#2F7D48":"#D92624", fg:ok?"#2F7D48":"#B71F1D",
           text:q.fb||"", answerText:this.quizAnswerText(q), page:this.mp(q.page||0), pageHref:this.pdfAt(this.mp(q.page||1)), hasPage:!!q.page, open:(()=>this.openManual(this.mp(q.page||1))) };
       } else { base.quiz.fb=null; }
+
+      // ===== Vote qualité de la question (pouce haut / bas + commentaire) =====
+      const fbKey=S.activeId+"-"+qi, fbSt=S.qbFb[fbKey];
+      const fbSent=!!(fbSt&&fbSt.sent), fbUp=!!(fbSt&&fbSt.vote==="up"), fbDown=!!(fbSt&&fbSt.vote==="down");
+      base.quiz.rate={
+        ask:!fbSent, thanks:fbSent,
+        isUp:fbUp, isDown:fbDown,
+        commenting:S.qbCommentKey===fbKey && !fbSent,
+        upBg:fbUp?"#2F7D48":"#FFFFFF", upFg:fbUp?"#FFFFFF":"#535252", upBorder:fbUp?"#2F7D48":"rgba(29,30,27,.28)",
+        downBg:fbDown?"#D92624":"#FFFFFF", downFg:fbDown?"#FFFFFF":"#535252", downBorder:fbDown?"#D92624":"rgba(29,30,27,.28)",
+        voteUp:this.quizFbUp, voteDown:this.quizFbDown, commentInput:this.quizFbCommentInput, send:this.quizFbSend,
+        label:this.tr("Cette question est-elle utile et claire ?","Is this question useful and clear?"),
+        thanksMsg:this.tr("Merci ! Votre avis a été envoyé.","Thanks! Your feedback was sent."),
+        commentPlaceholder:this.tr("Qu'est-ce qui ne va pas avec cette question ? (facultatif)","What's wrong with this question? (optional)"),
+        importantMsg:this.tr("C'est important : vos commentaires aident à améliorer la qualité des questions.","This matters: your comments help improve the quality of the questions."),
+        sendLabel:this.tr("Envoyer mon avis","Send my feedback")
+      };
 
       const passed=S.lastPassed;
       const lastModule=S.activeId===M.length-1;

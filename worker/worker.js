@@ -38,6 +38,13 @@
          "data":{ "v":1, "pq":{ "0":{ "s":90, "done":true }, ... } } }
        Renvoie { ok:true, linked:bool } — linked=false si le nom ne correspond
        à aucun employé (rien n'est stocké, le site garde sa copie locale).
+   • POST / (type:"feedback") → retour sur une question de quiz (site bêta).
+       Nom FACULTATIF. Corps JSON :
+       { "type":"feedback", "vote":"up"|"down", "question":"M02 Q3",
+         "module":"02 · Travailler en sécurité", "questionText":"...",
+         "comment":"...(opt)", "name":"...(opt)", "langue":"Français"|"English",
+         "version":"1.9.x", "date":"AAAA-MM-JJ" }
+       Renvoie { ok:true, id:"rec..." }.
    • POST /            → enregistre une attestation. Corps JSON :
        { "name":"Prénom Nom", "employeeId":"rec...(opt)",
          "module":"01 · Connaître le RodBot" | "Formation complète (8/8)",
@@ -54,6 +61,9 @@
 
 const AIRTABLE_BASE  = "appmq82YjvEUglYZU";   // base « Formations »
 const AIRTABLE_TABLE = "tbla1k6GBJMr2afmH";   // table « Attestations RodBot (web) »
+/* Retours des travailleurs sur la qualité des questions de quiz (site en bêta) :
+   pouce en haut / en bas + commentaire facultatif. */
+const FEEDBACK_TABLE = "tblPs9xH5266kJej8";   // « Retours quiz RodBot (web) »
 
 /* Liste des employés, pour relier l'attestation au bon dossier. */
 const EMP_TABLE      = "tbllKuNePDWZMr1cz";   // « Liste employé (registre formation) »
@@ -103,6 +113,11 @@ export default {
       body = await request.json();
     } catch (_) {
       return json({ ok: false, error: "Corps JSON invalide." }, 400, cors);
+    }
+
+    // Retour sur une question de quiz (le nom est FACULTATIF : traité d'abord).
+    if (body.type === "feedback") {
+      return saveFeedback(body, env, cors);
     }
 
     const name = clean(body.name, 120);
@@ -374,6 +389,60 @@ function sanitizeProgress(data) {
     pq[key] = { s, done: !!v.done };
   }
   return { v: 1, pq };
+}
+
+/* ── retour sur une question de quiz (site en bêta) ─────────────────────────
+   Un pouce en haut / en bas + commentaire facultatif, enregistré dans la table
+   « Retours quiz RodBot (web) ». Le nom est facultatif (retour anonyme permis).
+   Si les colonnes optionnelles manquent, on réessaie sans elles. */
+async function saveFeedback(body, env, cors) {
+  if (!env.AIRTABLE_TOKEN) {
+    return json({ ok: false, error: "AIRTABLE_TOKEN non configuré." }, 500, cors);
+  }
+  const vote = clean(body.vote, 10).toLowerCase();
+  if (vote !== "up" && vote !== "down") {
+    return json({ ok: false, error: "Vote invalide." }, 400, cors);
+  }
+  const fields = {
+    "Question": clean(body.question, 20) || "?",
+    "Avis": vote === "up" ? "👍 Utile" : "👎 A revoir",
+    "Statut": "Nouveau",
+    "Date": isoDate(body.date),
+  };
+  const comment = clean(body.comment, 2000);
+  const moduleLabel = clean(body.module, 120);
+  const enonce = clean(body.questionText, 1000);
+  const name = clean(body.name, 120);
+  const langue = clean(body.langue, 20);
+  const version = clean(body.version, 20);
+  if (comment)     fields["Commentaire"] = comment;
+  if (moduleLabel) fields["Module"] = moduleLabel;
+  if (enonce)      fields["Enonce"] = enonce;
+  if (name)        fields["Nom"] = name;
+  if (langue)      fields["Langue"] = langue;
+  if (version)     fields["Version app"] = version;
+
+  try {
+    const at = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE}/${FEEDBACK_TABLE}`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.AIRTABLE_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fields, typecast: true }),
+      }
+    );
+    if (!at.ok) {
+      const detail = await at.text();
+      return json({ ok: false, error: "Airtable a refusé le retour.", detail }, 502, cors);
+    }
+    const rec = await at.json();
+    return json({ ok: true, id: rec.id }, 200, cors);
+  } catch (e) {
+    return json({ ok: false, error: "Airtable injoignable." }, 502, cors);
+  }
 }
 
 /* ── utilitaires (identiques aux autres Workers) ─────────────────────────── */
