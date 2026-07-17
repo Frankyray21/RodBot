@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.6';
+var APP_VERSION = '1.9.7';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -833,7 +833,7 @@ class Component extends DCLogic {
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
       canInstall:false, showInstallHelp:false,
-      attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "",
+      attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
@@ -1098,16 +1098,14 @@ class Component extends DCLogic {
   startQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
   backToModule = ()=> { ptEnter(this.state.activeId,'module'); this.setState({ view:"module", graded:false }); };
   retryQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
+  /* « Choisir, pas taper » : TAPER ne confirme plus jamais l'identité, même si
+     le texte correspond mot pour mot à un employé. Seul un TOUCHER sur une
+     suggestion (pickSuggestion) confirme, pour éviter une liaison accidentelle
+     par simple coïncidence de frappe. */
   setName = (e)=>{
     const v=e.target.value;
-    // Si le nom tapé correspond exactement à une suggestion, on garde son id (liaison sûre).
-    const hit=(this.state.attSug||[]).find(sg=>sg.name===v);
-    this.setState({name:v, attEmpId: hit?hit.id:"", attDone:false, attError:""}, ()=>{
-      this.persist();
-      // Identification certaine : relit aussitôt sa progression sauvegardée
-      // (nouvel appareil / appareil partagé), sans attendre le délai habituel.
-      if(hit) this.progPullNow(true);
-    });
+    this.setState({name:v, attEmpId:"", attDone:false, attError:""}, ()=>this.persist());
+    if(!v || v.trim().length<2) this.clearSuggestionsUI();
     this.fetchEmpSuggestions(v);
   };
   fetchEmpSuggestions(v){
@@ -1120,12 +1118,60 @@ class Component extends DCLogic {
           if(!(d && d.ok && Array.isArray(d.results))) return;
           // Mise à jour SANS re-render (sinon le champ perd le focus pendant la frappe).
           this.state.attSug=d.results.slice(0,8);
-          var dl=document.getElementById("rb-emp-list");
-          if(dl){ dl.innerHTML=""; this.state.attSug.forEach(function(sg){ var o=document.createElement("option"); o.value=sg.name; dl.appendChild(o); }); }
+          this.renderSuggestionsUI();
         })
         .catch(()=>{});
     }, 250);
   }
+  /* Construit à la main la liste tactile de suggestions ET le <datalist>
+     (clavier physique / picker natif), sans passer par le rendu React-like
+     (perdrait le focus du champ en pleine frappe). */
+  renderSuggestionsUI(){
+    const self=this, sug=this.state.attSug||[];
+    const dl=document.getElementById("rb-emp-list");
+    if(dl){ dl.innerHTML=""; sug.forEach(sg=>{ const o=document.createElement("option"); o.value=sg.name; dl.appendChild(o); }); }
+    document.querySelectorAll(".rb-name-sugg").forEach(box=>{
+      box.innerHTML="";
+      sug.forEach(sg=>{
+        const b=document.createElement("button");
+        b.type="button";
+        b.className="rb-name-chip";
+        b.textContent="✓ "+sg.name;
+        b.style.cssText="background:#FFFFFF;border:1px solid rgba(29,30,27,.22);color:#1D1E1B;padding:7px 13px;font-weight:700;font-size:12.5px;cursor:pointer;transition:border-color .15s,background .15s";
+        b.addEventListener("click", ()=>self.pickSuggestion(sg));
+        box.appendChild(b);
+      });
+    });
+  }
+  clearSuggestionsUI(){
+    this.state.attSug=[];
+    const dl=document.getElementById("rb-emp-list"); if(dl) dl.innerHTML="";
+    document.querySelectorAll(".rb-name-sugg").forEach(box=>{ box.innerHTML=""; });
+  }
+  /* Confirmation EXPLICITE de l'identité : l'utilisateur a touché une
+     suggestion du registre. Relit aussitôt sa progression sauvegardée. */
+  pickSuggestion = (sg)=>{
+    this.clearSuggestionsUI();
+    this.setState({ name:sg.name, attEmpId:sg.id, attDone:false, attError:"" }, ()=>{
+      this.persist();
+      this.progPullNow(true);
+    });
+  };
+  /* « Pas vous ? » : efface l'identité ET la progression AFFICHÉE sur cet
+     appareil (celle-ci appartenait au travailleur qui vient de partir).
+     La progression sauvegardée côté serveur, elle, n'est jamais touchée :
+     le prochain travailleur qui s'identifie retrouve la sienne normalement. */
+  clearIdentity = ()=>{
+    clearTimeout(this._progT);
+    clearTimeout(this._progRestoredT);
+    this.clearSuggestionsUI();
+    this.setState({ name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, attDone:false, attError:"", attSending:false, progRestoredMsg:"" });
+    try{
+      localStorage.removeItem("rodbot_formation_v3");
+      localStorage.removeItem("rodbot_prog_dirty");
+      localStorage.removeItem("rodbot_prog_pull_t");
+    }catch(e){}
+  };
   /* ---------- Suivi de formation du même utilisateur (nouvel appareil / appareil
      partagé) ----------
      Même mécanique que le site Procédures de forage : les meilleurs scores de
@@ -1160,7 +1206,22 @@ class Component extends DCLogic {
       if(r.s>localBest){ attempts[i]=r.s; applied++; }
       if(r.done && !completed[i]){ completed[i]={ score:Math.max(r.s,(completed[i]&&completed[i].score)||0) }; applied++; }
     });
-    if(applied) this.setState({ completed, attempts }, ()=>this.persist());
+    if(applied){
+      // Note discrète (visible quelques secondes) : la restauration silencieuse
+      // d'une progression appartenant à quelqu'un d'autre serait trompeuse sur
+      // un appareil partagé, mieux vaut le dire.
+      const name=(this.state.name||"").trim();
+      const doneCount=Object.keys(completed).length;
+      const msg=this.tr(
+        "Progression restaurée pour "+name+" ("+doneCount+"/8 modules).",
+        "Progress restored for "+name+" ("+doneCount+"/8 modules)."
+      );
+      this.setState({ completed, attempts, progRestoredMsg:msg }, ()=>{
+        this.persist();
+        clearTimeout(this._progRestoredT);
+        this._progRestoredT=setTimeout(()=>this.setState({ progRestoredMsg:"" }), 6000);
+      });
+    }
     return applied;
   }
   progPushSoon = ()=>{ clearTimeout(this._progT); this._progT=setTimeout(this.progPush, 4000); };
@@ -1585,12 +1646,22 @@ class Component extends DCLogic {
     base.traineeName=S.name; base.setName=this.setName;
     // Badge discret dans l'en-tête : distingue un NOM CONFIRMÉ (correspond à un
     // employé du registre, liaison sûre) d'un nom simplement tapé mais pas
-    // encore vérifié (aucune suggestion sélectionnée).
+    // encore vérifié (aucune suggestion touchée). La FORME du glyphe change en
+    // plus de la couleur (accessibilité : jamais la couleur seule comme signal),
+    // et un texte équivalent est présent pour les lecteurs d'écran.
     base.workerConfirmed = !!S.attEmpId;
     base.workerDotBg = S.attEmpId ? "#3E9C5A" : "#989898";
+    base.workerDotGlyph = S.attEmpId ? "✓" : "○";
     base.workerBadgeTitle = S.attEmpId
       ? this.tr("Identité confirmée : employé actif du registre.","Confirmed identity: active employee in the registry.")
       : this.tr("Nom non vérifié. Touchez une suggestion du registre pour confirmer votre identité.","Unverified name. Tap a suggestion from the registry to confirm your identity.");
+    // « Pas vous ? » : efface l'identité + la progression affichée sur cet appareil.
+    base.showClearIdentity = !!S.name;
+    base.clearIdentity = this.clearIdentity;
+    base.clearIdentityLabel = this.tr("Pas vous ? Effacer","Not you? Clear");
+    // Bannière discrète (6 s) confirmant une restauration de progression.
+    base.progRestoredMsg = S.progRestoredMsg || "";
+    base.showProgRestored = !!S.progRestoredMsg;
     // ===== Attestation PAR MODULE : disponible sur l'écran de résultat du quiz ET sur la page du module =====
     if(S.activeId!=null && this.M()[S.activeId]){
       const am=this.M()[S.activeId];
@@ -1621,8 +1692,7 @@ class Component extends DCLogic {
       linkedMsg: S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
                              : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
       send:this.submitAttestation,
-      btnLabel: S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate"),
-      sug:(S.attSug||[]).map(sg=>({ name:sg.name }))
+      btnLabel: S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate")
     };
     base.certDate=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
     // ===== Visionneur intégré du manuel (fiable sur tout appareil) =====
@@ -2128,6 +2198,24 @@ function bootRodbot() {
     COMP.progDirtyFlush();
     COMP.progPullNow(false);
     window.addEventListener('online', function () { COMP.progDirtyFlush(); COMP.progPullNow(false); });
+  } catch (e) {}
+  // Appareil partagé (tablette de chantier) : après 30 min sans aucune
+  // interaction, efface automatiquement l'identité active (comme « Pas vous ?
+  // Effacer ») pour que le travailleur suivant ne voie pas la progression
+  // du précédent. Le minuteur repart à chaque interaction.
+  try {
+    var IDLE_MS = window.__RB_IDLE_MS_OVERRIDE || (30 * 60 * 1000);
+    var idleTimer = null;
+    var idleKick = function () {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(function () {
+        try { if (COMP && COMP.state && COMP.state.name) COMP.clearIdentity(); } catch (e) {}
+      }, IDLE_MS);
+    };
+    ['pointerdown', 'keydown', 'touchstart'].forEach(function (evt) {
+      window.addEventListener(evt, idleKick, { passive: true });
+    });
+    idleKick();
   } catch (e) {}
   // PWA : installation + usage hors-ligne (service worker)
   // Mise à jour automatique : quand une nouvelle version est déployée, le nouveau

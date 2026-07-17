@@ -35,12 +35,16 @@
           <span class="rb-brand-subtitle" style="display:block;font-weight:700;font-size:9.5px;letter-spacing:.26em;color:#989898;margin-top:3px">FORMATION OPÉRATEUR</span>
         </span>
       </button>
-      <div style="flex:1;display:flex;align-items:center;min-width:0">
+      <div style="flex:1;display:flex;align-items:center;gap:10px;min-width:0">
         <sc-if value="{{ traineeName }}" hint-placeholder-val="{{ false }}">
-          <span class="rb-worker-badge" title="{{ workerBadgeTitle }}" style="display:inline-flex;align-items:center;gap:7px;max-width:100%;overflow:hidden;font-weight:700;font-size:11.5px;color:#B8B7B2;letter-spacing:.01em">
-            <span style="width:6px;height:6px;flex:none;border-radius:50%;background: {{ workerDotBg }}"></span>
-            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ traineeName }}</span>
+          <span class="rb-worker-badge" title="{{ workerBadgeTitle }}" style="display:inline-flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;font-weight:700;font-size:11.5px;color:#B8B7B2;letter-spacing:.01em">
+            <span aria-hidden="true" style="flex:none;font-size:11px;line-height:1;color: {{ workerDotBg }}">{{ workerDotGlyph }}</span>
+            <span class="sr-only">{{ workerBadgeTitle }}</span>
+            <span class="rb-worker-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ traineeName }}</span>
           </span>
+        </sc-if>
+        <sc-if value="{{ showClearIdentity }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ clearIdentity }}" style="flex:none;background:none;border:none;padding:0;font-weight:700;font-size:10.5px;color:#6E6D69;letter-spacing:.02em;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#B8B7B2">{{ clearIdentityLabel }}</button>
         </sc-if>
       </div>
       <div class="rb-lang-switch" style="display:flex;flex:none;border:1px solid rgba(255,255,255,.24)">
@@ -59,6 +63,11 @@
       </div>
     </div>
   </header>
+
+  <!-- Bannière discrète (6 s) : confirme une restauration de progression -->
+  <sc-if value="{{ showProgRestored }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="background:rgba(62,156,90,.1);border-bottom:1px solid rgba(62,156,90,.28);padding:8px 28px;text-align:center;font-weight:700;font-size:12.5px;color:#2F7D48">✓ {{ progRestoredMsg }}</div>
+  </sc-if>
 
   <nav class="rb-side-toc" aria-label="Table des matières">
     <div class="rb-toc-kicker">TABLE DES MATIÈRES</div>
@@ -706,7 +715,8 @@
             <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
             <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
             <datalist id="rb-emp-list"></datalist>
-            <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+            <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
+            <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
             <div>
               <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                 <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -752,7 +762,8 @@
               <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
               <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
               <datalist id="rb-emp-list"></datalist>
-              <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+              <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
+            <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
               <div>
                 <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                   <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -838,7 +849,8 @@
           <div style="font-weight:800;font-size:11px;letter-spacing:.3em;color:#989898;margin-bottom:12px">CERTIFICAT DE RÉUSSITE</div>
           <p style="font-size:15px;color:#535252;margin:0 0 6px">Ce document atteste que</p>
           <datalist id="rb-emp-list"></datalist>
-          <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="Votre nom" style="font-weight:900;font-size:30px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:6px 0 18px;max-width:100%;outline:none">
+          <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="Votre nom" style="font-weight:900;font-size:30px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:6px 0 8px;max-width:100%;outline:none">
+          <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px"></div>
           <p style="font-size:15px;line-height:1.6;color:#3A3B38;max-width:540px;margin:0 auto 26px">a suivi et validé la formation terrain du <strong style="color:#1D1E1B">système robotisé Borterra RodBot LP</strong> : {{ totalModules }} modules et {{ totalSections }} leçons tirés du manuel de l'opérateur OM 10667.</p>
 
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 28px">
@@ -997,12 +1009,16 @@
           <span class="rb-brand-subtitle" style="display:block;font-weight:700;font-size:9.5px;letter-spacing:.26em;color:#989898;margin-top:3px">OPERATOR TRAINING</span>
         </span>
       </button>
-      <div style="flex:1;display:flex;align-items:center;min-width:0">
+      <div style="flex:1;display:flex;align-items:center;gap:10px;min-width:0">
         <sc-if value="{{ traineeName }}" hint-placeholder-val="{{ false }}">
-          <span class="rb-worker-badge" title="{{ workerBadgeTitle }}" style="display:inline-flex;align-items:center;gap:7px;max-width:100%;overflow:hidden;font-weight:700;font-size:11.5px;color:#B8B7B2;letter-spacing:.01em">
-            <span style="width:6px;height:6px;flex:none;border-radius:50%;background: {{ workerDotBg }}"></span>
-            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ traineeName }}</span>
+          <span class="rb-worker-badge" title="{{ workerBadgeTitle }}" style="display:inline-flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;font-weight:700;font-size:11.5px;color:#B8B7B2;letter-spacing:.01em">
+            <span aria-hidden="true" style="flex:none;font-size:11px;line-height:1;color: {{ workerDotBg }}">{{ workerDotGlyph }}</span>
+            <span class="sr-only">{{ workerBadgeTitle }}</span>
+            <span class="rb-worker-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ traineeName }}</span>
           </span>
+        </sc-if>
+        <sc-if value="{{ showClearIdentity }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ clearIdentity }}" style="flex:none;background:none;border:none;padding:0;font-weight:700;font-size:10.5px;color:#6E6D69;letter-spacing:.02em;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#B8B7B2">{{ clearIdentityLabel }}</button>
         </sc-if>
       </div>
       <div class="rb-lang-switch" style="display:flex;flex:none;border:1px solid rgba(255,255,255,.24)">
@@ -1021,6 +1037,11 @@
       </div>
     </div>
   </header>
+
+  <!-- Discreet banner (6 s): confirms a progress restore -->
+  <sc-if value="{{ showProgRestored }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="background:rgba(62,156,90,.1);border-bottom:1px solid rgba(62,156,90,.28);padding:8px 28px;text-align:center;font-weight:700;font-size:12.5px;color:#2F7D48">✓ {{ progRestoredMsg }}</div>
+  </sc-if>
 
   <nav class="rb-side-toc" aria-label="Table of contents">
     <div class="rb-toc-kicker">CONTENTS</div>
@@ -1668,7 +1689,8 @@
             <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
             <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
             <datalist id="rb-emp-list"></datalist>
-            <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+            <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
+            <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
             <div>
               <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                 <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -1714,7 +1736,8 @@
               <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
               <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
               <datalist id="rb-emp-list"></datalist>
-              <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+              <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
+            <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
               <div>
                 <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                   <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -1800,7 +1823,8 @@
           <div style="font-weight:800;font-size:11px;letter-spacing:.3em;color:#989898;margin-bottom:12px">CERTIFICATE OF COMPLETION</div>
           <p style="font-size:15px;color:#535252;margin:0 0 6px">This document certifies that</p>
           <datalist id="rb-emp-list"></datalist>
-          <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="Your name" style="font-weight:900;font-size:30px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:6px 0 18px;max-width:100%;outline:none">
+          <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="Your name" style="font-weight:900;font-size:30px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:6px 0 8px;max-width:100%;outline:none">
+          <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px"></div>
           <p style="font-size:15px;line-height:1.6;color:#3A3B38;max-width:540px;margin:0 auto 26px">has completed and passed the field training for the <strong style="color:#1D1E1B">Borterra RodBot LP robotic system</strong>: {{ totalModules }} modules and {{ totalSections }} lessons from the operator's manual OM 10667.</p>
 
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 28px">
@@ -1946,6 +1970,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.6"></script>
+<script src="app.js?v=1.9.7"></script>
 </body>
 </html>
