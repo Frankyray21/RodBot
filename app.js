@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.3';
+var APP_VERSION = '1.9.4';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1102,7 +1102,12 @@ class Component extends DCLogic {
     const v=e.target.value;
     // Si le nom tapé correspond exactement à une suggestion, on garde son id (liaison sûre).
     const hit=(this.state.attSug||[]).find(sg=>sg.name===v);
-    this.setState({name:v, attEmpId: hit?hit.id:"", attDone:false, attError:""}, ()=>this.persist());
+    this.setState({name:v, attEmpId: hit?hit.id:"", attDone:false, attError:""}, ()=>{
+      this.persist();
+      // Identification certaine : relit aussitôt sa progression sauvegardée
+      // (nouvel appareil / appareil partagé), sans attendre le délai habituel.
+      if(hit) this.progPullNow(true);
+    });
     this.fetchEmpSuggestions(v);
   };
   fetchEmpSuggestions(v){
@@ -1121,6 +1126,76 @@ class Component extends DCLogic {
         .catch(()=>{});
     }, 250);
   }
+  /* ---------- Suivi de formation du même utilisateur (nouvel appareil / appareil
+     partagé) ----------
+     Même mécanique que le site Procédures de forage : les meilleurs scores de
+     quiz par module partent dans Airtable (dossier de l'employé, champ
+     « Progression RodBot (web) ») quand le réseau est là ; sinon marqués « à
+     pousser » et renvoyés au retour du réseau. Quand le nom tapé correspond
+     EXACTEMENT à un employé (liaison sûre, voir setName), sa progression
+     sauvegardée est aussitôt relue et fusionnée : un travailleur qui
+     s'identifie sur un nouvel appareil retrouve ses modules déjà validés. */
+  progCollect(){
+    const S=this.state, pq={};
+    for(let i=0;i<this.MODULES.length;i++){
+      const a=(S.attempts&&S.attempts[i])||0;
+      const c=(S.completed&&S.completed[i])?S.completed[i].score:0;
+      const best=Math.max(a,c);
+      if(best>0) pq[i]={ s:best, done:!!(S.completed&&S.completed[i]) };
+    }
+    return { v:1, pq:pq };
+  }
+  /* Fusion local/serveur : le score le plus haut fait foi ; un module reçu comme
+     validé côté serveur le devient localement s'il ne l'était pas déjà. */
+  progMerge(remote){
+    if(!remote || !remote.pq) return 0;
+    let applied=0;
+    const completed={...this.state.completed}, attempts={...this.state.attempts};
+    Object.keys(remote.pq).forEach(k=>{
+      const i=parseInt(k,10);
+      if(!(i>=0 && i<this.MODULES.length)) return;
+      const r=remote.pq[k];
+      if(!r || typeof r.s!=="number") return;
+      const localBest=Math.max(attempts[i]||0, completed[i]?completed[i].score:0);
+      if(r.s>localBest){ attempts[i]=r.s; applied++; }
+      if(r.done && !completed[i]){ completed[i]={ score:Math.max(r.s,(completed[i]&&completed[i].score)||0) }; applied++; }
+    });
+    if(applied) this.setState({ completed, attempts }, ()=>this.persist());
+    return applied;
+  }
+  progPushSoon = ()=>{ clearTimeout(this._progT); this._progT=setTimeout(this.progPush, 4000); };
+  progPush = ()=>{
+    const name=(this.state.name||"").trim();
+    if(name.length<2 || !ATTEST_ENDPOINT) return;
+    const data=this.progCollect();
+    if(!Object.keys(data.pq).length) return;
+    if(!navigator.onLine){ try{ localStorage.setItem("rodbot_prog_dirty","1"); }catch(e){} return; }
+    fetch(ATTEST_ENDPOINT,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ type:"progress", name, data }) })
+      .then(r=>r.json())
+      .then(d=>{ if(d && d.ok) try{ localStorage.removeItem("rodbot_prog_dirty"); }catch(e){} })
+      .catch(()=>{ try{ localStorage.setItem("rodbot_prog_dirty","1"); }catch(e){} });
+  };
+  /* force=true : ignore le délai de 6 h (utilisé au moment où le nom vient
+     d'être identifié avec certitude, voir setName). */
+  progPullNow = (force)=>{
+    const name=(this.state.name||"").trim();
+    if(name.length<2 || !ATTEST_ENDPOINT || !navigator.onLine) return;
+    if(!force){
+      let last=0; try{ last=parseInt(localStorage.getItem("rodbot_prog_pull_t"),10)||0; }catch(e){}
+      if(Date.now()-last < 6*3600*1000) return;
+    }
+    fetch(ATTEST_ENDPOINT+"?progress="+encodeURIComponent(name))
+      .then(r=>r.json())
+      .then(d=>{
+        try{ localStorage.setItem("rodbot_prog_pull_t", String(Date.now())); }catch(e){}
+        if(d && d.ok) this.progMerge(d.progress);
+      })
+      .catch(()=>{});
+  };
+  progDirtyFlush = ()=>{
+    let dirty=false; try{ dirty=localStorage.getItem("rodbot_prog_dirty")==="1"; }catch(e){}
+    if(dirty) this.progPush();
+  };
   /* Envoi commun (module OU formation complète) au Worker → Airtable.
      Le champ « Module » du registre reste en FRANÇAIS quel que soit l'affichage,
      pour que le registre Airtable garde des options uniformes. */
@@ -1222,7 +1297,7 @@ class Component extends DCLogic {
       const attempts={...s.attempts}; attempts[s.activeId]=Math.max(pct,attempts[s.activeId]||0);
       // Nouvel écran de résultat : l'envoi d'attestation repart à zéro pour CE module.
       return { graded:true, lastScore:pct, lastPassed:passed, completed, attempts, attSending:false, attDone:false, attError:"" };
-    }, ()=>this.persist());
+    }, ()=>{ this.persist(); this.progPushSoon(); });
     window.scrollTo(0,0);
   };
   goToNextModule = ()=>{
@@ -2037,6 +2112,15 @@ function bootRodbot() {
   TPL_ROOT = doc.getElementById('rb-wrap');
   try { document.documentElement.setAttribute('lang', COMP.state.lang); } catch (e) {}
   fullRender();
+  // Suivi de formation du même utilisateur : si un nom est déjà connu sur cet
+  // appareil, relit silencieusement sa progression sauvegardée (nouvel appareil
+  // / appareil partagé), au plus toutes les 6 h. Renvoie aussi au serveur toute
+  // progression restée « à pousser » suite à une panne réseau.
+  try {
+    COMP.progDirtyFlush();
+    COMP.progPullNow(false);
+    window.addEventListener('online', function () { COMP.progDirtyFlush(); COMP.progPullNow(false); });
+  } catch (e) {}
   // PWA : installation + usage hors-ligne (service worker)
   // Mise à jour automatique : quand une nouvelle version est déployée, le nouveau
   // service worker s'installe puis prend le contrôle, on recharge alors la page

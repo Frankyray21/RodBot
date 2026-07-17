@@ -18,10 +18,21 @@
                        convient tel quel.)
 
    ENDPOINTS :
-   • GET  /?q=<texte>  → recherche d'employés (autocomplétion).
-                         Renvoie { ok:true, results:[{ id, name }, ...] }
-   • GET  /?roster=1   → annuaire complet (autocomplétion hors-ligne).
-   • GET  /            → page d'état { ok:true, service:"attestations-rodbot" }
+   • GET  /?q=<texte>       → recherche d'employés (autocomplétion).
+                              Renvoie { ok:true, results:[{ id, name }, ...] }
+   • GET  /?roster=1        → annuaire complet (autocomplétion hors-ligne).
+   • GET  /?progress=<nom>  → progression sauvegardée de ce nom (correspondance
+                              EXACTE, casse/accents ignorés), pour restaurer sur
+                              un nouvel appareil / appareil partagé. Renvoie
+                              { ok:true, progress:{...}|null }.
+   • GET  /                 → page d'état { ok:true, service:"attestations-rodbot" }
+   • POST / (type:"progress") → sauvegarde la progression (meilleurs scores de
+       quiz par module) dans le dossier employé, champ « Progression RodBot
+       (web) ». Corps JSON :
+       { "type":"progress", "name":"Prénom Nom",
+         "data":{ "v":1, "pq":{ "0":{ "s":90, "done":true }, ... } } }
+       Renvoie { ok:true, linked:bool } — linked=false si le nom ne correspond
+       à aucun employé (rien n'est stocké, le site garde sa copie locale).
    • POST /            → enregistre une attestation. Corps JSON :
        { "name":"Prénom Nom", "employeeId":"rec...(opt)",
          "module":"01 · Connaître le RodBot" | "Formation complète (8/8)",
@@ -42,6 +53,10 @@ const AIRTABLE_TABLE = "tbla1k6GBJMr2afmH";   // table « Attestations RodBot (w
 /* Liste des employés, pour relier l'attestation au bon dossier. */
 const EMP_TABLE      = "tbllKuNePDWZMr1cz";   // « Liste employé (registre formation) »
 const EMP_NAME_FIELD = "Name";                // champ principal = nom complet
+/* Progression du site (meilleurs scores de quiz par module), sauvegardée sur
+   le dossier de l'employé pour être restaurée sur un nouvel appareil / un
+   appareil partagé. Même mécanique que le site Procédures de forage. */
+const PROG_FIELD     = "Progression RodBot (web)";
 
 /* Origines autorisées à appeler le Worker depuis un navigateur (CORS). */
 const ALLOWED_ORIGINS = [
@@ -65,6 +80,9 @@ export default {
       if (url.searchParams.has("roster")) {
         return listRoster(env, cors);
       }
+      if (url.searchParams.has("progress")) {
+        return getProgress(url.searchParams.get("progress") || "", env, cors);
+      }
       return json({ ok: true, service: "attestations-rodbot" }, 200, cors);
     }
 
@@ -82,6 +100,11 @@ export default {
     const name = clean(body.name, 120);
     if (!name) {
       return json({ ok: false, error: "Nom manquant." }, 400, cors);
+    }
+
+    // Sauvegarde de progression (pas une attestation).
+    if (body.type === "progress") {
+      return saveProgress(name, body.data, env, cors);
     }
 
     const score   = clean(body.score, 40);       // ex. « 92 % »
@@ -218,22 +241,92 @@ async function listRoster(env, cors) {
 
 /* ── correspondance exacte d'un nom (repli de liaison) ───────────────────── */
 async function findEmployeeByName(name, env) {
+  const emp = await findEmployee(name, env, false);
+  return (emp && emp.id) || "";
+}
+
+/* Comme ci-dessus, mais renvoie { id, progress } — progress (objet ou null)
+   n'est lu que si withProgress est vrai. null si aucun employé unique. */
+async function findEmployee(name, env, withProgress) {
   const term = deburr(clean(name, 120).toLowerCase()).replace(/["\\]/g, " ").trim();
-  if (term.length < 2) return "";
+  if (term.length < 2) return null;
   const field = stripAccentsFormula(`LOWER({${EMP_NAME_FIELD}})`);
   const formula = `TRIM(${field})="${term}"`;
   const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${EMP_TABLE}`
             + `?filterByFormula=${encodeURIComponent(formula)}`
-            + `&maxRecords=2&fields%5B%5D=${encodeURIComponent(EMP_NAME_FIELD)}`;
+            + `&maxRecords=2&fields%5B%5D=${encodeURIComponent(EMP_NAME_FIELD)}`
+            + (withProgress ? `&fields%5B%5D=${encodeURIComponent(PROG_FIELD)}` : "");
   try {
     const at = await fetch(url, { headers: { "Authorization": `Bearer ${env.AIRTABLE_TOKEN}` } });
-    if (!at.ok) return "";
+    if (!at.ok) return null;
     const data = await at.json();
     const recs = data.records || [];
-    return recs.length === 1 ? recs[0].id : "";
+    if (recs.length !== 1) return null;
+    let progress = null;
+    if (withProgress) {
+      try { progress = sanitizeProgress(JSON.parse(recs[0].fields[PROG_FIELD] || "")); } catch (e) {}
+    }
+    return { id: recs[0].id, progress };
   } catch (e) {
-    return "";
+    return null;
   }
+}
+
+/* ── progression (meilleurs scores de quiz par module), pour retrouver son
+   avancement sur un nouvel appareil ou un appareil partagé ────────────────── */
+async function getProgress(name, env, cors) {
+  if (!env.AIRTABLE_TOKEN) {
+    return json({ ok: false, error: "AIRTABLE_TOKEN non configuré." }, 500, cors);
+  }
+  const emp = await findEmployee(name, env, true);
+  return json({ ok: true, progress: (emp && emp.progress) || null }, 200, cors);
+}
+
+/* Sauvegarde de la progression, écrite sur le dossier de l'employé quand le
+   nom correspond EXACTEMENT à un employé — sinon on répond quand même ok:true
+   (linked:false) : rien n'est stocké, le site garde sa copie locale. */
+async function saveProgress(name, data, env, cors) {
+  if (!env.AIRTABLE_TOKEN) {
+    return json({ ok: false, error: "AIRTABLE_TOKEN non configuré." }, 500, cors);
+  }
+  const prog = sanitizeProgress(data);
+  if (!prog) return json({ ok: false, error: "Progression invalide." }, 400, cors);
+  const emp = await findEmployee(name, env, false);
+  if (!emp || !emp.id) return json({ ok: true, linked: false }, 200, cors);
+  try {
+    const at = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE}/${EMP_TABLE}/${emp.id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${env.AIRTABLE_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fields: { [PROG_FIELD]: JSON.stringify(prog) } }),
+      }
+    );
+    if (!at.ok) return json({ ok: false, error: "Airtable a refusé la sauvegarde." }, 502, cors);
+    return json({ ok: true, linked: true }, 200, cors);
+  } catch (e) {
+    return json({ ok: false, error: "Airtable injoignable." }, 502, cors);
+  }
+}
+
+/* Ne garde que la forme attendue : { v:1, pq:{ "0":{ s, done }, ... } } — borné
+   (8 modules max, clés "0".."7", score entier 0…100). Renvoie null si le
+   corps n'a pas cette forme. */
+function sanitizeProgress(data) {
+  if (!data || typeof data !== "object" || !data.pq || typeof data.pq !== "object") return null;
+  const pq = {};
+  for (const key of Object.keys(data.pq)) {
+    if (!/^[0-7]$/.test(key)) continue;
+    const v = data.pq[key];
+    if (!v || typeof v !== "object") continue;
+    const s = Math.round(Number(v.s));
+    if (!isFinite(s) || s < 0 || s > 100) continue;
+    pq[key] = { s, done: !!v.done };
+  }
+  return { v: 1, pq };
 }
 
 /* ── utilitaires (identiques aux autres Workers) ─────────────────────────── */
