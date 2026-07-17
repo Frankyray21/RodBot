@@ -27,9 +27,13 @@
          "module":"01 · Connaître le RodBot" | "Formation complète (8/8)",
          "score":"92 %", "modules":"01 : 100 %\n02 : 80 %\n...",
          "date":"AAAA-MM-JJ", "langue":"Français"|"English",
-         "version":"1.9.1" }
-     Une attestation est envoyée APRÈS CHAQUE QUIZ RÉUSSI (une par module),
-     puis une attestation « Formation complète (8/8) » à la toute fin.
+         "version":"1.9.2",
+         "moduleTime":"5 min 20 s", "quizTime":"2 min 10 s" (opt, texte),
+         "moduleSeconds":320, "quizSeconds":130 (opt, nombres) }
+     Une attestation est envoyée APRÈS CHAQUE QUIZ (réussi ou non, une par
+     module), puis une attestation « Formation complète (8/8) » à la toute fin.
+     Les temps sont mesurés côté site (temps actif, écran visible) : suivi
+     gestionnaire, jamais affiché au travailleur.
    ───────────────────────────────────────────────────────────────────────── */
 
 const AIRTABLE_BASE  = "appmq82YjvEUglYZU";   // base « Formations »
@@ -83,6 +87,10 @@ export default {
     const score   = clean(body.score, 40);       // ex. « 92 % »
     const moduleLabel = clean(body.module, 120); // ex. « 02 · Travailler en sécurité »
     const modules = clean(body.modules, 1200);   // détail par module
+    const moduleTime = clean(body.moduleTime, 40);   // ex. « 5 min 20 s »
+    const quizTime   = clean(body.quizTime, 40);     // ex. « 2 min 10 s »
+    const moduleSeconds = validSeconds(body.moduleSeconds);
+    const quizSeconds   = validSeconds(body.quizSeconds);
     const date    = isoDate(body.date);
     const langue  = clean(body.langue, 20);      // « Français » / « English »
     const version = clean(body.version, 20);
@@ -109,6 +117,10 @@ export default {
     if (moduleLabel) fields["Module"] = moduleLabel;
     if (score)   fields["Score global"] = score;
     if (modules) fields["Détail modules"] = modules;
+    if (moduleTime)     fields["Temps sur le module"] = moduleTime;
+    if (quizTime)       fields["Temps sur le quiz"] = quizTime;
+    if (moduleSeconds != null) fields["Secondes module"] = moduleSeconds;
+    if (quizSeconds != null)   fields["Secondes quiz"] = quizSeconds;
     if (langue)  fields["Langue"] = langue;
     if (version) fields["Version app"] = version;
     if (empId)   fields["Employé"] = [empId];
@@ -256,6 +268,11 @@ function isoDate(v) {
 
 function validRecId(v) {
   return (typeof v === "string" && /^rec[A-Za-z0-9]{14}$/.test(v)) ? v : "";
+}
+
+function validSeconds(v) {
+  const n = Number(v);
+  return (Number.isFinite(n) && n >= 0 && n < 100000000) ? Math.round(n) : null;
 }
 
 function deburr(s) {

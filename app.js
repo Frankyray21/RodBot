@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.2';
+var APP_VERSION = '1.9.3';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -27,6 +27,71 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
 var APP_VERSION_DATE = '16 JUIL. 2026';
+
+/* ---------- Chronométrage (lecture du module + quiz), par module ----------
+   Mesure le temps ACTIF (écran visible) passé à lire un module et sur son
+   quiz. Envoyé à Airtable avec l'attestation, JAMAIS affiché au travailleur.
+   Suivi gestionnaire uniquement (repris du site Procédures de forage).
+   Persisté en localStorage : cumule les visites tant que non envoyé.
+   En pause quand l'app est masquée (écran verrouillé, autre onglet). */
+var PT = { pid: null, page: null, quiz: null };
+function ptKey(id, kind) { return 'rodbot_pt_' + kind + '_' + id; }
+function ptGetMs(k) { try { var v = parseInt(localStorage.getItem(k), 10); return (isFinite(v) && v > 0) ? v : 0; } catch (e) { return 0; } }
+function ptSetMs(k, ms) { try { localStorage.setItem(k, String(Math.round(ms))); } catch (e) {} }
+function mkClock(base) {
+  return { acc: base || 0, t0: 0, on: false,
+    start: function () { if (!this.on) { this.t0 = Date.now(); this.on = true; } },
+    pause: function () { if (this.on) { this.acc += Date.now() - this.t0; this.on = false; } },
+    ms: function () { return this.acc + (this.on ? Date.now() - this.t0 : 0); } };
+}
+function ptFlush() {
+  if (PT.pid == null) return;
+  if (PT.page) ptSetMs(ptKey(PT.pid, 'page'), PT.page.ms());
+  if (PT.quiz) ptSetMs(ptKey(PT.pid, 'quiz'), PT.quiz.ms());
+}
+/* view = 'module' | 'quiz' | null (quitte tout module, ex. accueil, simulateur). */
+function ptEnter(id, view) {
+  if (id == null) { ptFlush(); if (PT.page) PT.page.pause(); if (PT.quiz) PT.quiz.pause(); return; }
+  if (PT.pid !== id) {
+    ptFlush();
+    PT.pid = id;
+    PT.page = mkClock(ptGetMs(ptKey(id, 'page')));
+    PT.quiz = mkClock(ptGetMs(ptKey(id, 'quiz')));
+  }
+  if (view === 'quiz') { if (PT.page) PT.page.pause(); if (!document.hidden && PT.quiz) PT.quiz.start(); }
+  else if (view === 'module') { if (PT.quiz) PT.quiz.pause(); if (!document.hidden && PT.page) PT.page.start(); }
+  else { if (PT.page) PT.page.pause(); if (PT.quiz) PT.quiz.pause(); }
+  ptFlush();
+}
+try {
+  document.addEventListener('visibilitychange', function () {
+    if (PT.pid == null) return;
+    if (document.hidden) { if (PT.page) PT.page.pause(); if (PT.quiz) PT.quiz.pause(); ptFlush(); }
+    else {
+      try {
+        if (COMP && COMP.state && COMP.state.activeId === PT.pid) {
+          if (COMP.state.view === 'quiz' && PT.quiz) PT.quiz.start();
+          else if (COMP.state.view === 'module' && PT.page) PT.page.start();
+        }
+      } catch (e) {}
+    }
+  });
+  window.addEventListener('beforeunload', ptFlush);
+} catch (e) {}
+/* Instantané en ms (sans arrêter les chronos) : utilisé au moment d'attester. */
+function ptSnapshot(id) {
+  if (PT.pid === id) ptFlush();
+  return { pageMs: ptGetMs(ptKey(id, 'page')), quizMs: ptGetMs(ptKey(id, 'quiz')) };
+}
+/* « 3 min 42 s », « 45 s », « 1 h 05 min ». */
+function fmtDuration(ms) {
+  var s = Math.round((ms || 0) / 1000);
+  if (s < 60) return s + ' s';
+  var m = Math.floor(s / 60), r = s % 60;
+  if (m < 60) return m + ' min' + (r ? ' ' + r + ' s' : '');
+  var h = Math.floor(m / 60); m = m % 60;
+  return h + ' h' + (m ? ' ' + ('0' + m).slice(-2) + ' min' : '');
+}
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
 var ROOT = null;      // conteneur DOM (#app)
@@ -776,7 +841,7 @@ class Component extends DCLogic {
     };
   }
 
-  openSim = (tab)=>{ this.setState({ view:"sim", simTab:tab }); window.scrollTo(0,0); };
+  openSim = (tab)=>{ ptEnter(null,null); this.setState({ view:"sim", simTab:tab }); window.scrollTo(0,0); };
   pickSpot = (i)=>{
     const sp=this.spots()[i];
     // Toucher/cliquer une pastille ouvre une fiche pop-up de la commande
@@ -947,8 +1012,8 @@ class Component extends DCLogic {
     if(S.mpage!=null){ this.setState({ mpage:null }); return; }
     if(S.rrcInfoOpen){ this.setState({ rrcInfoOpen:false }); return; }
     if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
-    if(S.view==='quiz'){ this.setState({ view:'module', graded:false }); return; }
-    if(S.view!=='home'){ this.setState({ view:'home', graded:false, answers:{} }); return; }
+    if(S.view==='quiz'){ ptEnter(S.activeId,'module'); this.setState({ view:'module', graded:false }); return; }
+    if(S.view!=='home'){ ptEnter(null,null); this.setState({ view:'home', graded:false, answers:{} }); return; }
   }
   syncHistory(){
     try{
@@ -1020,8 +1085,8 @@ class Component extends DCLogic {
   moduleScore(i){ return this.state.completed[i] ? this.state.completed[i].score : 0; }
   allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
-  goHome = ()=> this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0));
-  openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0));
+  goHome = ()=> { ptEnter(null,null); this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
+  openModule = (i)=> { ptEnter(i,'module'); this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
   toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key, manualDetailKey:null }));
   toggleManualDetails = (key,page)=>{
     if(this.state.manualDetailKey===key){
@@ -1030,9 +1095,9 @@ class Component extends DCLogic {
     }
     this.setState({ manualDetailKey:key, mpage:page });
   };
-  startQuiz = ()=> { this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
-  backToModule = ()=> this.setState({ view:"module", graded:false });
-  retryQuiz = ()=> { this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
+  startQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
+  backToModule = ()=> { ptEnter(this.state.activeId,'module'); this.setState({ view:"module", graded:false }); };
+  retryQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false }); window.scrollTo(0,0); };
   setName = (e)=>{
     const v=e.target.value;
     // Si le nom tapé correspond exactement à une suggestion, on garde son id (liaison sûre).
@@ -1085,7 +1150,12 @@ class Component extends DCLogic {
     const detail=M.map((m,i)=>m.num+" : "+this.moduleScore(i)+" %").join("\n");
     const scores=M.map((m,i)=>this.moduleScore(i));
     const overall=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
-    this.postAttestation({ module:"Formation complète (8/8)", score:overall+" %", modules:detail });
+    // Temps total : somme du temps de lecture + quiz des 8 modules.
+    let pageMs=0, quizMs=0;
+    M.forEach((m,i)=>{ const t=ptSnapshot(i); pageMs+=t.pageMs; quizMs+=t.quizMs; });
+    this.postAttestation({ module:"Formation complète (8/8)", score:overall+" %", modules:detail,
+      moduleTime:fmtDuration(pageMs), quizTime:fmtDuration(quizMs),
+      moduleSeconds:Math.round(pageMs/1000), quizSeconds:Math.round(quizMs/1000) });
   };
   /* Meilleur score tenté pour un module (même sous 70 %), sinon score validé. */
   bestAttempt(i){ return Math.max((this.state.attempts&&this.state.attempts[i])||0, this.moduleScore(i)||0); }
@@ -1099,7 +1169,10 @@ class Component extends DCLogic {
     if(!hasTry){ this.setState({ attError:this.tr("Faites d'abord le quiz du module.","Take the module quiz first.") }); return; }
     const mFr=this.MODULES[S.activeId];
     const pct=Math.max(this.bestAttempt(S.activeId), (S.view==="quiz"&&S.graded)?(S.lastScore||0):0);
-    this.postAttestation({ module:mFr.num+" · "+mFr.title, score:pct+" %", modules:mFr.num+" : "+pct+" %" });
+    const t=ptSnapshot(S.activeId);
+    this.postAttestation({ module:mFr.num+" · "+mFr.title, score:pct+" %", modules:mFr.num+" : "+pct+" %",
+      moduleTime:fmtDuration(t.pageMs), quizTime:fmtDuration(t.quizMs),
+      moduleSeconds:Math.round(t.pageMs/1000), quizSeconds:Math.round(t.quizMs/1000) });
   };
   scrollToSafety = ()=>this.scrollHomeSection("safety");
   startFirst = ()=>{ const first=this.M().findIndex((m,i)=>!this.moduleDone(i)); this.openModule(first===-1?0:first); };
@@ -1154,8 +1227,8 @@ class Component extends DCLogic {
   };
   goToNextModule = ()=>{
     const next=this.state.activeId+1;
-    if(next<this.M().length) this.setState({ view:"module", activeId:next, openKey:null, graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] });
-    else if(this.allDone()) this.setState({ view:"cert", attSending:false, attDone:false, attError:"" });
+    if(next<this.M().length){ ptEnter(next,'module'); this.setState({ view:"module", activeId:next, openKey:null, graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] }); }
+    else if(this.allDone()){ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); }
     else this.goHome();
   };
 
@@ -1333,7 +1406,7 @@ class Component extends DCLogic {
         "Attestation finale : disponible quand les 8 modules sont validés ("+doneN+"/8).",
         "Final certificate: available once all 8 modules are passed ("+doneN+"/8).");
       base.certHintShow = !this.allDone();
-      base.openCert = ()=>{ this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); window.scrollTo(0,0); };
+      base.openCert = ()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); window.scrollTo(0,0); };
       base.showCertCta = this.allDone();
       // Attestation PAR MODULE : offerte après CHAQUE quiz, réussi ou non (base.modAtt est construit plus bas).
       base.showModAtt = true;
