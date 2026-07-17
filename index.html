@@ -706,6 +706,35 @@
             <button onClick="{{ retryQuiz }}" style="background:transparent;border:1px solid rgba(29,30,27,.3);color:#1D1E1B;padding:13px 22px;font-weight:700;font-size:14px;cursor:pointer">Recommencer</button>
             <button onClick="{{ result.nextAction }}" style="background:#D92624;color:#FFFFFF;border:none;padding:13px 24px;font-weight:800;font-size:14px;cursor:pointer">{{ result.nextLabel }} →</button>
           </div>
+
+          <!-- Attestation PAR MODULE : offerte après CHAQUE quiz réussi -->
+          <sc-if value="{{ showModAtt }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:28px;border-top:1px solid rgba(29,30,27,.14);padding-top:22px">
+              <div style="font-weight:800;font-size:11px;letter-spacing:.18em;color:#D92624;margin-bottom:4px">{{ modAtt.heading }}</div>
+              <div style="font-weight:800;font-size:14px;color:#1D1E1B;margin-bottom:10px">{{ modAtt.moduleLabel }}</div>
+              <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 12px" sc-html="{{ modAtt.note }}"></p>
+              <datalist id="rb-emp-list"></datalist>
+              <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+              <div>
+                <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
+                </sc-if>
+                <sc-if value="{{ modAtt.sending }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
+                </sc-if>
+                <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                  <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
+                </sc-if>
+                <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:8px;font-weight:700;font-size:12.5px;color:#B71F1D">{{ modAtt.error }}</div>
+                </sc-if>
+              </div>
+              <sc-if value="{{ certHintShow }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:14px 0 0;font-size:12.5px;color:#989898">ℹ️ {{ certHint }}</p>
+              </sc-if>
+            </div>
+          </sc-if>
         </div>
       </sc-if>
 
@@ -1601,6 +1630,35 @@
             <button onClick="{{ retryQuiz }}" style="background:transparent;border:1px solid rgba(29,30,27,.3);color:#1D1E1B;padding:13px 22px;font-weight:700;font-size:14px;cursor:pointer">Retry</button>
             <button onClick="{{ result.nextAction }}" style="background:#D92624;color:#FFFFFF;border:none;padding:13px 24px;font-weight:800;font-size:14px;cursor:pointer">{{ result.nextLabel }} →</button>
           </div>
+
+          <!-- PER-MODULE certificate: offered after EACH passed quiz -->
+          <sc-if value="{{ showModAtt }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:28px;border-top:1px solid rgba(29,30,27,.14);padding-top:22px">
+              <div style="font-weight:800;font-size:11px;letter-spacing:.18em;color:#D92624;margin-bottom:4px">{{ modAtt.heading }}</div>
+              <div style="font-weight:800;font-size:14px;color:#1D1E1B;margin-bottom:10px">{{ modAtt.moduleLabel }}</div>
+              <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 12px" sc-html="{{ modAtt.note }}"></p>
+              <datalist id="rb-emp-list"></datalist>
+              <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+              <div>
+                <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
+                </sc-if>
+                <sc-if value="{{ modAtt.sending }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
+                </sc-if>
+                <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                  <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
+                </sc-if>
+                <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:8px;font-weight:700;font-size:12.5px;color:#B71F1D">{{ modAtt.error }}</div>
+                </sc-if>
+              </div>
+              <sc-if value="{{ certHintShow }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:14px 0 0;font-size:12.5px;color:#989898">ℹ️ {{ certHint }}</p>
+              </sc-if>
+            </div>
+          </sc-if>
         </div>
       </sc-if>
 
@@ -1812,6 +1870,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.8.14"></script>
+<script src="app.js?v=1.9.1"></script>
 </body>
 </html>

@@ -11,9 +11,12 @@ Airtable (base **« Formations »**, table **« Attestations RodBot (web) »**,
   (Nom, Statut Reçu/À relier/Traité, Employé lié, Formation, Date, Score global,
   Détail modules, Langue, Source, Version app).
 - ✅ Code du Worker : `worker/worker.js` (+ `worker/wrangler.toml`).
-- ✅ Site câblé : sur l'attestation, bouton **« Enregistrer mon attestation »**
+- ✅ Site câblé : bouton **« Enregistrer mon attestation »**
   + suggestions de noms tirées du registre des employés.
   Endpoint attendu : `https://attestations-rodbot.frankyray-21.workers.dev`
+- ✅ **Une attestation PAR MODULE** : offerte sur l'écran de résultat, après
+  **chaque quiz réussi** (champ « Module », ex. « 02 · Travailler en sécurité »),
+  puis une attestation **« Formation complète (8/8) »** à la toute fin.
 
 ## Les 2 étapes manuelles (tableau de bord Cloudflare)
 1. **Créer le Worker connecté au dépôt** (comme `attestations-procedures`) :

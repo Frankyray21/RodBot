@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.0';
+var APP_VERSION = '1.9.1';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1056,6 +1056,25 @@ class Component extends DCLogic {
         .catch(()=>{});
     }, 250);
   }
+  /* Envoi commun (module OU formation complète) au Worker → Airtable.
+     Le champ « Module » du registre reste en FRANÇAIS quel que soit l'affichage,
+     pour que le registre Airtable garde des options uniformes. */
+  postAttestation(extra){
+    const S=this.state;
+    const name=(S.name||"").trim();
+    const payload=Object.assign({ name:name, employeeId:S.attEmpId||"",
+      date:new Date().toISOString().slice(0,10),
+      langue:(S.lang==="en"?"English":"Français"), version:APP_VERSION }, extra);
+    this.setState({ attSending:true, attError:"" });
+    fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
+      .then(r=>r.json())
+      .then(d=>{
+        if(d && d.ok) this.setState({ attSending:false, attDone:true, attLinked:!!d.linked });
+        else this.setState({ attSending:false, attError:(d&&d.error)||this.tr("Envoi refusé.","Submission refused.") });
+      })
+      .catch(()=>this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }));
+  }
+  /* Attestation FINALE (vue « cert ») : exige les 8 modules validés. */
   submitAttestation = ()=>{
     const S=this.state;
     if(S.attSending || S.attDone) return;
@@ -1066,17 +1085,18 @@ class Component extends DCLogic {
     const detail=M.map((m,i)=>m.num+" : "+this.moduleScore(i)+" %").join("\n");
     const scores=M.map((m,i)=>this.moduleScore(i));
     const overall=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
-    const payload={ name:name, employeeId:S.attEmpId||"", score:overall+" %", modules:detail,
-      date:new Date().toISOString().slice(0,10),
-      langue:(S.lang==="en"?"English":"Français"), version:APP_VERSION };
-    this.setState({ attSending:true, attError:"" });
-    fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
-      .then(r=>r.json())
-      .then(d=>{
-        if(d && d.ok) this.setState({ attSending:false, attDone:true, attLinked:!!d.linked });
-        else this.setState({ attSending:false, attError:(d&&d.error)||this.tr("Envoi refusé.","Submission refused.") });
-      })
-      .catch(()=>this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }));
+    this.postAttestation({ module:"Formation complète (8/8)", score:overall+" %", modules:detail });
+  };
+  /* Attestation PAR MODULE : offerte sur l'écran de résultat, après chaque quiz réussi. */
+  submitModuleAttestation = ()=>{
+    const S=this.state;
+    if(S.attSending || S.attDone) return;
+    const name=(S.name||"").trim();
+    if(name.length<2){ this.setState({ attError:this.tr("Écrivez d'abord votre nom.","Write your name first.") }); return; }
+    if(!S.lastPassed){ this.setState({ attError:this.tr("Réussissez d'abord le quiz du module.","Pass the module quiz first.") }); return; }
+    const mFr=this.MODULES[S.activeId];
+    const pct=Math.max(S.lastScore||0, this.moduleScore(S.activeId));
+    this.postAttestation({ module:mFr.num+" · "+mFr.title, score:pct+" %", modules:mFr.num+" : "+pct+" %" });
   };
   scrollToSafety = ()=>this.scrollHomeSection("safety");
   startFirst = ()=>{ const first=this.M().findIndex((m,i)=>!this.moduleDone(i)); this.openModule(first===-1?0:first); };
@@ -1122,14 +1142,15 @@ class Component extends DCLogic {
     this.setState(s=>{
       const completed={...s.completed};
       if(passed) completed[s.activeId]={ score: Math.max(pct,(completed[s.activeId]&&completed[s.activeId].score)||0) };
-      return { graded:true, lastScore:pct, lastPassed:passed, completed };
+      // Nouvel écran de résultat : l'envoi d'attestation repart à zéro pour CE module.
+      return { graded:true, lastScore:pct, lastPassed:passed, completed, attSending:false, attDone:false, attError:"" };
     }, ()=>this.persist());
     window.scrollTo(0,0);
   };
   goToNextModule = ()=>{
     const next=this.state.activeId+1;
     if(next<this.M().length) this.setState({ view:"module", activeId:next, openKey:null, graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] });
-    else if(this.allDone()) this.setState({ view:"cert" });
+    else if(this.allDone()) this.setState({ view:"cert", attSending:false, attDone:false, attError:"" });
     else this.goHome();
   };
 
@@ -1302,16 +1323,40 @@ class Component extends DCLogic {
 
       const passed=S.lastPassed;
       const lastModule=S.activeId===M.length-1;
+      const doneN=M.filter((m,i)=>this.moduleDone(i)).length;
+      base.certHint = this.allDone() ? "" : this.tr(
+        "Attestation finale : disponible quand les 8 modules sont validés ("+doneN+"/8).",
+        "Final certificate: available once all 8 modules are passed ("+doneN+"/8).");
+      base.certHintShow = passed && !this.allDone();
+      base.openCert = ()=>{ this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); window.scrollTo(0,0); };
+      base.showCertCta = this.allDone();
+      // Attestation PAR MODULE, offerte dès que le quiz du module est réussi.
+      const modFr=this.MODULES[S.activeId]||{num:"",title:""};
+      base.showModAtt = !!passed;
+      base.modAtt = {
+        heading: this.tr("🎓 ATTESTATION DU MODULE","🎓 MODULE CERTIFICATE"),
+        moduleLabel: activeMod ? (activeMod.num+" · "+activeMod.title) : (modFr.num+" · "+modFr.title),
+        note: this.tr("**Écrivez votre nom**, puis touchez le bouton. Votre réussite est envoyée au ##registre de formation##.",
+                      "**Write your name**, then tap the button. Your pass is sent to the ##training registry##."),
+        placeholder: this.tr("Votre nom","Your name"),
+        sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
+        idle:!S.attSending && !S.attDone,
+        doneMsg: this.tr("Attestation du module enregistrée.","Module certificate saved."),
+        linkedMsg: S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
+                               : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
+        send:this.submitModuleAttestation,
+        btnLabel: S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate")
+      };
       base.result={
         scorePct:S.lastScore,
         ringBg: passed?"rgba(62,156,90,.14)":"rgba(217,38,36,.1)",
         ringFg: passed?"#2F7D48":"#B71F1D",
         title: passed?this.tr("Module validé !","Module passed!"):this.tr("Pas tout à fait…","Not quite…"),
         message: passed
-          ? this.tr("Vous maîtrisez les points clés de ce module. Poursuivez avec le module suivant ou revenez au parcours.","You've mastered this module's key points. Continue to the next module or go back to the path.")
+          ? this.tr("Vous maîtrisez les points clés de ce module. Enregistrez votre attestation ci-dessous, puis poursuivez.","You've mastered this module's key points. Save your certificate below, then continue.")
           : this.tr("Il faut au moins 70 % pour valider. Revoyez les leçons du module puis retentez le quiz.","You need at least 70% to pass. Review the module lessons, then retake the quiz."),
-        nextLabel: !passed?this.tr("Revoir le module","Review the module"):(lastModule?(this.allDone()?this.tr("Voir mon attestation","See my certificate"):this.tr("Retour au parcours","Back to the path")):this.tr("Module suivant","Next module")),
-        nextAction: !passed?this.backToModule:(lastModule?(this.allDone()?()=>this.setState({view:"cert"}):this.goHome):this.goToNextModule)
+        nextLabel: !passed?this.tr("Revoir le module","Review the module"):(this.allDone()?this.tr("Voir mon attestation","See my certificate"):(lastModule?this.tr("Retour au parcours","Back to the path"):this.tr("Module suivant","Next module"))),
+        nextAction: !passed?this.backToModule:(this.allDone()?base.openCert:(lastModule?this.goHome:this.goToNextModule))
       };
       base.retryQuiz=this.retryQuiz; base.backToModule=this.backToModule; base.startQuiz=this.startQuiz;
     }

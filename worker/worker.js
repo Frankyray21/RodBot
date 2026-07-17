@@ -24,9 +24,12 @@
    • GET  /            → page d'état { ok:true, service:"attestations-rodbot" }
    • POST /            → enregistre une attestation. Corps JSON :
        { "name":"Prénom Nom", "employeeId":"rec...(opt)",
+         "module":"01 · Connaître le RodBot" | "Formation complète (8/8)",
          "score":"92 %", "modules":"01 : 100 %\n02 : 80 %\n...",
          "date":"AAAA-MM-JJ", "langue":"Français"|"English",
-         "version":"1.9.0" }
+         "version":"1.9.1" }
+     Une attestation est envoyée APRÈS CHAQUE QUIZ RÉUSSI (une par module),
+     puis une attestation « Formation complète (8/8) » à la toute fin.
    ───────────────────────────────────────────────────────────────────────── */
 
 const AIRTABLE_BASE  = "appmq82YjvEUglYZU";   // base « Formations »
@@ -78,6 +81,7 @@ export default {
     }
 
     const score   = clean(body.score, 40);       // ex. « 92 % »
+    const moduleLabel = clean(body.module, 120); // ex. « 02 · Travailler en sécurité »
     const modules = clean(body.modules, 1200);   // détail par module
     const date    = isoDate(body.date);
     const langue  = clean(body.langue, 20);      // « Français » / « English »
@@ -102,6 +106,7 @@ export default {
       "Source": "site formation RodBot",
       "Statut": empId ? "Reçu" : "À relier",
     };
+    if (moduleLabel) fields["Module"] = moduleLabel;
     if (score)   fields["Score global"] = score;
     if (modules) fields["Détail modules"] = modules;
     if (langue)  fields["Langue"] = langue;
