@@ -13,3 +13,8 @@
 name = "attestations-rodbot"
 main = "worker.js"
 compatibility_date = "2025-09-01"
+
+# Sans keep_vars, chaque déploiement connecté au dépôt EFFACE les variables
+# en clair ajoutées dans le tableau de bord (les secrets chiffrés survivent).
+# AIRTABLE_TOKEN doit être ajouté comme SECRET (type « Encrypt »).
+keep_vars = true
