@@ -25,6 +25,11 @@
                               EXACTE, casse/accents ignorés), pour restaurer sur
                               un nouvel appareil / appareil partagé. Renvoie
                               { ok:true, progress:{...}|null }.
+   • GET  /?hist=<nom>      → historique des attestations de ce nom (page « Mon
+                              suivi » du site). Correspondance EXACTE. Renvoie
+                              { ok:true, results:[{ module, date, score }, ...],
+                              progress:{...}|null } — volontairement minimal :
+                              PAS de champs de temps (réservés aux gestionnaires).
    • GET  /                 → page d'état { ok:true, service:"attestations-rodbot" }
    • POST / (type:"progress") → sauvegarde la progression (meilleurs scores de
        quiz par module) dans le dossier employé, champ « Progression RodBot
@@ -82,6 +87,9 @@ export default {
       }
       if (url.searchParams.has("progress")) {
         return getProgress(url.searchParams.get("progress") || "", env, cors);
+      }
+      if (url.searchParams.has("hist")) {
+        return listAttestations(url.searchParams.get("hist") || "", env, cors);
       }
       return json({ ok: true, service: "attestations-rodbot" }, 200, cors);
     }
@@ -270,6 +278,45 @@ async function findEmployee(name, env, withProgress) {
   } catch (e) {
     return null;
   }
+}
+
+/* ── historique des attestations d'un nom (page « Mon suivi » du site) ──────
+   Correspondance EXACTE du nom (casse/accents ignorés). Ne renvoie JAMAIS les
+   champs de temps (« Temps sur le module », etc.) : réservés aux gestionnaires. */
+async function listAttestations(name, env, cors) {
+  const term = deburr(clean(name, 120).toLowerCase()).replace(/["\\]/g, " ").trim();
+  if (term.length < 2) return json({ ok: true, results: [] }, 200, cors);
+  if (!env.AIRTABLE_TOKEN) {
+    return json({ ok: false, error: "AIRTABLE_TOKEN non configuré." }, 500, cors);
+  }
+  const field = stripAccentsFormula(`LOWER({Nom})`);
+  const formula = `TRIM(${field})="${term}"`;
+  const wanted = ["Module", "Date", "Score global"];
+  const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`
+            + `?filterByFormula=${encodeURIComponent(formula)}`
+            + `&maxRecords=100`
+            + `&sort%5B0%5D%5Bfield%5D=Date&sort%5B0%5D%5Bdirection%5D=desc`
+            + wanted.map((f) => `&fields%5B%5D=${encodeURIComponent(f)}`).join("");
+  let at, emp;
+  try {
+    [at, emp] = await Promise.all([
+      fetch(url, { headers: { "Authorization": `Bearer ${env.AIRTABLE_TOKEN}` } }),
+      findEmployee(name, env, true),
+    ]);
+  } catch (e) {
+    return json({ ok: false, results: [] }, 502, cors);
+  }
+  if (!at.ok) return json({ ok: false, results: [] }, 200, cors);
+  const data = await at.json();
+  const results = (data.records || []).map((r) => {
+    const f = r.fields || {};
+    return {
+      module: String(f["Module"] || ""),
+      date:   String(f["Date"] || ""),
+      score:  String(f["Score global"] || ""),
+    };
+  }).filter((r) => r.module);
+  return json({ ok: true, results, progress: (emp && emp.progress) || null }, 200, cors);
 }
 
 /* ── progression (meilleurs scores de quiz par module), pour retrouver son

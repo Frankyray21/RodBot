@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.12';
+var APP_VERSION = '1.9.13';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -855,6 +855,7 @@ class Component extends DCLogic {
       imgView:null,
       canInstall:false, showInstallHelp:false,
       attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
+      suiviHist:null, suiviHistState:"",
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
@@ -1128,6 +1129,8 @@ class Component extends DCLogic {
     this.setState({name:v, attEmpId:"", attDone:false, attError:""}, ()=>this.persist());
     if(!v || v.trim().length<2) this.clearSuggestionsUI();
     this.fetchEmpSuggestions(v);
+    // Sur « Mon suivi » : recharge l'historique quand le nom change (sans attendre un pick).
+    if(this.state.view==="suivi"){ clearTimeout(this._suiviT); this._suiviT=setTimeout(this.fetchSuiviHist, 700); }
   };
   fetchEmpSuggestions(v){
     if(!ATTEST_ENDPOINT || !v || v.trim().length<2) return;
@@ -1176,6 +1179,7 @@ class Component extends DCLogic {
     this.setState({ name:sg.name, attEmpId:sg.id, attDone:false, attError:"" }, ()=>{
       this.persist();
       this.progPullNow(true);
+      if(this.state.view==="suivi") this.fetchSuiviHist();
     });
   };
   /* « Pas vous ? » : efface l'identité ET la progression AFFICHÉE sur cet
@@ -1186,7 +1190,7 @@ class Component extends DCLogic {
     clearTimeout(this._progT);
     clearTimeout(this._progRestoredT);
     this.clearSuggestionsUI();
-    this.setState({ name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, attDone:false, attError:"", attSending:false, progRestoredMsg:"" });
+    this.setState({ name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, attDone:false, attError:"", attSending:false, progRestoredMsg:"", suiviHist:null, suiviHistState:"" });
     try{
       localStorage.removeItem("rodbot_formation_v3");
       localStorage.removeItem("rodbot_prog_dirty");
@@ -1277,6 +1281,26 @@ class Component extends DCLogic {
   progDirtyFlush = ()=>{
     let dirty=false; try{ dirty=localStorage.getItem("rodbot_prog_dirty")==="1"; }catch(e){}
     if(dirty) this.progPush();
+  };
+  /* ---------- Page « Mon suivi » : progression locale + attestations envoyées
+     (relues du serveur pour le nom actif, comme le site Procédures). ---------- */
+  openSuivi = ()=>{
+    ptEnter(null,null);
+    this.setState({ view:"suivi" }, ()=>{ window.scrollTo(0,0); this.fetchSuiviHist(); });
+  };
+  fetchSuiviHist = ()=>{
+    const name=(this.state.name||"").trim();
+    if(name.length<2 || !ATTEST_ENDPOINT){ this.setState({ suiviHist:null, suiviHistState:"" }); return; }
+    if(!navigator.onLine){ this.setState({ suiviHist:null, suiviHistState:"offline" }); return; }
+    this.setState({ suiviHistState:"loading" });
+    fetch(ATTEST_ENDPOINT+"?hist="+encodeURIComponent(name))
+      .then(r=>r.json())
+      .then(d=>{
+        if(!(d && d.ok)){ this.setState({ suiviHistState:"err" }); return; }
+        if(d.progress) this.progMerge(d.progress);
+        this.setState({ suiviHist:(d.results||[]), suiviHistState:"ok" });
+      })
+      .catch(()=>this.setState({ suiviHistState:"err" }));
   };
   /* Envoi commun (module OU formation complète) au Worker → Airtable.
      Le champ « Module » du registre reste en FRANÇAIS quel que soit l'affichage,
@@ -1407,9 +1431,10 @@ class Component extends DCLogic {
     else if(S.view==="quiz"&&activeMod){ tocNowLabel=this.tr("MODULE ","MODULE ")+activeMod.num+" · QUIZ"; tocNowTitle=this.tr("Petit quiz","Short quiz"); }
     else if(S.view==="sim"){ tocNowLabel=this.tr("PRATIQUE","PRACTICE"); tocNowTitle=this.tr("Simulateur interactif","Interactive simulator"); }
     else if(S.view==="cert"){ tocNowLabel=this.tr("PROGRESSION","PROGRESS"); tocNowTitle=this.tr("Attestation","Certificate"); }
+    else if(S.view==="suivi"){ tocNowLabel=this.tr("PROGRESSION","PROGRESS"); tocNowTitle=this.tr("Mon suivi","My progress"); }
 
     const base={
-      isHome:S.view==="home", isModule:S.view==="module", isQuiz:S.view==="quiz", isCert:S.view==="cert",
+      isHome:S.view==="home", isModule:S.view==="module", isQuiz:S.view==="quiz", isCert:S.view==="cert", isSuivi:S.view==="suivi",
       totalModules:total, doneCount, totalSections,
       progressPct: Math.round(doneCount/total*100), passPct:70,
       manualUrl:this.manualBase(), raUrl:this.RA,
@@ -1707,6 +1732,37 @@ class Component extends DCLogic {
       };
       base.modAttOnModulePage = S.view==="module";
     } else { base.modAtt=null; base.modAttOnModulePage=false; }
+    // ===== Page « Mon suivi » : progression locale + attestations envoyées =====
+    base.openSuivi=this.openSuivi;
+    if(S.view==="suivi"){
+      const rows=M.map((m,i)=>{
+        const done=this.moduleDone(i);
+        const att=(S.attempts&&S.attempts[i])!=null?S.attempts[i]:null;
+        const best=Math.max(att||0, done?this.moduleScore(i):0);
+        return {
+          num:m.num, title:m.title,
+          open:()=>this.openModule(i),
+          statusLabel: done? ("✓ "+this.tr("Validé","Passed")+" · "+this.moduleScore(i)+" %")
+                     : (att!=null? this.tr("Tentative : ","Attempt: ")+att+" %" : this.tr("À faire","To do")),
+          statusFg: done? "#2F7D48" : (att!=null? "#B8860B" : "#989898"),
+          barPct:best, barBg: done? "#2F7D48" : "#D92624"
+        };
+      });
+      base.suivi={
+        rows, doneN:doneCount, total,
+        hasName:(S.name||"").trim().length>=2, noName:(S.name||"").trim().length<2,
+        confirmed:!!S.attEmpId,
+        histLoading:S.suiviHistState==="loading",
+        histOffline:S.suiviHistState==="offline",
+        histErr:S.suiviHistState==="err",
+        histEmpty:S.suiviHistState==="ok" && (!S.suiviHist||!S.suiviHist.length),
+        histOk:S.suiviHistState==="ok" && !!(S.suiviHist&&S.suiviHist.length),
+        hist:(S.suiviHist||[]).map(h=>({ module:h.module, date:h.date, score:h.score })),
+        refresh:this.fetchSuiviHist,
+        showCert:this.allDone(),
+        goCert:()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); window.scrollTo(0,0); }
+      };
+    } else base.suivi=null;
     base.attest={
       sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
       idle:!S.attSending && !S.attDone,
