@@ -687,6 +687,36 @@
           </sc-if>
           <button onClick="{{ startQuiz }}" style="background:#D92624;color:#FFFFFF;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ mod.quizCta }} →</button>
         </div>
+
+        <!-- ===== ATTESTATION DU MODULE : accessible ici aussi, pas seulement après le quiz ===== -->
+        <div style="margin-top:30px;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:26px;text-align:center">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.18em;color:#D92624;margin-bottom:4px">{{ modAtt.heading }}</div>
+          <div style="font-weight:800;font-size:14px;color:#1D1E1B;margin-bottom:10px">{{ modAtt.moduleLabel }}</div>
+          <sc-if value="{{ modAtt.noTry }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13.5px;line-height:1.55;color:#989898;margin:0">ℹ️ {{ modAtt.noTryMsg }}</p>
+          </sc-if>
+          <sc-if value="{{ modAtt.hasTry }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
+            <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
+            <datalist id="rb-emp-list"></datalist>
+            <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+            <div>
+              <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
+              </sc-if>
+              <sc-if value="{{ modAtt.sending }}" hint-placeholder-val="{{ false }}">
+                <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
+              </sc-if>
+              <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
+                <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
+              </sc-if>
+              <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:8px;font-weight:700;font-size:12.5px;color:#B71F1D">{{ modAtt.error }}</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
       </section>
       <div style="height:56px"></div>
     </div>
@@ -712,7 +742,8 @@
             <div style="margin-top:28px;border-top:1px solid rgba(29,30,27,.14);padding-top:22px">
               <div style="font-weight:800;font-size:11px;letter-spacing:.18em;color:#D92624;margin-bottom:4px">{{ modAtt.heading }}</div>
               <div style="font-weight:800;font-size:14px;color:#1D1E1B;margin-bottom:10px">{{ modAtt.moduleLabel }}</div>
-              <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 12px" sc-html="{{ modAtt.note }}"></p>
+              <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
+              <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
               <datalist id="rb-emp-list"></datalist>
               <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
               <div>
@@ -1611,6 +1642,36 @@
           </sc-if>
           <button onClick="{{ startQuiz }}" style="background:#D92624;color:#FFFFFF;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ mod.quizCta }} →</button>
         </div>
+
+        <!-- ===== MODULE CERTIFICATE: also available here, not only after the quiz ===== -->
+        <div style="margin-top:30px;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:26px;text-align:center">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.18em;color:#D92624;margin-bottom:4px">{{ modAtt.heading }}</div>
+          <div style="font-weight:800;font-size:14px;color:#1D1E1B;margin-bottom:10px">{{ modAtt.moduleLabel }}</div>
+          <sc-if value="{{ modAtt.noTry }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13.5px;line-height:1.55;color:#989898;margin:0">ℹ️ {{ modAtt.noTryMsg }}</p>
+          </sc-if>
+          <sc-if value="{{ modAtt.hasTry }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
+            <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
+            <datalist id="rb-emp-list"></datalist>
+            <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
+            <div>
+              <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
+              </sc-if>
+              <sc-if value="{{ modAtt.sending }}" hint-placeholder-val="{{ false }}">
+                <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
+              </sc-if>
+              <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
+                <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
+              </sc-if>
+              <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:8px;font-weight:700;font-size:12.5px;color:#B71F1D">{{ modAtt.error }}</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
       </section>
       <div style="height:56px"></div>
     </div>
@@ -1636,7 +1697,8 @@
             <div style="margin-top:28px;border-top:1px solid rgba(29,30,27,.14);padding-top:22px">
               <div style="font-weight:800;font-size:11px;letter-spacing:.18em;color:#D92624;margin-bottom:4px">{{ modAtt.heading }}</div>
               <div style="font-weight:800;font-size:14px;color:#1D1E1B;margin-bottom:10px">{{ modAtt.moduleLabel }}</div>
-              <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 12px" sc-html="{{ modAtt.note }}"></p>
+              <p style="font-size:13.5px;line-height:1.55;color:#535252;max-width:440px;margin:0 auto 8px" sc-html="{{ modAtt.note }}"></p>
+              <div style="font-weight:800;font-size:13px;color:#1D1E1B;margin-bottom:8px">{{ modAtt.scoreLine }}</div>
               <datalist id="rb-emp-list"></datalist>
               <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 14px;max-width:100%;outline:none">
               <div>
@@ -1870,6 +1932,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.1"></script>
+<script src="app.js?v=1.9.2"></script>
 </body>
 </html>

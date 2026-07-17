@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.1';
+var APP_VERSION = '1.9.2';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -769,7 +769,7 @@ class Component extends DCLogic {
       imgView:null,
       canInstall:false, showInstallHelp:false,
       attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId:"",
-      completed: saved.completed || {}, name: saved.name || "",
+      completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
       simMode:"VEILLE", klaxon:false
@@ -794,7 +794,7 @@ class Component extends DCLogic {
     clearTimeout(this._kt);
     this._kt = setTimeout(()=>this.setState({ klaxon:false }), 1400);
   };
-  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, name:this.state.name })); } catch(e){} }
+  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name })); } catch(e){} }
 
   scrollHomeSection = (key)=>{
     const scroll = ()=>{
@@ -1021,7 +1021,7 @@ class Component extends DCLogic {
   allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
   goHome = ()=> this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0));
-  openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null },()=>window.scrollTo(0,0));
+  openModule = (i)=> this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0));
   toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key, manualDetailKey:null }));
   toggleManualDetails = (key,page)=>{
     if(this.state.manualDetailKey===key){
@@ -1087,15 +1087,18 @@ class Component extends DCLogic {
     const overall=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
     this.postAttestation({ module:"Formation complète (8/8)", score:overall+" %", modules:detail });
   };
-  /* Attestation PAR MODULE : offerte sur l'écran de résultat, après chaque quiz réussi. */
+  /* Meilleur score tenté pour un module (même sous 70 %), sinon score validé. */
+  bestAttempt(i){ return Math.max((this.state.attempts&&this.state.attempts[i])||0, this.moduleScore(i)||0); }
+  /* Attestation PAR MODULE : offerte après chaque quiz (même sous 70 %) et sur la page du module. */
   submitModuleAttestation = ()=>{
     const S=this.state;
     if(S.attSending || S.attDone) return;
     const name=(S.name||"").trim();
     if(name.length<2){ this.setState({ attError:this.tr("Écrivez d'abord votre nom.","Write your name first.") }); return; }
-    if(!S.lastPassed){ this.setState({ attError:this.tr("Réussissez d'abord le quiz du module.","Pass the module quiz first.") }); return; }
+    const hasTry=(S.attempts&&S.attempts[S.activeId]!=null)||this.moduleDone(S.activeId)||(S.view==="quiz"&&S.graded);
+    if(!hasTry){ this.setState({ attError:this.tr("Faites d'abord le quiz du module.","Take the module quiz first.") }); return; }
     const mFr=this.MODULES[S.activeId];
-    const pct=Math.max(S.lastScore||0, this.moduleScore(S.activeId));
+    const pct=Math.max(this.bestAttempt(S.activeId), (S.view==="quiz"&&S.graded)?(S.lastScore||0):0);
     this.postAttestation({ module:mFr.num+" · "+mFr.title, score:pct+" %", modules:mFr.num+" : "+pct+" %" });
   };
   scrollToSafety = ()=>this.scrollHomeSection("safety");
@@ -1142,8 +1145,10 @@ class Component extends DCLogic {
     this.setState(s=>{
       const completed={...s.completed};
       if(passed) completed[s.activeId]={ score: Math.max(pct,(completed[s.activeId]&&completed[s.activeId].score)||0) };
+      // Meilleur score TENTÉ (même sous 70 %) : sert à l'attestation par module.
+      const attempts={...s.attempts}; attempts[s.activeId]=Math.max(pct,attempts[s.activeId]||0);
       // Nouvel écran de résultat : l'envoi d'attestation repart à zéro pour CE module.
-      return { graded:true, lastScore:pct, lastPassed:passed, completed, attSending:false, attDone:false, attError:"" };
+      return { graded:true, lastScore:pct, lastPassed:passed, completed, attempts, attSending:false, attDone:false, attError:"" };
     }, ()=>this.persist());
     window.scrollTo(0,0);
   };
@@ -1327,26 +1332,11 @@ class Component extends DCLogic {
       base.certHint = this.allDone() ? "" : this.tr(
         "Attestation finale : disponible quand les 8 modules sont validés ("+doneN+"/8).",
         "Final certificate: available once all 8 modules are passed ("+doneN+"/8).");
-      base.certHintShow = passed && !this.allDone();
+      base.certHintShow = !this.allDone();
       base.openCert = ()=>{ this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); window.scrollTo(0,0); };
       base.showCertCta = this.allDone();
-      // Attestation PAR MODULE, offerte dès que le quiz du module est réussi.
-      const modFr=this.MODULES[S.activeId]||{num:"",title:""};
-      base.showModAtt = !!passed;
-      base.modAtt = {
-        heading: this.tr("🎓 ATTESTATION DU MODULE","🎓 MODULE CERTIFICATE"),
-        moduleLabel: activeMod ? (activeMod.num+" · "+activeMod.title) : (modFr.num+" · "+modFr.title),
-        note: this.tr("**Écrivez votre nom**, puis touchez le bouton. Votre réussite est envoyée au ##registre de formation##.",
-                      "**Write your name**, then tap the button. Your pass is sent to the ##training registry##."),
-        placeholder: this.tr("Votre nom","Your name"),
-        sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
-        idle:!S.attSending && !S.attDone,
-        doneMsg: this.tr("Attestation du module enregistrée.","Module certificate saved."),
-        linkedMsg: S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
-                               : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
-        send:this.submitModuleAttestation,
-        btnLabel: S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate")
-      };
+      // Attestation PAR MODULE : offerte après CHAQUE quiz, réussi ou non (base.modAtt est construit plus bas).
+      base.showModAtt = true;
       base.result={
         scorePct:S.lastScore,
         ringBg: passed?"rgba(62,156,90,.14)":"rgba(217,38,36,.1)",
@@ -1445,6 +1435,30 @@ class Component extends DCLogic {
     base.valveMastFg = curMode.mast ? "#2F7D48" : "#535252";
 
     base.traineeName=S.name; base.setName=this.setName;
+    // ===== Attestation PAR MODULE : disponible sur l'écran de résultat du quiz ET sur la page du module =====
+    if(S.activeId!=null && this.M()[S.activeId]){
+      const am=this.M()[S.activeId];
+      const tried=(S.attempts&&S.attempts[S.activeId]!=null)||this.moduleDone(S.activeId)||(S.view==="quiz"&&S.graded);
+      const bestPct=Math.max(this.bestAttempt(S.activeId),(S.view==="quiz"&&S.graded)?(S.lastScore||0):0);
+      base.modAtt={
+        heading:this.tr("🎓 ATTESTATION DU MODULE","🎓 MODULE CERTIFICATE"),
+        moduleLabel:am.num+" · "+am.title,
+        note:this.tr("**Écrivez votre nom**, puis touchez le bouton. Votre résultat est envoyé au ##registre de formation##.",
+                     "**Write your name**, then tap the button. Your result is sent to the ##training registry##."),
+        placeholder:this.tr("Votre nom","Your name"),
+        hasTry:tried, noTry:!tried,
+        noTryMsg:this.tr("Faites d'abord le quiz du module pour avoir un score à enregistrer.","Take the module quiz first to have a score to save."),
+        scoreLine:tried?(this.tr("Score envoyé : ","Score sent: ")+bestPct+" %"):"",
+        sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
+        idle:!S.attSending && !S.attDone && tried,
+        doneMsg:this.tr("Attestation du module enregistrée.","Module certificate saved."),
+        linkedMsg:S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
+                              : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
+        send:this.submitModuleAttestation,
+        btnLabel:S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate")
+      };
+      base.modAttOnModulePage = S.view==="module";
+    } else { base.modAtt=null; base.modAttOnModulePage=false; }
     base.attest={
       sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
       idle:!S.attSending && !S.attDone,
