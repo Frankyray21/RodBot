@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.5';
+var APP_VERSION = '1.9.6';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -833,7 +833,7 @@ class Component extends DCLogic {
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
       canInstall:false, showInstallHelp:false,
-      attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId:"",
+      attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "",
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
@@ -859,7 +859,7 @@ class Component extends DCLogic {
     clearTimeout(this._kt);
     this._kt = setTimeout(()=>this.setState({ klaxon:false }), 1400);
   };
-  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name })); } catch(e){} }
+  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name, attEmpId:this.state.attEmpId })); } catch(e){} }
 
   scrollHomeSection = (key)=>{
     const scroll = ()=>{
@@ -1583,6 +1583,14 @@ class Component extends DCLogic {
     base.valveMastFg = curMode.mast ? "#2F7D48" : "#535252";
 
     base.traineeName=S.name; base.setName=this.setName;
+    // Badge discret dans l'en-tête : distingue un NOM CONFIRMÉ (correspond à un
+    // employé du registre, liaison sûre) d'un nom simplement tapé mais pas
+    // encore vérifié (aucune suggestion sélectionnée).
+    base.workerConfirmed = !!S.attEmpId;
+    base.workerDotBg = S.attEmpId ? "#3E9C5A" : "#989898";
+    base.workerBadgeTitle = S.attEmpId
+      ? this.tr("Identité confirmée : employé actif du registre.","Confirmed identity: active employee in the registry.")
+      : this.tr("Nom non vérifié. Touchez une suggestion du registre pour confirmer votre identité.","Unverified name. Tap a suggestion from the registry to confirm your identity.");
     // ===== Attestation PAR MODULE : disponible sur l'écran de résultat du quiz ET sur la page du module =====
     if(S.activeId!=null && this.M()[S.activeId]){
       const am=this.M()[S.activeId];
