@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.14';
+var APP_VERSION = '1.9.15';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -26,7 +26,39 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '16 JUIL. 2026';
+var APP_VERSION_DATE = '18 JUIL. 2026';
+
+/* ---------- Tour guidé de première utilisation ----------
+   Réplique le modèle des sites de formation en ligne : à la première visite,
+   un tour pas à pas montre comment le site fonctionne. Certaines étapes
+   mettent en surbrillance le vrai élément de la page (cartes de modules,
+   bouton MON SUIVI), les autres affichent une carte centrée. Boutons gros
+   et texte court, pensé pour les travailleurs sur tablette et téléphone.
+   Marqué vu dans localStorage (rodbot_tour_done) ; bouton « Revoir le tour
+   guidé » dans le pied de page pour le relancer. */
+var TOUR_STEPS = [
+  { icon: '👋',
+    fr: { t: 'Bienvenue !', x: "Voici la formation <strong>RodBot LP</strong>.<br>Petit tour rapide du site." },
+    en: { t: 'Welcome!', x: 'This is the <strong>RodBot LP</strong> training.<br>A quick tour of the site.' } },
+  { icon: '📚', sel: '[data-rb-scroll-section="path"] .rb-stagger > button',
+    fr: { t: 'Les modules', x: '8 modules courts.<br>Touchez un module pour l’ouvrir.<br>Faites-les dans l’ordre.' },
+    en: { t: 'The modules', x: '8 short modules.<br>Tap a module to open it.<br>Do them in order.' } },
+  { icon: '📖',
+    fr: { t: 'Les leçons', x: 'Chaque leçon montre la <strong style="color:#E8534F">page exacte du manuel</strong>.<br>Touchez une image pour l’agrandir.' },
+    en: { t: 'The lessons', x: 'Each lesson shows the <strong style="color:#E8534F">exact manual page</strong>.<br>Tap a picture to enlarge it.' } },
+  { icon: '✅',
+    fr: { t: 'Le quiz', x: 'À la fin du module : <strong>5 questions</strong>.<br>Il faut <strong>70 %</strong>.<br>La bonne réponse est expliquée tout de suite.' },
+    en: { t: 'The quiz', x: 'At the end of the module: <strong>5 questions</strong>.<br>You need <strong>70%</strong>.<br>The right answer is explained right away.' } },
+  { icon: '🎓',
+    fr: { t: 'L’attestation', x: 'Après le quiz, écrivez votre nom.<br>Puis <strong>touchez votre nom</strong> dans la liste.<br>Votre résultat est enregistré.' },
+    en: { t: 'The certificate', x: 'After the quiz, type your name.<br>Then <strong>tap your name</strong> in the list.<br>Your result is saved.' } },
+  { icon: '📋', sel: '#rb-tour-suivi',
+    fr: { t: 'Mon suivi', x: 'Touchez ce bouton pour voir vos modules réussis.<br>Même sur un autre appareil.' },
+    en: { t: 'My progress', x: 'Tap this button to see your passed modules.<br>Even on another device.' } },
+  { icon: '👍',
+    fr: { t: 'Votre avis compte', x: 'Le site est en <strong style="color:#F0A81E">BÊTA</strong> (à l’essai).<br>Dans chaque question du quiz, votez 👍 ou 👎.<br>Merci !' },
+    en: { t: 'Your opinion counts', x: 'The site is in <strong style="color:#F0A81E">BETA</strong> (trial).<br>In each quiz question, vote 👍 or 👎.<br>Thank you!' } }
+];
 
 /* ---------- Chronométrage (lecture du module + quiz), par module ----------
    Mesure le temps ACTIF (écran visible) passé à lire un module et sur son
@@ -990,6 +1022,8 @@ class Component extends DCLogic {
       TPL_ROOT = doc.getElementById("rb-wrap");
     }
     fullRender();
+    // Tour guidé ouvert pendant le changement de langue : redessine l'étape traduite
+    if(this._tourStep!=null) this.tourOpen(this._tourStep);
     window.scrollTo(0,0);
   };
 
@@ -1031,12 +1065,122 @@ class Component extends DCLogic {
   }
   navBackOne(){
     var S=this.state;
+    if(this._tourStep!=null){ this.tourClose(true); return; }
     if(S.imgView){ this.setState({ imgView:null }); return; }
     if(S.mpage!=null){ this.setState({ mpage:null }); return; }
     if(S.rrcInfoOpen){ this.setState({ rrcInfoOpen:false }); return; }
     if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
     if(S.view==='quiz'){ ptEnter(S.activeId,'module'); this.setState({ view:'module', graded:false }); return; }
     if(S.view!=='home'){ ptEnter(null,null); this.setState({ view:'home', graded:false, answers:{} }); return; }
+  }
+
+  /* ---------- Tour guidé (première utilisation) ----------
+     Superposition gérée HORS du moteur de gabarits : le nœud #rb-tour vit
+     dans <body>, il survit donc aux fullRender. tourOpen(i) reconstruit la
+     carte de l'étape i ; les étapes avec `sel` encadrent le vrai élément de
+     la page (technique de l'ombre portée géante), les autres sont centrées. */
+  tourOpen(i){
+    if(i==null || i<0 || i>=TOUR_STEPS.length) return;
+    this._tourStep = i;
+    var step = TOUR_STEPS[i], L = (this.state.lang==='en') ? step.en : step.fr;
+    var en = this.state.lang==='en';
+    var host = document.getElementById('rb-tour');
+    if(!host){
+      host = document.createElement('div');
+      host.id = 'rb-tour';
+      host.setAttribute('role','dialog');
+      host.setAttribute('aria-modal','true');
+      host.style.cssText = 'position:fixed;inset:0;z-index:10000;';
+      document.body.appendChild(host);
+      // Repositionne la surbrillance si l'écran bouge (rotation, clavier, défilement)
+      this._tourRepos = ()=>{ if(this._tourStep!=null) this.tourPlace(); };
+      window.addEventListener('resize', this._tourRepos);
+      window.addEventListener('scroll', this._tourRepos, true);
+    }
+    host.setAttribute('aria-label', L.t);
+    var last = (i===TOUR_STEPS.length-1);
+    var dots = TOUR_STEPS.map((_,k)=>'<span style="width:9px;height:9px;border-radius:50%;flex:none;background:'+(k===i?'#D92624':'rgba(29,30,27,.22)')+'"></span>').join('');
+    host.innerHTML =
+      '<div id="rb-tour-hl" style="position:fixed;box-shadow:0 0 0 9999px rgba(20,20,19,.74);pointer-events:none;transition:all .25s ease"></div>'+
+      '<div id="rb-tour-card" style="position:fixed;left:50%;transform:translateX(-50%);width:min(430px,calc(100vw - 28px));background:#FAF9F5;border-top:5px solid #D92624;box-shadow:0 24px 60px -18px rgba(0,0,0,.55);padding:22px 22px 18px">'+
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">'+
+          '<span style="font-size:34px;line-height:1" aria-hidden="true">'+step.icon+'</span>'+
+          '<span style="font-weight:900;font-size:19px;letter-spacing:.02em;text-transform:uppercase;color:#1D1E1B">'+L.t+'</span>'+
+        '</div>'+
+        '<p style="font-size:16px;line-height:1.6;color:#3D3D3A;margin:0 0 16px">'+L.x+'</p>'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:16px" aria-hidden="true">'+dots+
+          '<span style="margin-left:auto;font-weight:700;font-size:11.5px;color:#989898">'+(i+1)+' / '+TOUR_STEPS.length+'</span></div>'+
+        '<div style="display:flex;gap:10px">'+
+          (last ? '' :
+          '<button id="rb-tour-skip" style="flex:none;background:transparent;border:1px solid rgba(29,30,27,.3);color:#535252;padding:13px 18px;font-weight:800;font-size:13px;letter-spacing:.04em;cursor:pointer">'+(en?'Skip':'Passer')+'</button>')+
+          '<button id="rb-tour-next" style="flex:1;background:#D92624;border:none;color:#FFFFFF;padding:13px 18px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer">'+
+            (last ? (en?'Finish ✓':'Terminer ✓') : (en?'Next →':'Suivant →'))+'</button>'+
+        '</div>'+
+      '</div>';
+    var nx = document.getElementById('rb-tour-next'); if(nx) nx.onclick = this.tourNext;
+    var sk = document.getElementById('rb-tour-skip'); if(sk) sk.onclick = this.tourSkip;
+    // Amène l'élément visé au centre de l'écran avant de placer la surbrillance
+    var target = step.sel ? document.querySelector(step.sel) : null;
+    if(target){ try{ target.scrollIntoView({ block:'center' }); }catch(e){ target.scrollIntoView(); } }
+    else window.scrollTo(0,0);
+    this.tourPlace();
+    if(nx) try{ nx.focus(); }catch(e){}
+  }
+  /* Place la surbrillance et la carte selon l'étape courante. */
+  tourPlace(){
+    var i = this._tourStep;
+    if(i==null) return;
+    var step = TOUR_STEPS[i];
+    var hl = document.getElementById('rb-tour-hl'), card = document.getElementById('rb-tour-card');
+    if(!hl || !card) return;
+    var vh = window.innerHeight;
+    var target = step.sel ? document.querySelector(step.sel) : null;
+    if(target){
+      var r = target.getBoundingClientRect();
+      hl.style.left = (r.left-6)+'px'; hl.style.top = (r.top-6)+'px';
+      hl.style.width = (r.width+12)+'px'; hl.style.height = (r.height+12)+'px';
+      hl.style.border = '3px solid #F0A81E';
+      // Carte sous l'élément s'il y a la place, sinon au-dessus
+      var ch = card.offsetHeight || 240;
+      var below = r.bottom + 14;
+      if(below + ch < vh - 10) card.style.top = below+'px';
+      else card.style.top = Math.max(10, r.top - ch - 14)+'px';
+      card.style.bottom = 'auto';
+    } else {
+      // Étape centrée : la surbrillance de taille nulle assombrit tout l'écran
+      hl.style.left = '50%'; hl.style.top = '50%';
+      hl.style.width = '0'; hl.style.height = '0';
+      hl.style.border = 'none';
+      var ch2 = card.offsetHeight || 240;
+      card.style.top = Math.max(14, Math.round((vh - ch2)/2))+'px';
+      card.style.bottom = 'auto';
+    }
+  }
+  tourNext = ()=>{
+    var i = this._tourStep;
+    if(i==null) return;
+    if(i >= TOUR_STEPS.length-1) this.tourClose(true);
+    else this.tourOpen(i+1);
+  };
+  tourSkip = ()=>{ this.tourClose(true); };
+  /* Relance le tour depuis le pied de page (revient d'abord à l'accueil). */
+  tourReplay = ()=>{
+    ptEnter(null,null);
+    this.setState({ view:'home', graded:false, answers:{}, manualDetailKey:null }, ()=>{
+      window.scrollTo(0,0);
+      this.tourOpen(0);
+    });
+  };
+  tourClose(markDone){
+    this._tourStep = null;
+    var host = document.getElementById('rb-tour');
+    if(host && host.parentNode) host.parentNode.removeChild(host);
+    if(this._tourRepos){
+      window.removeEventListener('resize', this._tourRepos);
+      window.removeEventListener('scroll', this._tourRepos, true);
+      this._tourRepos = null;
+    }
+    if(markDone){ try{ localStorage.setItem('rodbot_tour_done','1'); }catch(e){} }
   }
   syncHistory(){
     try{
@@ -1893,7 +2037,8 @@ class Component extends DCLogic {
     base.langFrStyle = (S.lang==="en") ? _inS : _actS;
     base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = this.tr(APP_VERSION_DATE, "JUL 16, 2026");
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "JUL 18, 2026");
+    base.tourReplay = this.tourReplay;
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
     const scores=M.map((m,i)=>this.moduleScore(i));
@@ -2377,9 +2522,20 @@ function bootRodbot() {
       }).catch(function () {});
     }
   } catch (e) {}
+  // Tour guidé : à la toute première visite, montre comment le site fonctionne
+  // (comme sur les sites de formation en ligne). Jamais rejoué une fois vu ;
+  // relançable via « Revoir le tour guidé » dans le pied de page.
+  try {
+    if (!localStorage.getItem('rodbot_tour_done')) {
+      setTimeout(function () {
+        try { if (COMP && COMP.state.view === 'home' && COMP._tourStep == null) COMP.tourOpen(0); } catch (e) {}
+      }, 600);
+    }
+  } catch (e) {}
   // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
   document.addEventListener('keydown', function(e){
     if(!COMP) return;
+    if(COMP._tourStep!=null){ if(e.key==='Escape') COMP.tourClose(true); return; }
     if(COMP.state.imgView){ if(e.key==='Escape') COMP.closeImg(); return; }
     if(COMP.state.mpage==null) return;
     if(e.key==='Escape') COMP.closeManual();
