@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.18';
+var APP_VERSION = '1.9.19';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1066,11 +1066,21 @@ class Component extends DCLogic {
   navBackOne(){
     var S=this.state;
     if(this._tourStep!=null){ this.tourClose(true); return; }
+    if(S.attRemind){ this.setState({ attRemind:false }); return; }
     if(S.imgView){ this.setState({ imgView:null }); return; }
     if(S.mpage!=null){ this.setState({ mpage:null }); return; }
     if(S.rrcInfoOpen){ this.setState({ rrcInfoOpen:false }); return; }
     if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
-    if(S.view==='quiz'){ ptEnter(S.activeId,'module'); this.setState({ view:'module', graded:false }); return; }
+    if(S.view==='quiz'){
+      // Résultat affiché mais attestation pas enregistrée : rappel avant de quitter
+      if(S.graded && !S.attDone && !S.attSending && !this._attRemindShown){
+        this._attRemindShown = true;
+        this._attRemindAction = this.backToModule;
+        this.setState({ attRemind:true });
+        return;
+      }
+      ptEnter(S.activeId,'module'); this.setState({ view:'module', graded:false }); return;
+    }
     if(S.view!=='home'){ ptEnter(null,null); this.setState({ view:'home', graded:false, answers:{} }); return; }
   }
 
@@ -1262,9 +1272,9 @@ class Component extends DCLogic {
     }
     this.setState({ manualDetailKey:key, mpage:page });
   };
-  startQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"" }); window.scrollTo(0,0); };
+  startQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0); };
   backToModule = ()=> { ptEnter(this.state.activeId,'module'); this.setState({ view:"module", graded:false }); };
-  retryQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"" }); window.scrollTo(0,0); };
+  retryQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0); };
   /* « Choisir, pas taper » : TAPER ne confirme plus jamais l'identité, même si
      le texte correspond mot pour mot à un employé. Seul un TOUCHER sur une
      suggestion (pickSuggestion) confirme, pour éviter une liaison accidentelle
@@ -1499,6 +1509,38 @@ class Component extends DCLogic {
     this.postAttestation({ module:mFr.num+" · "+mFr.title, score:pct+" %", modules:mFr.num+" : "+pct+" %",
       moduleTime:fmtDuration(t.pageMs), quizTime:fmtDuration(t.quizMs),
       moduleSeconds:Math.round(t.pageMs/1000), quizSeconds:Math.round(t.quizMs/1000) });
+  };
+  /* ---------- Pop-up de rappel d'attestation ----------
+     Si l'opérateur quitte l'écran de résultat sans avoir enregistré son
+     attestation, un rappel s'affiche UNE fois (par passage de quiz) avec le
+     choix : enregistrer maintenant, ou continuer sans enregistrer. */
+  attRemindWrap(action){
+    return ()=>{
+      const S=this.state;
+      const need = S.view==="quiz" && S.graded && !S.attDone && !S.attSending && !this._attRemindShown;
+      if(need){
+        this._attRemindShown = true;
+        this._attRemindAction = action;
+        this.setState({ attRemind:true });
+        return;
+      }
+      action();
+    };
+  }
+  attRemindSave = ()=>{
+    this.setState({ attRemind:false }, ()=>{
+      var el=document.getElementById('rb-matt');
+      if(el){
+        try{ el.scrollIntoView({ block:'center', behavior:'smooth' }); }catch(e){ el.scrollIntoView(); }
+        var inp=el.querySelector('input');
+        if(inp) setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 350);
+      }
+    });
+  };
+  attRemindGo = ()=>{
+    var a=this._attRemindAction;
+    this._attRemindAction=null;
+    this.setState({ attRemind:false }, ()=>{ if(a) a(); });
   };
   scrollToSafety = ()=>this.scrollHomeSection("safety");
   startFirst = ()=>{ const first=this.M().findIndex((m,i)=>!this.moduleDone(i)); this.openModule(first===-1?0:first); };
@@ -1807,12 +1849,12 @@ class Component extends DCLogic {
         ringFg: passed?"#2F7D48":"#B71F1D",
         title: passed?this.tr("Module validé !","Module passed!"):this.tr("Pas tout à fait…","Not quite…"),
         message: passed
-          ? this.tr("Vous maîtrisez les points clés de ce module. Enregistrez votre attestation ci-dessous, puis poursuivez.","You've mastered this module's key points. Save your certificate below, then continue.")
+          ? this.tr("Enregistrez votre attestation ci-dessous, puis poursuivez.","Save your certificate below, then continue.")
           : this.tr("Il faut au moins 70 % pour valider. Revoyez les leçons du module puis retentez le quiz.","You need at least 70% to pass. Review the module lessons, then retake the quiz."),
         nextLabel: !passed?this.tr("Revoir le module","Review the module"):(this.allDone()?this.tr("Voir mon attestation","See my certificate"):(lastModule?this.tr("Retour au parcours","Back to the path"):this.tr("Module suivant","Next module"))),
-        nextAction: !passed?this.backToModule:(this.allDone()?base.openCert:(lastModule?this.goHome:this.goToNextModule))
+        nextAction: this.attRemindWrap(!passed?this.backToModule:(this.allDone()?base.openCert:(lastModule?this.goHome:this.goToNextModule)))
       };
-      base.retryQuiz=this.retryQuiz; base.backToModule=this.backToModule; base.startQuiz=this.startQuiz;
+      base.retryQuiz=this.retryQuiz; base.backToModule=this.attRemindWrap(this.backToModule); base.startQuiz=this.startQuiz;
     }
 
     // ===== SIMULATEURS =====
@@ -1898,6 +1940,16 @@ class Component extends DCLogic {
     base.valveMast = curMode.mast ? "OUVERTE" : "FERMÉE";
     base.valveMastFg = curMode.mast ? "#2F7D48" : "#535252";
 
+    // Pop-up de rappel d'attestation (écran de résultat du quiz)
+    base.attRemind={
+      open:!!S.attRemind,
+      title:this.tr("Un instant !","One moment!"),
+      msg:this.tr("Votre attestation n'est pas enregistrée. Sans elle, votre réussite n'apparaît pas au registre de formation.",
+                  "Your certificate is not saved. Without it, your result does not appear in the training registry."),
+      saveLabel:this.tr("Enregistrer mon attestation","Save my certificate"),
+      goLabel:this.tr("Continuer sans enregistrer","Continue without saving"),
+      save:this.attRemindSave, go:this.attRemindGo
+    };
     base.traineeName=S.name; base.setName=this.setName;
     // Badge discret dans l'en-tête : distingue un NOM CONFIRMÉ (correspond à un
     // employé du registre, liaison sûre) d'un nom simplement tapé mais pas
@@ -1924,18 +1976,17 @@ class Component extends DCLogic {
       const bestPct=Math.max(this.bestAttempt(S.activeId),(S.view==="quiz"&&S.graded)?(S.lastScore||0):0);
       base.modAtt={
         heading:this.tr("🎓 ATTESTATION DU MODULE","🎓 MODULE CERTIFICATE"),
-        moduleLabel:am.num+" · "+am.title,
-        note:this.tr("**Écrivez votre nom**, puis touchez le bouton. Votre résultat est envoyé au ##registre de formation##.",
-                     "**Write your name**, then tap the button. Your result is sent to the ##training registry##."),
+        // Épuré : module et score sur une seule ligne, pas de paragraphe d'explication.
+        moduleLabel:am.num+" · "+am.title+(tried?(" · "+bestPct+" %"):""),
         placeholder:this.tr("Votre nom","Your name"),
         hasTry:tried, noTry:!tried,
         noTryMsg:this.tr("Faites d'abord le quiz du module pour avoir un score à enregistrer.","Take the module quiz first to have a score to save."),
-        scoreLine:tried?(this.tr("Score envoyé : ","Score sent: ")+bestPct+" %"):"",
         sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
         idle:!S.attSending && !S.attDone && tried,
         doneMsg:this.tr("Attestation du module enregistrée.","Module certificate saved."),
         linkedMsg:S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
                               : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
+        registryLine:this.tr("Résultat envoyé au registre de formation.","Result sent to the training registry."),
         send:this.submitModuleAttestation,
         btnLabel:S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate")
       };
