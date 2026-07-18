@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.20';
+var APP_VERSION = '1.9.21';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1943,10 +1943,10 @@ class Component extends DCLogic {
     // Pop-up de rappel d'attestation (écran de résultat du quiz)
     base.attRemind={
       open:!!S.attRemind,
-      title:this.tr("Attestation non enregistrée","Certificate not saved"),
-      msg:this.tr("Sans elle, votre réussite n'apparaît pas au registre de formation.",
-                  "Without it, your result does not appear in the training registry."),
-      saveLabel:this.tr("Enregistrer mon attestation","Save my certificate"),
+      title:this.tr("Enregistrer votre attestation ?","Save your certificate?"),
+      msg:this.tr("Sinon, votre réussite ne sera pas au registre.",
+                  "Otherwise, your result won't be in the registry."),
+      saveLabel:this.tr("Enregistrer","Save"),
       goLabel:this.tr("Continuer sans enregistrer","Continue without saving"),
       save:this.attRemindSave, go:this.attRemindGo
     };

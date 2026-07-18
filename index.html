@@ -792,12 +792,11 @@
       <!-- Pop-up de rappel : attestation pas encore enregistrée -->
       <sc-if value="{{ attRemind.open }}" hint-placeholder-val="{{ false }}">
       <div style="position:fixed;inset:0;z-index:900;background:rgba(20,20,19,.78);display:flex;align-items:center;justify-content:center;padding:20px" role="dialog" aria-modal="true">
-        <div style="background:#141413;color:#FAF9F5;border-top:4px solid #D92624;max-width:420px;width:100%;padding:26px 24px 22px;text-align:center;box-shadow:0 24px 60px -18px rgba(0,0,0,.6)">
-          <div style="font-size:38px;line-height:1;margin-bottom:12px" aria-hidden="true">🎓</div>
-          <div style="font-weight:900;font-size:19px;text-transform:uppercase;letter-spacing:.02em;margin-bottom:10px">{{ attRemind.title }}</div>
-          <p style="font-size:15.5px;line-height:1.6;color:#B8B7B2;margin:0 0 20px">{{ attRemind.msg }}</p>
-          <button onClick="{{ attRemind.save }}" style="display:block;width:100%;background:#D92624;color:#FFFFFF;border:none;padding:15px 18px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;margin-bottom:10px" style-hover="background:#B71F1D">{{ attRemind.saveLabel }}</button>
-          <button onClick="{{ attRemind.go }}" style="display:block;width:100%;background:transparent;color:#B8B7B2;border:1px solid rgba(255,255,255,.28);padding:13px 18px;font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FAF9F5">{{ attRemind.goLabel }}</button>
+        <div style="background:#141413;color:#FAF9F5;border-top:4px solid #D92624;max-width:400px;width:100%;padding:24px 22px 20px;text-align:center;box-shadow:0 24px 60px -18px rgba(0,0,0,.6)">
+          <div style="font-weight:800;font-size:18.5px;line-height:1.35;margin-bottom:8px">🎓 {{ attRemind.title }}</div>
+          <p style="font-size:14.5px;line-height:1.5;color:#B8B7B2;margin:0 0 18px">{{ attRemind.msg }}</p>
+          <button onClick="{{ attRemind.save }}" style="display:block;width:100%;background:#D92624;color:#FFFFFF;border:none;padding:15px 18px;font-weight:800;font-size:14.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;margin-bottom:10px" style-hover="background:#B71F1D">{{ attRemind.saveLabel }}</button>
+          <button onClick="{{ attRemind.go }}" style="display:block;width:100%;background:transparent;color:#B8B7B2;border:1px solid rgba(255,255,255,.28);padding:12px 18px;font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FAF9F5">{{ attRemind.goLabel }}</button>
         </div>
       </div>
       </sc-if>
@@ -1861,12 +1860,11 @@
       <!-- Pop-up de rappel : attestation pas encore enregistrée -->
       <sc-if value="{{ attRemind.open }}" hint-placeholder-val="{{ false }}">
       <div style="position:fixed;inset:0;z-index:900;background:rgba(20,20,19,.78);display:flex;align-items:center;justify-content:center;padding:20px" role="dialog" aria-modal="true">
-        <div style="background:#141413;color:#FAF9F5;border-top:4px solid #D92624;max-width:420px;width:100%;padding:26px 24px 22px;text-align:center;box-shadow:0 24px 60px -18px rgba(0,0,0,.6)">
-          <div style="font-size:38px;line-height:1;margin-bottom:12px" aria-hidden="true">🎓</div>
-          <div style="font-weight:900;font-size:19px;text-transform:uppercase;letter-spacing:.02em;margin-bottom:10px">{{ attRemind.title }}</div>
-          <p style="font-size:15.5px;line-height:1.6;color:#B8B7B2;margin:0 0 20px">{{ attRemind.msg }}</p>
-          <button onClick="{{ attRemind.save }}" style="display:block;width:100%;background:#D92624;color:#FFFFFF;border:none;padding:15px 18px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;margin-bottom:10px" style-hover="background:#B71F1D">{{ attRemind.saveLabel }}</button>
-          <button onClick="{{ attRemind.go }}" style="display:block;width:100%;background:transparent;color:#B8B7B2;border:1px solid rgba(255,255,255,.28);padding:13px 18px;font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FAF9F5">{{ attRemind.goLabel }}</button>
+        <div style="background:#141413;color:#FAF9F5;border-top:4px solid #D92624;max-width:400px;width:100%;padding:24px 22px 20px;text-align:center;box-shadow:0 24px 60px -18px rgba(0,0,0,.6)">
+          <div style="font-weight:800;font-size:18.5px;line-height:1.35;margin-bottom:8px">🎓 {{ attRemind.title }}</div>
+          <p style="font-size:14.5px;line-height:1.5;color:#B8B7B2;margin:0 0 18px">{{ attRemind.msg }}</p>
+          <button onClick="{{ attRemind.save }}" style="display:block;width:100%;background:#D92624;color:#FFFFFF;border:none;padding:15px 18px;font-weight:800;font-size:14.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;margin-bottom:10px" style-hover="background:#B71F1D">{{ attRemind.saveLabel }}</button>
+          <button onClick="{{ attRemind.go }}" style="display:block;width:100%;background:transparent;color:#B8B7B2;border:1px solid rgba(255,255,255,.28);padding:12px 18px;font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#D92624;color:#FAF9F5">{{ attRemind.goLabel }}</button>
         </div>
       </div>
       </sc-if>
@@ -2160,6 +2158,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.20"></script>
+<script src="app.js?v=1.9.21"></script>
 </body>
 </html>
