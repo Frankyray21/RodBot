@@ -247,20 +247,39 @@ export const RodbotViewer = {
     }
 
     // --- disque de sol : comble les trous du plancher scanné ---
-    // texture radiale : gravier sombre au centre, fondu vers la couleur de fond
+    // texture gravier bakée dans Blender, assombrie et fondue vers le fond de page ;
+    // repli : dégradé radial si la texture ne charge pas
     if (opts.ground !== false) {
       const gc = document.createElement('canvas');
-      gc.width = gc.height = 512;
+      gc.width = gc.height = 1024;
       const gctx = gc.getContext('2d');
-      const grad = gctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-      grad.addColorStop(0, 'rgb(64,60,53)');
-      grad.addColorStop(0.45, 'rgb(46,43,38)');
-      grad.addColorStop(0.78, 'rgb(20,22,28)');
-      grad.addColorStop(1, 'rgb(10,14,23)'); // #0a0e17
-      gctx.fillStyle = grad;
-      gctx.fillRect(0, 0, 512, 512);
-      const gtex = new pc.Texture(app.graphicsDevice, { width: 512, height: 512, format: pc.PIXELFORMAT_RGBA8 });
-      gtex.setSource(gc);
+      const gtex = new pc.Texture(app.graphicsDevice, { width: 1024, height: 1024, format: pc.PIXELFORMAT_RGBA8 });
+      const peindreSol = (imgSol) => {
+        if (imgSol) {
+          gctx.drawImage(imgSol, 0, 0, 1024, 1024);
+          gctx.fillStyle = 'rgba(0,0,0,0.42)'; // le sol vit dans l'ombre du scan
+          gctx.fillRect(0, 0, 1024, 1024);
+        } else {
+          const grad = gctx.createRadialGradient(512, 512, 0, 512, 512, 512);
+          grad.addColorStop(0, 'rgb(64,60,53)');
+          grad.addColorStop(0.45, 'rgb(46,43,38)');
+          grad.addColorStop(0.78, 'rgb(20,22,28)');
+          grad.addColorStop(1, 'rgb(10,14,23)');
+          gctx.fillStyle = grad;
+          gctx.fillRect(0, 0, 1024, 1024);
+        }
+        // fondu radial vers le fond de page (#0a0e17)
+        const fondu = gctx.createRadialGradient(512, 512, 290, 512, 512, 512);
+        fondu.addColorStop(0, 'rgba(10,14,23,0)');
+        fondu.addColorStop(1, 'rgb(10,14,23)');
+        gctx.fillStyle = fondu;
+        gctx.fillRect(0, 0, 1024, 1024);
+        gtex.setSource(gc);
+      };
+      peindreSol(null);
+      const imgSol = new Image();
+      imgSol.onload = () => peindreSol(imgSol);
+      imgSol.src = ASSET_BASE + 'textures/sol_gravier.jpg';
       const gmat = new pc.StandardMaterial();
       gmat.diffuse = new pc.Color(0, 0, 0);
       gmat.emissiveMap = gtex;
