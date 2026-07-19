@@ -2,7 +2,7 @@
    Précache la coquille de l'app ; met en cache les images/PDF au fil de la consultation. */
 /* Nom du cache aligné sur APP_VERSION (app.js) : à incrémenter à chaque changement.
    Le changement de nom force le rafraîchissement de la coquille mise en cache. */
-const CACHE = 'rodbot-formation-v1.9.26';
+const CACHE = 'rodbot-formation-v1.10.0';
 const CORE = [
   './', './index.html', './app.js', './styles.css',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
@@ -30,10 +30,13 @@ self.addEventListener('fetch', (e) => {
   // réseau d'abord. Sinon un ancien app.js en cache casse la nouvelle page (écran blanc).
   const isShell = req.mode === 'navigate' || /\.(?:js|css|webmanifest)$/.test(url.pathname);
   if (isShell) {
+    // la clé './index.html' est réservée à l'accueil : les navigations vers /3d/
+    // sont mises en cache sous leur propre URL pour ne pas empoisonner la coquille
+    const estAccueil = req.mode === 'navigate' && !url.pathname.includes('/3d');
     e.respondWith(
       fetch(req).then((r) => {
         const cp = r.clone();
-        caches.open(CACHE).then((c) => c.put(req.mode === 'navigate' ? './index.html' : req, cp));
+        caches.open(CACHE).then((c) => c.put(estAccueil ? './index.html' : req, cp));
         return r;
       }).catch(() => caches.match(req).then((c) => c || caches.match('./index.html')))
     );
