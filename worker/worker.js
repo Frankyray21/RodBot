@@ -184,9 +184,36 @@ export default {
     }
 
     const rec = await at.json();
-    return json({ ok: true, id: rec.id, linked: !!empId }, 200, cors);
+    // Signature tracée au doigt/stylet (PNG en data URL) : téléversée en pièce
+    // jointe sur l'enregistrement créé. Meilleur effort : un échec de téléversement
+    // ne fait pas échouer l'attestation (déjà enregistrée).
+    let signed = false;
+    try {
+      signed = await uploadSignature(rec.id, body.signature, env);
+    } catch (_) {}
+    return json({ ok: true, id: rec.id, linked: !!empId, signed }, 200, cors);
   },
 };
+
+/* Téléverse la signature (data URL PNG, ≤ ~200 Ko) dans le champ « Signature ». */
+const SIGNATURE_FIELD = "fldVdAgfS6xTaUPxt";
+async function uploadSignature(recordId, dataUrl, env) {
+  if (typeof dataUrl !== "string") return false;
+  const m = dataUrl.match(/^data:image\/png;base64,([A-Za-z0-9+/=]+)$/);
+  if (!m || m[1].length > 300000) return false;
+  const up = await fetch(
+    `https://content.airtable.com/v0/${AIRTABLE_BASE}/${recordId}/${SIGNATURE_FIELD}/uploadAttachment`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.AIRTABLE_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ contentType: "image/png", filename: "signature.png", file: m[1] }),
+    }
+  );
+  return up.ok;
+}
 
 /* POST d'un enregistrement dans la table « Attestations RodBot (web) ». */
 async function postRecord(fields, env) {

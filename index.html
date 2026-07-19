@@ -731,6 +731,13 @@
             <datalist id="rb-emp-list"></datalist>
             <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
             <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
+            <div style="max-width:430px;margin:0 auto 14px;text-align:left">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;color:#535252">✍️ {{ sig.label }}</span>
+                <button onClick="{{ sig.clear }}" style="background:none;border:none;color:#989898;font-weight:700;font-size:11px;letter-spacing:.04em;text-decoration:underline;cursor:pointer;padding:2px">{{ sig.clearLabel }}</button>
+              </div>
+              <canvas class="rb-sig" width="600" height="200" style="display:block;width:100%;height:130px;touch-action:none;background:#FFFFFF;border:1px dashed rgba(29,30,27,.4);cursor:crosshair"></canvas>
+            </div>
             <div>
               <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                 <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -777,6 +784,13 @@
               <datalist id="rb-emp-list"></datalist>
               <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
             <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
+            <div style="max-width:430px;margin:0 auto 14px;text-align:left">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;color:#535252">✍️ {{ sig.label }}</span>
+                <button onClick="{{ sig.clear }}" style="background:none;border:none;color:#989898;font-weight:700;font-size:11px;letter-spacing:.04em;text-decoration:underline;cursor:pointer;padding:2px">{{ sig.clearLabel }}</button>
+              </div>
+              <canvas class="rb-sig" width="600" height="200" style="display:block;width:100%;height:130px;touch-action:none;background:#FFFFFF;border:1px dashed rgba(29,30,27,.4);cursor:crosshair"></canvas>
+            </div>
               <div>
                 <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                   <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -954,6 +968,13 @@
           <datalist id="rb-emp-list"></datalist>
           <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="Votre nom" style="font-weight:900;font-size:30px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:6px 0 8px;max-width:100%;outline:none">
           <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px"></div>
+          <div style="max-width:430px;margin:0 auto 18px;text-align:left">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;color:#535252">✍️ {{ sig.label }}</span>
+              <button onClick="{{ sig.clear }}" style="background:none;border:none;color:#989898;font-weight:700;font-size:11px;letter-spacing:.04em;text-decoration:underline;cursor:pointer;padding:2px">{{ sig.clearLabel }}</button>
+            </div>
+            <canvas class="rb-sig" width="600" height="200" style="display:block;width:100%;height:130px;touch-action:none;background:#FFFFFF;border:1px dashed rgba(29,30,27,.4);cursor:crosshair"></canvas>
+          </div>
           <p style="font-size:15px;line-height:1.6;color:#3A3B38;max-width:540px;margin:0 auto 26px">a suivi et validé la formation terrain du <strong style="color:#1D1E1B">système robotisé Borterra RodBot LP</strong> : {{ totalModules }} modules et {{ totalSections }} leçons tirés du manuel de l'opérateur OM 10667.</p>
 
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 28px">
@@ -1808,6 +1829,13 @@
             <datalist id="rb-emp-list"></datalist>
             <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
             <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
+            <div style="max-width:430px;margin:0 auto 14px;text-align:left">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;color:#535252">✍️ {{ sig.label }}</span>
+                <button onClick="{{ sig.clear }}" style="background:none;border:none;color:#989898;font-weight:700;font-size:11px;letter-spacing:.04em;text-decoration:underline;cursor:pointer;padding:2px">{{ sig.clearLabel }}</button>
+              </div>
+              <canvas class="rb-sig" width="600" height="200" style="display:block;width:100%;height:130px;touch-action:none;background:#FFFFFF;border:1px dashed rgba(29,30,27,.4);cursor:crosshair"></canvas>
+            </div>
             <div>
               <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                 <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -1854,6 +1882,13 @@
               <datalist id="rb-emp-list"></datalist>
               <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="{{ modAtt.placeholder }}" style="font-weight:800;font-size:18px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:2px 0 8px;max-width:100%;outline:none">
             <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
+            <div style="max-width:430px;margin:0 auto 14px;text-align:left">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;color:#535252">✍️ {{ sig.label }}</span>
+                <button onClick="{{ sig.clear }}" style="background:none;border:none;color:#989898;font-weight:700;font-size:11px;letter-spacing:.04em;text-decoration:underline;cursor:pointer;padding:2px">{{ sig.clearLabel }}</button>
+              </div>
+              <canvas class="rb-sig" width="600" height="200" style="display:block;width:100%;height:130px;touch-action:none;background:#FFFFFF;border:1px dashed rgba(29,30,27,.4);cursor:crosshair"></canvas>
+            </div>
               <div>
                 <sc-if value="{{ modAtt.idle }}" hint-placeholder-val="{{ true }}">
                   <button onClick="{{ modAtt.send }}" style="background:#1D1E1B;color:#FFFFFF;border:none;padding:12px 22px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">{{ modAtt.btnLabel }}</button>
@@ -2031,6 +2066,13 @@
           <datalist id="rb-emp-list"></datalist>
           <input value="{{ traineeName }}" onInput="{{ setName }}" list="rb-emp-list" placeholder="Your name" style="font-weight:900;font-size:30px;text-align:center;border:none;border-bottom:2px solid rgba(29,30,27,.3);background:transparent;color:#1D1E1B;padding:6px 10px;margin:6px 0 8px;max-width:100%;outline:none">
           <div class="rb-name-sugg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px"></div>
+          <div style="max-width:430px;margin:0 auto 18px;text-align:left">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;color:#535252">✍️ {{ sig.label }}</span>
+              <button onClick="{{ sig.clear }}" style="background:none;border:none;color:#989898;font-weight:700;font-size:11px;letter-spacing:.04em;text-decoration:underline;cursor:pointer;padding:2px">{{ sig.clearLabel }}</button>
+            </div>
+            <canvas class="rb-sig" width="600" height="200" style="display:block;width:100%;height:130px;touch-action:none;background:#FFFFFF;border:1px dashed rgba(29,30,27,.4);cursor:crosshair"></canvas>
+          </div>
           <p style="font-size:15px;line-height:1.6;color:#3A3B38;max-width:540px;margin:0 auto 26px">has completed and passed the field training for the <strong style="color:#1D1E1B">Borterra RodBot LP robotic system</strong>: {{ totalModules }} modules and {{ totalSections }} lessons from the operator's manual OM 10667.</p>
 
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 28px">
@@ -2176,6 +2218,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.25"></script>
+<script src="app.js?v=1.9.26"></script>
 </body>
 </html>

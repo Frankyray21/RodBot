@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.9.25';
+var APP_VERSION = '1.9.26';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -181,6 +181,8 @@ function fullRender() {
   } catch (e) {}
   try { if (COMP && COMP.syncHistory) COMP.syncHistory(); } catch (e) {}
   try { if (COMP && COMP.setupTocSpy) COMP.setupTocSpy(); } catch (e) {}
+  // Le canevas de signature vient d'être recréé : recâble les gestes et redessine les traits
+  try { if (COMP && COMP.sigRefresh) COMP.sigRefresh(); } catch (e) {}
 }
 
 /* --------- Mise à jour douce : réévalue les liaisons en place (aucun nœud recréé) --------- */
@@ -1263,7 +1265,7 @@ class Component extends DCLogic {
   allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
   goHome = ()=> { ptEnter(null,null); this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
-  openModule = (i)=> { ptEnter(i,'module'); this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
+  openModule = (i)=> { ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
   toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key, manualDetailKey:null }));
   toggleManualDetails = (key,page)=>{
     if(this.state.manualDetailKey===key){
@@ -1460,17 +1462,55 @@ class Component extends DCLogic {
   /* Envoi commun (module OU formation complète) au Worker → Airtable.
      Le champ « Module » du registre reste en FRANÇAIS quel que soit l'affichage,
      pour que le registre Airtable garde des options uniformes. */
+  /* ---------- Signature obligatoire : tracée au doigt, au stylet ou à la souris ----------
+     Le canevas est recréé à chaque rendu complet : les traits vivent dans
+     sigStrokes (coordonnées internes 600 x 200) et sont redessinés par
+     sigRefresh(), appelé après chaque fullRender. touch-action:none sur le
+     canevas : la page ne défile pas pendant qu'on signe (tablette/téléphone). */
+  sigStrokes = [];
+  sigPt(c, e){ const r=c.getBoundingClientRect(); return { x:(e.clientX-r.left)*c.width/r.width, y:(e.clientY-r.top)*c.height/r.height }; }
+  sigWire(c){
+    if(c.__rbSig){ this.sigPaint(c); return; }
+    c.__rbSig = true;
+    const self=this;
+    let cur=null;
+    c.addEventListener('pointerdown', function(e){ e.preventDefault(); try{ c.setPointerCapture(e.pointerId); }catch(_){} cur=[self.sigPt(c,e)]; self.sigStrokes.push(cur); self.sigPaint(c); });
+    c.addEventListener('pointermove', function(e){ if(!cur) return; e.preventDefault(); cur.push(self.sigPt(c,e)); self.sigPaint(c); });
+    const end=function(){ cur=null; };
+    c.addEventListener('pointerup', end);
+    c.addEventListener('pointercancel', end);
+    this.sigPaint(c);
+  }
+  sigPaint(c){
+    const g=c.getContext('2d');
+    g.fillStyle='#FFFFFF'; g.fillRect(0,0,c.width,c.height);
+    g.strokeStyle='#1D1E1B'; g.lineWidth=3; g.lineCap='round'; g.lineJoin='round';
+    for(const s of this.sigStrokes){
+      if(!s.length) continue;
+      g.beginPath(); g.moveTo(s[0].x, s[0].y);
+      if(s.length===1) g.lineTo(s[0].x+0.6, s[0].y+0.6);
+      for(let i=1;i<s.length;i++) g.lineTo(s[i].x, s[i].y);
+      g.stroke();
+    }
+  }
+  sigRefresh(){ const l=document.querySelectorAll('canvas.rb-sig'); for(let i=0;i<l.length;i++) this.sigWire(l[i]); }
+  /* Trop peu de points = pas une vraie signature (un simple tapotement ne passe pas). */
+  sigEmpty(){ let n=0; for(const s of this.sigStrokes) n+=s.length; return n<8; }
+  sigClear = ()=>{ this.sigStrokes=[]; this.sigRefresh(); };
+  sigDataUrl(){ const c=document.createElement('canvas'); c.width=600; c.height=200; this.sigPaint(c); return c.toDataURL('image/png'); }
+
   postAttestation(extra){
     const S=this.state;
     const name=(S.name||"").trim();
     const payload=Object.assign({ name:name, employeeId:S.attEmpId||"",
       date:new Date().toISOString().slice(0,10),
       langue:(S.lang==="en"?"English":"Français"), version:APP_VERSION }, extra);
+    if(!this.sigEmpty()) payload.signature=this.sigDataUrl();
     this.setState({ attSending:true, attError:"" });
     fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
       .then(r=>r.json())
       .then(d=>{
-        if(d && d.ok) this.setState({ attSending:false, attDone:true, attLinked:!!d.linked });
+        if(d && d.ok){ this.sigStrokes=[]; this.setState({ attSending:false, attDone:true, attLinked:!!d.linked }); }
         else this.setState({ attSending:false, attError:(d&&d.error)||this.tr("Envoi refusé.","Submission refused.") });
       })
       .catch(()=>this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }));
@@ -1481,6 +1521,7 @@ class Component extends DCLogic {
     if(S.attSending || S.attDone) return;
     const name=(S.name||"").trim();
     if(name.length<2){ this.setState({ attError:this.tr("Écrivez d'abord votre nom sur l'attestation.","Write your name on the certificate first.") }); return; }
+    if(this.sigEmpty()){ this.setState({ attError:this.tr("Signature obligatoire : signez dans le cadre.","Signature required: sign in the box.") }); return; }
     if(!this.allDone()){ this.setState({ attError:this.tr("Terminez d'abord les 8 modules.","Finish all 8 modules first.") }); return; }
     const M=this.M();
     const detail=M.map((m,i)=>m.num+" : "+this.moduleScore(i)+" %").join("\n");
@@ -1501,6 +1542,7 @@ class Component extends DCLogic {
     if(S.attSending || S.attDone) return;
     const name=(S.name||"").trim();
     if(name.length<2){ this.setState({ attError:this.tr("Écrivez d'abord votre nom.","Write your name first.") }); return; }
+    if(this.sigEmpty()){ this.setState({ attError:this.tr("Signature obligatoire : signez dans le cadre.","Signature required: sign in the box.") }); return; }
     const hasTry=(S.attempts&&S.attempts[S.activeId]!=null)||this.moduleDone(S.activeId)||(S.view==="quiz"&&S.graded);
     if(!hasTry){ this.setState({ attError:this.tr("Faites d'abord le quiz du module.","Take the module quiz first.") }); return; }
     const mFr=this.MODULES[S.activeId];
@@ -1953,6 +1995,9 @@ class Component extends DCLogic {
       goLabel:this.tr("Continuer sans enregistrer","Continue without saving"),
       save:this.attRemindSave, go:this.attRemindGo
     };
+    // Cadre de signature (obligatoire pour toute attestation)
+    base.sig={ label:this.tr("SIGNATURE (OBLIGATOIRE)","SIGNATURE (REQUIRED)"),
+               clearLabel:this.tr("Effacer","Clear"), clear:this.sigClear };
     base.traineeName=S.name; base.setName=this.setName;
     // Badge discret dans l'en-tête : distingue un NOM CONFIRMÉ (correspond à un
     // employé du registre, liaison sûre) d'un nom simplement tapé mais pas
