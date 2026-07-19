@@ -252,3 +252,14 @@ html,body{overflow-x:hidden;max-width:100%}
   .rb-manual-link{font-size:0 !important;gap:0 !important;padding:8px 7px !important}
   .rb-manual-link span{font-size:9px !important}
 }
+
+/* ===== Accueil v1.9.22 : en-tête façon page de cours (texte hors de la photo) ===== */
+.rb-hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:38px;align-items:center}
+.rb-hero-photo-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.16);border-top:4px solid #D92624;box-shadow:0 34px 70px -30px rgba(0,0,0,.85);animation:rbHeroTextIn .6s cubic-bezier(.22,.61,.36,1) .3s both}
+.rb-hero-photo-card img{display:block;width:100%;height:100%;min-height:250px;max-height:430px;object-fit:cover;object-position:62% 45%;animation:rbHeroImgZoom 18s ease-in-out infinite alternate;filter:saturate(1.05) contrast(1.05)}
+.rb-hero-photo-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,rgba(20,20,19,.5) 100%);pointer-events:none}
+@keyframes rbHeroImgZoom{from{transform:scale(1)}to{transform:scale(1.08)}}
+@media(max-width:880px){.rb-hero-grid{grid-template-columns:1fr;gap:24px}.rb-hero-photo-card img{max-height:280px;min-height:200px}}
+@media(prefers-reduced-motion:reduce){.rb-hero-photo-card,.rb-hero-photo-card img{animation:none !important}}
+/* Les puces d'info gardent leur propre taille malgré la règle mobile .rb-hero-copy */
+.rb-hero-chips{max-width:100% !important}

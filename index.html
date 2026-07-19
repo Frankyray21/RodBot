@@ -114,26 +114,35 @@
       <section class="mr-ghost mr-ghost-dark mr-grain" data-ghost="RodBot" data-rb-scroll-section="overview" style="position:relative;background:#141413;color:#FAF9F5;overflow:hidden">
         <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%)"></div>
 
-        <!-- ===== MACHINE RÉELLE, ZOOM LENT EN ARRIÈRE-PLAN ===== -->
-        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.11')"></div>
-        <div aria-hidden="true" class="rb-hero-photo-vignette"></div>
-
-        <div class="rb-hero-inner" style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative;z-index:2">
-          <div class="rb-hero-stage" style="min-height:340px;display:flex;align-items:center">
-            <div class="rb-reveal" style="max-width:600px">
-              <div class="rb-hero-badges" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:26px">
+        <div class="rb-hero-inner" style="max-width:1180px;margin:0 auto;padding:46px 28px 44px;position:relative;z-index:2">
+          <div class="rb-hero-grid">
+            <div class="rb-hero-stage rb-reveal">
+              <div class="rb-hero-badges" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:22px">
                 <div class="rb-hero-manual-badge" style="display:inline-flex;align-items:center;gap:10px;background:#D92624;padding:7px 14px">
                   <span style="width:7px;height:7px;background:#FFFFFF;animation:rbPulse 2s ease-in-out infinite"></span>
                   <span style="font-weight:800;font-size:10.5px;letter-spacing:.16em;color:#FFFFFF">MANUEL DE L'OPÉRATEUR · OM 10667 · R0</span>
                 </div>
                 <span class="rb-version-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);padding:6px 12px;font-weight:800;font-size:10.5px;letter-spacing:.14em;color:#B8B7B2">VERSION {{ appVersion }}</span>
               </div>
-              <h1 style="font-weight:900;font-size:54px;line-height:1.12;letter-spacing:.005em;text-transform:uppercase;margin:0 0 20px;color:#FAF9F5">Utiliser le<br><span style="color:#D92624">RodBot LP</span></h1>
-              <p class="rb-hero-copy" style="font-size:17px;line-height:1.65;color:#B8B7B2;max-width:560px;margin:0 0 30px">Formation pratique pour travailleurs.<br><strong style="color:#FAF9F5">1. Voir les risques.</strong><br><strong style="color:#FAF9F5">2. Trouver les commandes.</strong><br><strong style="color:#FAF9F5">3. Pratiquer les bons gestes.</strong><br><span style="font-size:14px">Chaque leçon montre la bonne page du manuel.</span></p>
+              <h1 style="font-weight:900;font-size:54px;line-height:1.12;letter-spacing:.005em;text-transform:uppercase;margin:0 0 22px;color:#FAF9F5">Utiliser le<br><span style="color:#D92624">RodBot LP</span></h1>
+              <div class="rb-hero-copy rb-hero-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px">
+                <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:9px 14px;font-weight:700;font-size:12.5px;color:#E5E4E0">📚 8 modules courts</span>
+                <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:9px 14px;font-weight:700;font-size:12.5px;color:#E5E4E0">✅ Quiz après chaque module</span>
+                <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:9px 14px;font-weight:700;font-size:12.5px;color:#E5E4E0">🎓 Attestation au registre</span>
+              </div>
+              <sc-if value="{{ heroProg.show }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:0 0 22px;max-width:420px">
+                <div style="display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:11.5px;letter-spacing:.06em;color:#B8B7B2;margin-bottom:7px"><span>{{ heroProg.label }}</span><span>{{ heroProg.pct }} %</span></div>
+                <div style="height:5px;background:rgba(255,255,255,.14)"><div style="height:100%;background:#D92624;width: {{ heroProg.pct }}%"></div></div>
+              </div>
+              </sc-if>
               <div class="rb-hero-actions" style="display:flex;gap:14px;flex-wrap:wrap">
                 <button class="rb-hero-cta" onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;padding:16px 28px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ ctaLabel }} →</button>
                 <button class="rb-hero-secondary" onClick="{{ scrollToSafety }}" style="background:transparent;color:#FAF9F5;border:1px solid rgba(255,255,255,.34);padding:16px 24px;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#FFFFFF">Voir la sécurité</button>
               </div>
+            </div>
+            <div class="rb-hero-photo-card">
+              <img src="img/hero-machine-photo.webp?v=1.8.11" alt="La machine RodBot LP : porteur sur chenilles, bac à tiges et mât articulé">
             </div>
           </div>
         </div>
@@ -643,11 +652,11 @@
                         </ol>
                       </sc-if>
                       <sc-if value="{{ b.isSpecs }}" hint-placeholder-val="{{ false }}">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <div style="border:1px solid rgba(29,30,27,.16);border-top:3px solid #D92624;background:#FFFFFF">
                           <sc-for list="{{ b.rows }}" as="r" hint-placeholder-count="4">
-                            <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;background:#F4F3EE;border:1px solid rgba(29,30,27,.1);border-left:3px solid #D92624;padding:11px 14px">
-                              <span style="font-size:13.5px;color:#535252">{{ r.k }}</span>
-                              <span style="font-weight:800;font-size:14px;text-align:right;color:#1D1E1B">{{ r.v }}</span>
+                            <div class="rb-spec-row" style="display:grid;grid-template-columns:minmax(110px,34%) 1fr;border-bottom:1px solid rgba(29,30,27,.08)">
+                              <div style="padding:11px 14px;background:#F4F3EE;border-right:1px solid rgba(29,30,27,.08);font-weight:700;font-size:12.5px;line-height:1.4;color:#535252;display:flex;align-items:center">{{ r.k }}</div>
+                              <div style="padding:11px 14px;font-weight:700;font-size:14px;line-height:1.45;color:#1D1E1B;display:flex;align-items:center">{{ r.v }}</div>
                             </div>
                           </sc-for>
                         </div>
@@ -662,7 +671,7 @@
                         </div>
                       </sc-if>
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
-                        <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
+                        <figure style="margin:2px auto;max-width:540px;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
                           <button onClick="{{ b.openPage }}" title="Ouvrir la page {{ b.imgPage }} du manuel" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
                             <img src="{{ b.src }}" loading="lazy" alt="Figure du manuel, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
                           </button>
@@ -1182,26 +1191,35 @@
       <section class="mr-ghost mr-ghost-dark mr-grain" data-ghost="RodBot" data-rb-scroll-section="overview" style="position:relative;background:#141413;color:#FAF9F5;overflow:hidden">
         <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%);-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.85),transparent 86%)"></div>
 
-        <!-- ===== REAL MACHINE, SLOW BACKGROUND ZOOM ===== -->
-        <div aria-hidden="true" class="rb-hero-photo" style="position:absolute;inset:-3% -4% -3% -3%;pointer-events:none;z-index:0;background-image:linear-gradient(90deg,rgba(20,20,19,.98) 0%,rgba(20,20,19,.88) 36%,rgba(20,20,19,.52) 66%,rgba(20,20,19,.28) 100%),url('img/hero-machine-photo.webp?v=1.8.11')"></div>
-        <div aria-hidden="true" class="rb-hero-photo-vignette"></div>
-
-        <div class="rb-hero-inner" style="max-width:1180px;margin:0 auto;padding:56px 28px 46px;position:relative;z-index:2">
-          <div class="rb-hero-stage" style="min-height:340px;display:flex;align-items:center">
-            <div class="rb-reveal" style="max-width:600px">
-              <div class="rb-hero-badges" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:26px">
+        <div class="rb-hero-inner" style="max-width:1180px;margin:0 auto;padding:46px 28px 44px;position:relative;z-index:2">
+          <div class="rb-hero-grid">
+            <div class="rb-hero-stage rb-reveal">
+              <div class="rb-hero-badges" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:22px">
                 <div class="rb-hero-manual-badge" style="display:inline-flex;align-items:center;gap:10px;background:#D92624;padding:7px 14px">
                   <span style="width:7px;height:7px;background:#FFFFFF;animation:rbPulse 2s ease-in-out infinite"></span>
                   <span style="font-weight:800;font-size:10.5px;letter-spacing:.16em;color:#FFFFFF">OPERATOR'S MANUAL · OM 10667 · R0</span>
                 </div>
                 <span class="rb-version-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);padding:6px 12px;font-weight:800;font-size:10.5px;letter-spacing:.14em;color:#B8B7B2">VERSION {{ appVersion }}</span>
               </div>
-              <h1 style="font-weight:900;font-size:54px;line-height:1.12;letter-spacing:.005em;text-transform:uppercase;margin:0 0 20px;color:#FAF9F5">Use the<br><span style="color:#D92624">RodBot LP</span></h1>
-              <p class="rb-hero-copy" style="font-size:17px;line-height:1.65;color:#B8B7B2;max-width:560px;margin:0 0 30px">Hands-on training for workers.<br><strong style="color:#FAF9F5">1. See the hazards.</strong><br><strong style="color:#FAF9F5">2. Find the controls.</strong><br><strong style="color:#FAF9F5">3. Practise the right moves.</strong><br><span style="font-size:14px">Every lesson shows the right manual page.</span></p>
+              <h1 style="font-weight:900;font-size:54px;line-height:1.12;letter-spacing:.005em;text-transform:uppercase;margin:0 0 22px;color:#FAF9F5">Use the<br><span style="color:#D92624">RodBot LP</span></h1>
+              <div class="rb-hero-copy rb-hero-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px">
+                <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:9px 14px;font-weight:700;font-size:12.5px;color:#E5E4E0">📚 8 short modules</span>
+                <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:9px 14px;font-weight:700;font-size:12.5px;color:#E5E4E0">✅ Quiz after each module</span>
+                <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:9px 14px;font-weight:700;font-size:12.5px;color:#E5E4E0">🎓 Certificate to the registry</span>
+              </div>
+              <sc-if value="{{ heroProg.show }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:0 0 22px;max-width:420px">
+                <div style="display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:11.5px;letter-spacing:.06em;color:#B8B7B2;margin-bottom:7px"><span>{{ heroProg.label }}</span><span>{{ heroProg.pct }} %</span></div>
+                <div style="height:5px;background:rgba(255,255,255,.14)"><div style="height:100%;background:#D92624;width: {{ heroProg.pct }}%"></div></div>
+              </div>
+              </sc-if>
               <div class="rb-hero-actions" style="display:flex;gap:14px;flex-wrap:wrap">
                 <button class="rb-hero-cta" onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;padding:16px 28px;font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:transform .15s,background .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ ctaLabel }} →</button>
                 <button class="rb-hero-secondary" onClick="{{ scrollToSafety }}" style="background:transparent;color:#FAF9F5;border:1px solid rgba(255,255,255,.34);padding:16px 24px;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#FFFFFF">See safety</button>
               </div>
+            </div>
+            <div class="rb-hero-photo-card">
+              <img src="img/hero-machine-photo.webp?v=1.8.11" alt="The RodBot LP machine: tracked carrier, rod rack and articulated mast">
             </div>
           </div>
         </div>
@@ -1711,11 +1729,11 @@
                         </ol>
                       </sc-if>
                       <sc-if value="{{ b.isSpecs }}" hint-placeholder-val="{{ false }}">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <div style="border:1px solid rgba(29,30,27,.16);border-top:3px solid #D92624;background:#FFFFFF">
                           <sc-for list="{{ b.rows }}" as="r" hint-placeholder-count="4">
-                            <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;background:#F4F3EE;border:1px solid rgba(29,30,27,.1);border-left:3px solid #D92624;padding:11px 14px">
-                              <span style="font-size:13.5px;color:#535252">{{ r.k }}</span>
-                              <span style="font-weight:800;font-size:14px;text-align:right;color:#1D1E1B">{{ r.v }}</span>
+                            <div class="rb-spec-row" style="display:grid;grid-template-columns:minmax(110px,34%) 1fr;border-bottom:1px solid rgba(29,30,27,.08)">
+                              <div style="padding:11px 14px;background:#F4F3EE;border-right:1px solid rgba(29,30,27,.08);font-weight:700;font-size:12.5px;line-height:1.4;color:#535252;display:flex;align-items:center">{{ r.k }}</div>
+                              <div style="padding:11px 14px;font-weight:700;font-size:14px;line-height:1.45;color:#1D1E1B;display:flex;align-items:center">{{ r.v }}</div>
                             </div>
                           </sc-for>
                         </div>
@@ -1730,7 +1748,7 @@
                         </div>
                       </sc-if>
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
-                        <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
+                        <figure style="margin:2px auto;max-width:540px;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
                           <button onClick="{{ b.openPage }}" title="Open manual page {{ b.imgPage }}" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
                             <img src="{{ b.src }}" loading="lazy" alt="Manual figure, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
                           </button>
@@ -2158,6 +2176,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.21"></script>
+<script src="app.js?v=1.9.22"></script>
 </body>
 </html>
