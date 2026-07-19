@@ -673,7 +673,7 @@
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
                         <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
                           <button onClick="{{ b.openPage }}" title="Ouvrir la page {{ b.imgPage }} du manuel" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
-                            <img src="{{ b.src }}" loading="lazy" alt="Figure du manuel, page {{ b.imgPage }}" style="display:block;width:auto;max-width:100%;max-height:62vh;margin:0 auto">
+                            <img src="{{ b.src }}" loading="lazy" alt="Figure du manuel, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
                           </button>
                           <figcaption style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px">
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
@@ -1750,7 +1750,7 @@
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
                         <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
                           <button onClick="{{ b.openPage }}" title="Open manual page {{ b.imgPage }}" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
-                            <img src="{{ b.src }}" loading="lazy" alt="Manual figure, page {{ b.imgPage }}" style="display:block;width:auto;max-width:100%;max-height:62vh;margin:0 auto">
+                            <img src="{{ b.src }}" loading="lazy" alt="Manual figure, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
                           </button>
                           <figcaption style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px">
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
@@ -2176,6 +2176,6 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.24"></script>
+<script src="app.js?v=1.9.25"></script>
 </body>
 </html>
