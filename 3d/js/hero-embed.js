@@ -96,9 +96,14 @@ function monterDans(bg) {
   const gtex = new pc.Texture(app.graphicsDevice, { width: 1024, height: 1024, format: pc.PIXELFORMAT_RGBA8 });
   const peindreSol = (imgSol) => {
     if (imgSol) {
+      // harmonisation avec le plancher scanné : +6 % de luminosité, légère chaleur
+      gctx.filter = 'brightness(106%)';
       gctx.drawImage(imgSol, 0, 0, 1024, 1024);
-      gctx.fillStyle = 'rgba(0,0,0,0.42)';
+      gctx.filter = 'none';
+      gctx.globalCompositeOperation = 'multiply';
+      gctx.fillStyle = 'rgb(255,252,244)';
       gctx.fillRect(0, 0, 1024, 1024);
+      gctx.globalCompositeOperation = 'source-over';
     } else {
       const grad = gctx.createRadialGradient(512, 512, 0, 512, 512, 512);
       grad.addColorStop(0, 'rgb(64,60,53)');
@@ -108,7 +113,7 @@ function monterDans(bg) {
       gctx.fillStyle = grad;
       gctx.fillRect(0, 0, 1024, 1024);
     }
-    const fondu = gctx.createRadialGradient(512, 512, 290, 512, 512, 512);
+    const fondu = gctx.createRadialGradient(512, 512, 355, 512, 512, 512);
     fondu.addColorStop(0, 'rgba(20,20,19,0)');
     fondu.addColorStop(1, 'rgb(20,20,19)');
     gctx.fillStyle = fondu;
