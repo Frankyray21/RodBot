@@ -253,14 +253,22 @@ html,body{overflow-x:hidden;max-width:100%}
   .rb-manual-link span{font-size:9px !important}
 }
 
-/* ===== Accueil v1.10.2 : héros bannière — l'animation 3D en arrière-plan pleine largeur ===== */
+/* ===== Accueil v1.10.3 : héros bannière — la machine 3D d'abord, le contenu ensuite ===== */
 .rb-hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
 .rb-hero-bg video{width:100%;height:100%;object-fit:cover;object-position:62% 42%;filter:saturate(1.05) contrast(1.05)}
 .rb-hero-bg-scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,20,19,.94),rgba(20,20,19,.6) 46%,rgba(20,20,19,.24) 100%),linear-gradient(0deg,rgba(20,20,19,.88),transparent 38%),linear-gradient(180deg,rgba(20,20,19,.5),transparent 28%)}
-.rb-hero-inner{min-height:540px;display:flex;align-items:center}
+.rb-hero-inner{min-height:min(86svh,780px);display:flex;align-items:center}
 .rb-hero-grid{display:grid;grid-template-columns:minmax(0,680px);gap:38px;align-items:center}
-@media(prefers-reduced-motion:reduce){.rb-hero-bg video{display:none}}
-@media(max-width:880px){.rb-hero-inner{min-height:460px}}
+/* la vidéo joue seule ~2,4 s, puis le voile et le contenu arrivent en fondu */
+@keyframes rbScrimIn{from{opacity:0}to{opacity:1}}
+.rb-hero-bg-scrim{animation:rbScrimIn 1.1s ease 2.4s both}
+.rb-hero-badges{animation:rbHeroTextIn .56s cubic-bezier(.22,.61,.36,1) 2.46s both}
+.rb-hero-stage h1{animation:rbHeroTitleIn .72s cubic-bezier(.16,1,.3,1) 2.58s both}
+.rb-hero-stage h1 span{display:inline-block;animation:rbHeroTextIn .58s cubic-bezier(.22,.61,.36,1) 2.76s both}
+.rb-hero-copy{animation:rbHeroTextIn .58s cubic-bezier(.22,.61,.36,1) 2.8s both}
+.rb-hero-actions{animation:rbHeroTextIn .58s cubic-bezier(.22,.61,.36,1) 3.1s both}
+@media(prefers-reduced-motion:reduce){.rb-hero-bg video{display:none}.rb-hero-bg-scrim{animation:none !important}}
+@media(max-width:880px){.rb-hero-inner{min-height:min(76svh,600px)}}
 .rb-hero-photo-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.16);border-top:4px solid #D92624;box-shadow:0 34px 70px -30px rgba(0,0,0,.85);animation:rbHeroTextIn .6s cubic-bezier(.22,.61,.36,1) .3s both}
 .rb-hero-photo-card img{display:block;width:100%;height:100%;min-height:250px;max-height:430px;object-fit:cover;object-position:62% 45%;animation:rbHeroImgZoom 18s ease-in-out infinite alternate;filter:saturate(1.05) contrast(1.05)}
 /* vidéo 3D du héros : mêmes dimensions que la photo, sans le zoom CSS (la caméra bouge déjà) */
