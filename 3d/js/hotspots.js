@@ -60,25 +60,25 @@ export const HOTSPOTS = [
 /* Les quatre arrêts d'urgence (manuel §2.4, p. 12) — pastilles « danger » */
 export const URGENCES = [
   {
-    id: 'u1', num: 'U', classe: 'hs-urgence',
+    id: 'u1', num: 'U', classe: 'hs-urgence', encercle: true,
     label: 'Arrêt d\'urgence — panneau',
     pos: [-0.74, -0.55, -0.45],
     view: { yaw: 285, pitch: 12, dist: 2.4, target: [-0.74, -0.45, -0.45] }
   },
   {
-    id: 'u2', num: 'U', classe: 'hs-urgence',
+    id: 'u2', num: 'U', classe: 'hs-urgence', encercle: true,
     label: 'Arrêt d\'urgence — télécommande',
     pos: [-0.08, -0.28, -3.04],
     view: { yaw: 330, pitch: 12, dist: 2.6, target: [-0.08, -0.6, -3.0] }
   },
   {
-    id: 'u3', num: 'U', classe: 'hs-urgence',
+    id: 'u3', num: 'U', classe: 'hs-urgence', encercle: true,
     label: 'Arrêt d\'urgence — châssis',
     pos: [0.75, -1.6, -2.3],
     view: { yaw: 45, pitch: 14, dist: 3.2, target: [0.5, -1.4, -2.0] }
   },
   {
-    id: 'u4', num: 'U', classe: 'hs-urgence',
+    id: 'u4', num: 'U', classe: 'hs-urgence', encercle: true,
     label: 'Arrêt d\'urgence — leviers du mât',
     pos: [0.05, -0.8, -1.75],
     view: { yaw: 15, pitch: 16, dist: 3.0, target: [0.05, -0.95, -1.7] }

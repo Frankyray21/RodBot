@@ -63,7 +63,14 @@
       <div class="wrap">
         <span class="eyebrow">Scan 3D réel</span>
         <h2 class="title" id="explorerTitre">Explore le RodBot sous tous ses angles</h2>
-        <p class="lead">Huit composants à découvrir et les quatre arrêts d'urgence (pastilles <strong>U</strong> orangées). Chaque pastille : un résumé bref, puis la page du manuel de l'opérateur.</p>
+        <p class="lead">Choisis ton parcours : les <strong>composants</strong> (pastilles numérotées) ou les <strong>arrêts d'urgence</strong> (anneaux orangés qui encerclent chaque bouton). Chaque point : un résumé bref, puis la page du manuel.</p>
+
+        <div class="mode-bar" role="group" aria-label="Choix du parcours">
+          <button class="mode-btn is-on" id="modeComposants" type="button" aria-pressed="true">🔧 Composants <span class="mn">8</span></button>
+          <button class="mode-btn mode-btn--urg" id="modeUrgences" type="button" aria-pressed="false">🚨 Arrêts d'urgence <span class="mn">4</span></button>
+          <button class="btn sm" id="btnTourUrgences" type="button" hidden>▶ Visiter les 4 arrêts</button>
+          <span class="tour-etat" id="tourEtat" aria-live="polite"></span>
+        </div>
 
         <div class="viewer-wrap">
           <canvas id="canvas3d"></canvas>
@@ -450,7 +457,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.16.0';
+      const VER = '1.17.0';
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
@@ -476,7 +483,7 @@
       if (loaderPct) loaderPct.textContent = '100 %';
       if (loader) loader.classList.add('hide');
 
-      v.setHotspots(TOUS_POINTS);
+      v.setHotspots(HOTSPOTS); /* mode Composants par défaut ; les urgences ont leur mode dédié */
 
       /* rotation auto : active au départ, coupée à la première interaction */
       const btnRotate = document.getElementById('btnRotate');
@@ -522,7 +529,7 @@
       const ficheKicker = document.querySelector('.fiche-kicker');
       const ficheClose = document.getElementById('ficheClose');
       const overlay = document.getElementById('hsOverlay');
-      const ORDRE = TOUS_POINTS.map((h) => h.id);
+      const ORDRE = HOTSPOTS.map((h) => h.id); /* muté par reglerMode() */
       let courant = null;
       let declencheur = null;
 
@@ -573,6 +580,49 @@
         const i = ORDRE.indexOf(courant);
         ouvrirFiche(ORDRE[(i + pas + ORDRE.length) % ORDRE.length], false);
       }
+
+      /* ---------- Modes : composants / arrêts d'urgence + visite guidée ---------- */
+      const btnModeComp = document.getElementById('modeComposants');
+      const btnModeUrg = document.getElementById('modeUrgences');
+      const btnTour = document.getElementById('btnTourUrgences');
+      const tourEtat = document.getElementById('tourEtat');
+      let modeActuel = 'composants';
+      let tourAnnule = true;
+      function reglerMode(m) {
+        modeActuel = m;
+        tourAnnule = true;
+        tourEtat.textContent = '';
+        fermerFiche();
+        const liste = m === 'composants' ? HOTSPOTS : URGENCES;
+        v.setHotspots(liste);
+        ORDRE.length = 0;
+        ORDRE.push(...liste.map((h) => h.id));
+        btnModeComp.classList.toggle('is-on', m === 'composants');
+        btnModeComp.setAttribute('aria-pressed', String(m === 'composants'));
+        btnModeUrg.classList.toggle('is-on', m === 'urgences');
+        btnModeUrg.setAttribute('aria-pressed', String(m === 'urgences'));
+        btnTour.hidden = m !== 'urgences';
+        reglerRotation(false);
+        v.home(FLY_HOME);
+      }
+      btnModeComp.addEventListener('click', () => reglerMode('composants'));
+      btnModeUrg.addEventListener('click', () => reglerMode('urgences'));
+      btnTour.addEventListener('click', async () => {
+        if (!tourAnnule) { tourAnnule = true; tourEtat.textContent = ''; btnTour.textContent = '▶ Visiter les 4 arrêts'; return; }
+        tourAnnule = false;
+        btnTour.textContent = '⏸ Arrêter la visite';
+        for (let i = 0; i < URGENCES.length; i++) {
+          if (tourAnnule) break;
+          tourEtat.textContent = 'Arrêt ' + (i + 1) + ' sur 4';
+          ouvrirFiche(URGENCES[i].id, false);
+          await new Promise((r) => setTimeout(r, 4200));
+        }
+        btnTour.textContent = '▶ Visiter les 4 arrêts';
+        if (!tourAnnule) { tourEtat.textContent = 'Les 4 arrêts vus ✓'; tourAnnule = true; }
+      });
+      canvas.addEventListener('pointerdown', () => {
+        if (!tourAnnule) { tourAnnule = true; tourEtat.textContent = ''; btnTour.textContent = '▶ Visiter les 4 arrêts'; }
+      });
 
       v.on('select', (id) => ouvrirFiche(id, true));
       if (ficheClose) ficheClose.addEventListener('click', fermerFiche);

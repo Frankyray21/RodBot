@@ -200,7 +200,9 @@ export const RodbotViewer = {
         el.className = 'hs' + (h.classe ? ' ' + h.classe : '');
         el.dataset.id = h.id;
         el.setAttribute('aria-label', h.label);
-        el.innerHTML = `<span class="hs-dot"><span class="hs-n">${h.num ?? ''}</span></span><span class="hs-lb">${h.label}</span>`;
+        el.innerHTML = h.encercle
+          ? `<span class="hs-ring"><span class="hs-ring-tag">${h.num ?? ''}</span></span><span class="hs-lb">${h.label}</span>`
+          : `<span class="hs-dot"><span class="hs-n">${h.num ?? ''}</span></span><span class="hs-lb">${h.label}</span>`;
         el.addEventListener('click', (e) => { e.stopPropagation(); emit('select', h.id, h); });
         overlay.appendChild(el);
         hsEls.set(h.id, el);
