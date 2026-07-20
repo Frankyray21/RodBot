@@ -770,6 +770,14 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 .hs-ring-tag{position:absolute;top:-11px;right:-11px;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d22325);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:.72rem;color:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
 @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(245,158,11,.55)}70%{box-shadow:0 0 0 18px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
 .hs-urgence .hs-lb{left:34px}
+
+/* pastille CACHÉE derrière la machine (viewer.js pose .is-occluded) :
+   anneau grisé en pointillés, sans pulsation, pour montrer qu'elle est de l'autre côté */
+.hs.is-occluded{filter:grayscale(.85)}
+.hs-urgence.is-occluded .hs-ring{border-style:dashed;border-color:#8b93a3;background:transparent;animation:none;box-shadow:none}
+.hs-urgence.is-occluded .hs-ring-tag{background:#6b7280;border-color:#cbd5e1;filter:none}
+.hs.is-occluded .hs-dot{background:#6b7280;border-color:#cbd5e1;animation:none;box-shadow:none}
+.hs.is-occluded:hover{filter:none} /* au survol, on la révèle nettement */
 /* barre de choix du parcours */
 .mode-bar{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem}
 .mode-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.2rem;border-radius:50px;border:1px solid var(--border);background:var(--card-2);color:var(--muted);font-weight:700;font-size:.95rem;cursor:pointer;transition:color .2s,background .2s,border-color .2s}

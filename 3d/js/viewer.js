@@ -221,12 +221,22 @@ export const RodbotViewer = {
         const behind = v3.z < 0;
         const sx = v3.x / dev.maxPixelRatio, sy = v3.y / dev.maxPixelRatio;
         const out = behind || sx < -40 || sx > w + 40 || sy < -40 || sy > hgt + 40;
-        el.style.opacity = out ? '0' : '1';
+        // Occlusion : le point est-il sur une face tournée à l'opposé de la caméra
+        // (donc caché DERRIÈRE la machine) ? Estimé par la normale du bouton, si fournie.
+        let occ = false;
+        if (h.normal) {
+          const dx = h.pos[0] - camPos.x, dy = h.pos[1] - camPos.y, dz = h.pos[2] - camPos.z;
+          const l = Math.hypot(dx, dy, dz) || 1;
+          occ = (dx * h.normal[0] + dy * h.normal[1] + dz * h.normal[2]) / l > 0.12;
+        }
+        el.classList.toggle('is-occluded', occ && !out);
+        el.style.opacity = out ? '0' : (occ ? '0.45' : '1');
         el.style.pointerEvents = out ? 'none' : 'auto';
         if (!out) {
           el.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px)`;
           const d = camPos.distance(new pc.Vec3(...h.pos));
-          el.style.zIndex = String(1000 - Math.round(d * 10));
+          // les pastilles cachées passent derrière les visibles
+          el.style.zIndex = String((occ ? 500 : 1000) - Math.round(d * 10));
         }
       }
     }
