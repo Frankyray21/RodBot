@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.22.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.23.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -415,7 +415,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.22.0';
+      const VER = '1.23.0';
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
@@ -595,22 +595,6 @@
           autoOuvrir: true,
           vues: [
             {
-              label: 'Photo réelle',
-              src: 'assets/photos/manette.jpg',
-              alt: 'Télécommande radio du RodBot avec manettes, interrupteurs et arrêt d\'urgence',
-              points: [
-                { x: 63, y: 12, n: 1, l: 'Écran d\'état (non tactile)' },
-                { x: 29, y: 27, n: 2, l: 'Manette gauche — inclinaison de la pince' },
-                { x: 72, y: 51, n: 3, l: 'Manette droite — rotation de la pince' },
-                { x: 45, y: 37, n: 4, l: 'PTS AUTO — points de trajectoire' },
-                { x: 36, y: 56, n: 5, l: 'Klaxon et gyrophare' },
-                { x: 21, y: 53, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
-                { x: 43, y: 62, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
-                { x: 54, y: 66, n: 8, l: 'Arrêt d\'urgence — arrête les deux machines' },
-                { x: 60, y: 71, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' }
-              ]
-            },
-            {
               label: 'Page du manuel',
               src: '../img/telecommande-annotee.png',
               alt: 'Schéma annoté de la radio-télécommande tiré du manuel de l\'opérateur',
@@ -628,6 +612,22 @@
                 { x: 86, y: 40, n: 11, l: 'Modes : veille, direct, linéaire' },
                 { x: 13, y: 40, n: 12, l: 'Modes : marche, stabilisateurs, balayage' },
                 { x: 26, y: 52, n: 13, l: 'Rapide (lapin) / Lent (tortue) — vitesses à 50 %' }
+              ]
+            },
+            {
+              label: 'Photo réelle',
+              src: 'assets/photos/manette.jpg',
+              alt: 'Télécommande radio du RodBot avec manettes, interrupteurs et arrêt d\'urgence',
+              points: [
+                { x: 63, y: 12, n: 1, l: 'Écran d\'état (non tactile)' },
+                { x: 29, y: 27, n: 2, l: 'Manette gauche — inclinaison de la pince' },
+                { x: 72, y: 51, n: 3, l: 'Manette droite — rotation de la pince' },
+                { x: 45, y: 37, n: 4, l: 'PTS AUTO — points de trajectoire' },
+                { x: 36, y: 56, n: 5, l: 'Klaxon et gyrophare' },
+                { x: 21, y: 53, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
+                { x: 43, y: 62, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
+                { x: 54, y: 66, n: 8, l: 'Arrêt d\'urgence — arrête les deux machines' },
+                { x: 60, y: 71, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' }
               ]
             }
           ]
