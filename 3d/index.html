@@ -235,6 +235,7 @@
       <button class="photobox-fermer" id="pbFermer" type="button" aria-label="Fermer la photo">&times;</button>
     </div>
     <span class="photobox-hint">Molette ou pince pour zoomer · glisse pour te déplacer</span>
+    <div class="pb-vues" id="pbVues"></div>
     <button class="vbtn pb-basc" id="pbBascule" type="button" aria-pressed="true">Repères</button>
   </div>
 
@@ -510,7 +511,11 @@
         const h = hotspotById(id);
         if (!h) return;
         reglerRotation(false);
-        v.flyTo(h.view, FLY);
+        const vol = v.flyTo(h.view, FLY);
+        /* photo interactive liée : s'ouvre d'elle-même une fois le vol terminé */
+        if (depuisPastille && PHOTOS[id] && PHOTOS[id].autoOuvrir) {
+          vol.then(() => { if (courant === id) ouvrirPhoto(PHOTOS[id]); });
+        }
         if (!data) return; /* pas de fiche : on vole quand même vers le composant */
         courant = id;
         ficheNum.textContent = h.num;
@@ -555,19 +560,30 @@
          Positions en % de l'image; libellés d'après le manuel BM260024. */
       const PHOTOS = {
         remote: {
-          src: 'assets/photos/manette.jpg',
           titre: 'La télécommande radio',
-          alt: 'Télécommande radio du RodBot avec manettes, interrupteurs et arrêt d\'urgence',
-          points: [
-            { x: 63, y: 12, n: 1, l: 'Écran d\'état (non tactile)' },
-            { x: 29, y: 27, n: 2, l: 'Manette gauche — inclinaison de la pince' },
-            { x: 72, y: 51, n: 3, l: 'Manette droite — rotation de la pince' },
-            { x: 45, y: 37, n: 4, l: 'PTS AUTO — points de trajectoire' },
-            { x: 36, y: 56, n: 5, l: 'Klaxon et gyrophare' },
-            { x: 21, y: 53, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
-            { x: 43, y: 62, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
-            { x: 54, y: 66, n: 8, l: 'Arrêt d\'urgence — arrête les deux machines' },
-            { x: 60, y: 71, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' }
+          autoOuvrir: true,
+          vues: [
+            {
+              label: 'Photo réelle',
+              src: 'assets/photos/manette.jpg',
+              alt: 'Télécommande radio du RodBot avec manettes, interrupteurs et arrêt d\'urgence',
+              points: [
+                { x: 63, y: 12, n: 1, l: 'Écran d\'état (non tactile)' },
+                { x: 29, y: 27, n: 2, l: 'Manette gauche — inclinaison de la pince' },
+                { x: 72, y: 51, n: 3, l: 'Manette droite — rotation de la pince' },
+                { x: 45, y: 37, n: 4, l: 'PTS AUTO — points de trajectoire' },
+                { x: 36, y: 56, n: 5, l: 'Klaxon et gyrophare' },
+                { x: 21, y: 53, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
+                { x: 43, y: 62, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
+                { x: 54, y: 66, n: 8, l: 'Arrêt d\'urgence — arrête les deux machines' },
+                { x: 60, y: 71, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' }
+              ]
+            },
+            {
+              label: 'Page du manuel',
+              src: '../img/telecommande-annotee.png',
+              alt: 'Schéma annoté de la radio-télécommande tiré du manuel de l\'opérateur'
+            }
           ]
         }
       };
@@ -592,28 +608,48 @@
       }
       const clampNb = (v, a, b) => Math.max(a, Math.min(b, v));
 
+      const pbVues = document.getElementById('pbVues');
       function ouvrirPhoto(ph) {
         if (!ph) return;
+        /* une photo simple {src,points} ou plusieurs vues commutables {vues:[...]} */
+        const vues = ph.vues || [{ label: null, src: ph.src, alt: ph.alt, points: ph.points }];
         pbTitre.textContent = ph.titre;
-        pbImg.alt = ph.alt || ph.titre;
-        pbPoints.innerHTML = '';
-        pbImg.onload = () => {
-          pb.w = pbImg.naturalWidth; pb.h = pbImg.naturalHeight;
-          for (const p of ph.points || []) {
-            const el = document.createElement('span');
-            el.className = 'pb-pt';
-            el.style.left = (p.x / 100 * pb.w) + 'px';
-            el.style.top = (p.y / 100 * pb.h) + 'px';
-            el.innerHTML = `<span class="pb-dot">${p.n}</span><span class="pb-lb">${p.l}</span>`;
-            pbPoints.appendChild(el);
-          }
-          const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
-          pb.min = Math.min(sw / pb.w, sh / pb.h);
-          pb.sc = pb.min;
-          pb.tx = 0; pb.ty = 0;
-          pbApplique();
+        pbVues.innerHTML = '';
+        const chargerVue = (ix) => {
+          const vu = vues[ix];
+          pbImg.alt = vu.alt || ph.titre;
+          pbPoints.innerHTML = '';
+          pbImg.onload = () => {
+            pb.w = pbImg.naturalWidth; pb.h = pbImg.naturalHeight;
+            for (const p of vu.points || []) {
+              const el = document.createElement('span');
+              el.className = 'pb-pt';
+              el.style.left = (p.x / 100 * pb.w) + 'px';
+              el.style.top = (p.y / 100 * pb.h) + 'px';
+              el.innerHTML = `<span class="pb-dot">${p.n}</span><span class="pb-lb">${p.l}</span>`;
+              pbPoints.appendChild(el);
+            }
+            const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
+            pb.min = Math.min(sw / pb.w, sh / pb.h);
+            pb.sc = pb.min;
+            pb.tx = 0; pb.ty = 0;
+            pbApplique();
+          };
+          pbImg.src = vu.src;
+          [...pbVues.children].forEach((b, j) => b.setAttribute('aria-pressed', String(j === ix)));
+          pbBascule.style.display = (vu.points && vu.points.length) ? '' : 'none';
         };
-        pbImg.src = ph.src;
+        if (vues.length > 1) {
+          vues.forEach((vu, ix) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'vbtn';
+            b.textContent = vu.label || ('Vue ' + (ix + 1));
+            b.addEventListener('click', () => chargerVue(ix));
+            pbVues.appendChild(b);
+          });
+        }
+        chargerVue(0);
         photobox.classList.add('open');
         document.body.style.overflow = 'hidden';
         pbFermer.focus({ preventScroll: true });

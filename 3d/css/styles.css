@@ -749,3 +749,6 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 .eq-desc{color:var(--muted);font-size:.9rem;line-height:1.5;flex:1}
 .eq-3d{align-self:flex-start;margin-top:.4rem}
 @media (hover:none){.eq-card:hover{transform:none}}
+/* vues commutables de la visionneuse (photo réelle / page du manuel) */
+.pb-vues{position:absolute;bottom:.9rem;left:1rem;z-index:2;display:flex;gap:.5rem}
+.pb-vues .vbtn[aria-pressed="true"]{background:var(--brand);border-color:transparent;color:#fff}
