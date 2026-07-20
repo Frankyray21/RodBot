@@ -101,8 +101,10 @@ function monterDans(bg) {
   });
   app.root.addChild(cam);
 
-  // disque de sol : texture gravier bakée dans Blender, assombrie, fondue vers #141413 ;
-  // repli : dégradé radial si la texture ne charge pas
+  // disque de sol (désactivé : le plancher a été retiré du scan) —
+  // remettre AVEC_SOL à true pour le rétablir
+  const AVEC_SOL = false;
+  if (AVEC_SOL) {
   const gc = document.createElement('canvas');
   gc.width = gc.height = 1024;
   const gctx = gc.getContext('2d');
@@ -148,6 +150,7 @@ function monterDans(bg) {
   ground.setLocalScale(13, 1, 13);
   ground.setPosition(-0.3, -2.74, -0.8);
   app.root.addChild(ground);
+  } // fin AVEC_SOL
 
   // --- état caméra : visite guidée / contrôle libre / retour à la visite ---
   const st = { ...viewAt(0), target: [...viewAt(0).target] };

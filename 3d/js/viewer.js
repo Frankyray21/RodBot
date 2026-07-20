@@ -246,10 +246,9 @@ export const RodbotViewer = {
       return 'ok';
     }
 
-    // --- disque de sol : comble les trous du plancher scanné ---
-    // texture gravier bakée dans Blender, assombrie et fondue vers le fond de page ;
-    // repli : dégradé radial si la texture ne charge pas
-    if (opts.ground !== false) {
+    // --- disque de sol (désactivé : le plancher a été retiré du scan,
+    // la machine flotte avec ses boyaux ; passer ground:true pour le rétablir) ---
+    if (opts.ground === true) {
       const gc = document.createElement('canvas');
       gc.width = gc.height = 1024;
       const gctx = gc.getContext('2d');
