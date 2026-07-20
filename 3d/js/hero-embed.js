@@ -52,7 +52,7 @@ function viewAt(ts) {
   };
 }
 
-let app = null, cam = null, canvas = null, hint = null, pret = false;
+let app = null, cam = null, canvas = null, hint = null, zoomBar = null, pret = false;
 
 function monterDans(bg) {
   // le canvas s'insère SOUS le voile dégradé (le voile garde le texte lisible
@@ -62,6 +62,7 @@ function monterDans(bg) {
     if (canvas.parentElement !== bg) {
       bg.insertBefore(canvas, scrim || null);
       if (hint) bg.appendChild(hint);
+      if (zoomBar) bg.appendChild(zoomBar);
     }
     if (pret) bg.classList.add('rb-3d-live');
     return;
@@ -71,7 +72,7 @@ function monterDans(bg) {
   bg.insertBefore(canvas, scrim || null);
   hint = document.createElement('span');
   hint.className = 'rb-hero-3d-hint';
-  hint.textContent = '🖐 Glisse pour tourner la machine';
+  hint.textContent = '🖐 Glisse pour tourner · Ctrl + molette pour zoomer';
   bg.appendChild(hint);
 
   app = new pc.Application(canvas, {
@@ -212,6 +213,33 @@ function monterDans(bg) {
     mode = 'retour';
     retour = { t0: performance.now(), dur: 1000, from: { yaw: st.yaw, pitch: st.pitch, dist: st.dist, target: [...st.target] }, to: viewAt(tourTime + 1) };
   });
+
+  // --- zoom : Ctrl+molette (la molette seule laisse défiler la page) + boutons +/− ---
+  const zoomer = (k) => {
+    mode = 'libre'; retour = null;
+    lastInteract = performance.now();
+    if (hint) hint.classList.add('rb-hint-vue');
+    st.dist = clamp(st.dist * k, LIM.distMin, LIM.distMax);
+    applyCam();
+  };
+  canvas.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey && !e.metaKey) return; // molette seule = défilement normal
+    e.preventDefault();
+    zoomer(e.deltaY > 0 ? 1.12 : 0.89);
+  }, { passive: false });
+
+  zoomBar = document.createElement('div');
+  zoomBar.className = 'rb-hero-zoom';
+  const bPlus = document.createElement('button');
+  bPlus.type = 'button'; bPlus.textContent = '+'; bPlus.setAttribute('aria-label', 'Zoomer sur la machine');
+  const bMoins = document.createElement('button');
+  bMoins.type = 'button'; bMoins.textContent = '−'; bMoins.setAttribute('aria-label', 'Reculer la vue');
+  bPlus.addEventListener('click', () => zoomer(0.78));
+  bMoins.addEventListener('click', () => zoomer(1.28));
+  zoomBar.appendChild(bPlus); zoomBar.appendChild(bMoins);
+  bg.appendChild(zoomBar);
+
+  window.__rbHero = { getDist: () => st.dist, getMode: () => mode }; // sonde de test
 
   // --- boucle : visite guidée interruptible ---
   app.on('update', (dt) => {
