@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.21.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.22.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -415,7 +415,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.21.0';
+      const VER = '1.22.0';
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
@@ -673,6 +673,17 @@
               el.style.left = (p.x / 100 * pb.w) + 'px';
               el.style.top = (p.y / 100 * pb.h) + 'px';
               el.innerHTML = `<span class="pb-dot">${p.n}</span><span class="pb-lb">${p.l}</span>`;
+              if (p.x > 58) el.classList.add('lb-left'); /* repère à droite : libellé à gauche */
+              const dot = el.querySelector('.pb-dot');
+              /* tap/clic sur un repère : révèle son libellé (un seul ouvert à la fois),
+                 sans démarrer un panoramique de la scène */
+              dot.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+              dot.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                const ouvert = el.classList.contains('is-open');
+                pbPoints.querySelectorAll('.pb-pt.is-open').forEach((x) => x.classList.remove('is-open'));
+                if (!ouvert) el.classList.add('is-open');
+              });
               pbPoints.appendChild(el);
             }
             const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
