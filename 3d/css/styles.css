@@ -736,3 +736,16 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 .photobox-fermer:hover{background:var(--brand);transform:rotate(90deg)}
 .photobox-hint{position:absolute;bottom:.9rem;left:50%;transform:translateX(-50%);color:var(--dim);font-size:.78rem;font-weight:600;background:rgba(13,19,32,.72);border:1px solid var(--border);border-radius:50px;padding:.35rem .9rem;pointer-events:none;z-index:2}
 .pb-basc{position:absolute;bottom:.9rem;right:1rem;z-index:2}
+
+/* ============ 20. ÉQUIPEMENT — CARTES FIGURES DU MANUEL ============ */
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:1.1rem}
+.eq-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);display:flex;flex-direction:column;transition:border-color .25s,transform .25s}
+.eq-card:hover{border-color:rgba(210,35,37,.45);transform:translateY(-3px)}
+.eq-frame{position:relative;display:block;width:100%;height:200px;padding:0;border:none;background:#f8fafc;cursor:zoom-in}
+.eq-frame img{width:100%;height:100%;object-fit:cover}
+.eq-badge{position:absolute;right:8px;bottom:8px;background:rgba(10,14,23,.85);border:1px solid var(--border);color:#fff;font-family:var(--font-display);font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.22rem .55rem;border-radius:6px}
+.eq-body{padding:1rem 1.1rem 1.1rem;display:flex;flex-direction:column;gap:.4rem;flex:1;text-align:left}
+.eq-tag{font-family:var(--font-display);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem;color:var(--accent-l)}
+.eq-desc{color:var(--muted);font-size:.9rem;line-height:1.5;flex:1}
+.eq-3d{align-self:flex-start;margin-top:.4rem}
+@media (hover:none){.eq-card:hover{transform:none}}

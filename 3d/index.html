@@ -89,6 +89,83 @@
       </div>
     </section>
 
+    <!-- ============ ÉQUIPEMENT EN UN COUP D'ŒIL ============ -->
+    <section id="equipement" aria-labelledby="equipTitre">
+      <div class="wrap">
+        <span class="eyebrow">L'équipement : en un coup d'œil</span>
+        <h2 class="title" id="equipTitre">Trouver les pièces sur la machine</h2>
+        <p class="lead">Figures et écrans du manuel : clique une carte pour l'agrandir (zoome et déplace-toi dedans), ou saute directement au composant sur le scan 3D.</p>
+        <div class="eq-grid">
+          <article class="eq-card">
+            <button class="eq-frame" type="button" data-fig="0" aria-label="Agrandir : la vraie machine">
+              <img src="../img/eq-machine-real.png" alt="Le RodBot LP en atelier" loading="lazy" style="object-position:50% 46%">
+              <span class="eq-badge">🔍 Agrandir</span>
+            </button>
+            <div class="eq-body">
+              <div class="eq-tag">La vraie machine</div>
+              <p class="eq-desc">Le RodBot LP en atelier : bras robotisé rouge, bac à tiges et base sur chenilles, l'ensemble que tu piloteras.</p>
+              <button class="vbtn eq-3d" type="button" data-cible="home">Voir sur le scan 3D</button>
+            </div>
+          </article>
+          <article class="eq-card">
+            <button class="eq-frame" type="button" data-fig="1" aria-label="Agrandir : schéma annoté de la télécommande">
+              <img src="../img/telecommande-annotee.png" alt="Schéma annoté de la radio-télécommande" loading="lazy">
+              <span class="eq-badge">🔍 Agrandir</span>
+            </button>
+            <div class="eq-body">
+              <div class="eq-tag">La télécommande</div>
+              <p class="eq-desc">Schéma complet de la radio-télécommande (RRC) : joysticks JS1-JS3, modes, arrêt d'urgence, klaxon, aimant, grappin.</p>
+              <button class="vbtn eq-3d" type="button" data-cible="remote">Voir sur le scan 3D</button>
+            </div>
+          </article>
+          <article class="eq-card">
+            <button class="eq-frame" type="button" data-fig="2" aria-label="Agrandir : l'IHM embarquée">
+              <img src="../img/eq-hmi.png" alt="Écran tactile IHM du panneau" loading="lazy" style="object-position:50% 30%">
+              <span class="eq-badge">🔍 Agrandir</span>
+            </button>
+            <div class="eq-body">
+              <div class="eq-tag">L'IHM embarquée</div>
+              <p class="eq-desc">L'écran tactile du panneau : modes, diagnostics, alarmes et calibrage.</p>
+              <button class="vbtn eq-3d" type="button" data-cible="elec">Voir sur le scan 3D</button>
+            </div>
+          </article>
+          <article class="eq-card">
+            <button class="eq-frame" type="button" data-fig="3" aria-label="Agrandir : le bac à tiges">
+              <img src="../img/eq-labeled.png" alt="Schéma du bac à tiges avec pattes de retenue et fourreaux" loading="lazy" style="object-position:50% 42%">
+              <span class="eq-badge">🔍 Agrandir</span>
+            </button>
+            <div class="eq-body">
+              <div class="eq-tag">Le bac à tiges</div>
+              <p class="eq-desc">Plateau amovible de 35 tiges, pattes de retenue latérales et fourreaux de fourches pour la manutention.</p>
+              <button class="vbtn eq-3d" type="button" data-cible="panier">Voir sur le scan 3D</button>
+            </div>
+          </article>
+          <article class="eq-card">
+            <button class="eq-frame" type="button" data-fig="4" aria-label="Agrandir : panneau et arrêt d'urgence">
+              <img src="../img/eq-panel.png" alt="Panneau basse tension avec champignon d'arrêt d'urgence" loading="lazy" style="object-position:50% 12%">
+              <span class="eq-badge">🔍 Agrandir</span>
+            </button>
+            <div class="eq-body">
+              <div class="eq-tag">Panneau &amp; arrêt d'urgence</div>
+              <p class="eq-desc">Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques.</p>
+              <button class="vbtn eq-3d" type="button" data-cible="elec">Voir sur le scan 3D</button>
+            </div>
+          </article>
+          <article class="eq-card">
+            <button class="eq-frame" type="button" data-fig="5" aria-label="Agrandir : les chenilles">
+              <img src="../img/eq-track.png" alt="Chenille en caoutchouc du RodBot" loading="lazy" style="object-position:50% 55%">
+              <span class="eq-badge">🔍 Agrandir</span>
+            </button>
+            <div class="eq-body">
+              <div class="eq-tag">Les chenilles</div>
+              <p class="eq-desc">Train de roulement en caoutchouc, contrôle de la flèche (mou) de 20 à 25 mm, couvert à l'entretien.</p>
+              <button class="vbtn eq-3d" type="button" data-cible="chenille">Voir sur le scan 3D</button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ PRÉSENTATION ============ -->
     <section id="presentation" aria-labelledby="presTitre">
       <div class="wrap">
@@ -488,8 +565,7 @@
       }
       const clampNb = (v, a, b) => Math.max(a, Math.min(b, v));
 
-      function ouvrirPhoto(id) {
-        const ph = PHOTOS[id];
+      function ouvrirPhoto(ph) {
         if (!ph) return;
         pbTitre.textContent = ph.titre;
         pbImg.alt = ph.alt || ph.titre;
@@ -584,7 +660,32 @@
       pbScene.addEventListener('pointercancel', pbFin);
       pbScene.addEventListener('dblclick', () => { pb.sc = pb.min; pbApplique(); });
 
-      fichePhoto.addEventListener('click', () => { if (courant) ouvrirPhoto(courant); });
+      fichePhoto.addEventListener('click', () => { if (courant) ouvrirPhoto(PHOTOS[courant]); });
+
+      /* ---------- Cartes équipement : agrandir + sauter au composant 3D ---------- */
+      const FIGURES = [
+        { src: '../img/eq-machine-real.png', titre: 'La vraie machine' },
+        { src: '../img/telecommande-annotee.png', titre: 'La télécommande — schéma annoté' },
+        { src: '../img/eq-hmi.png', titre: 'L\'IHM embarquée' },
+        { src: '../img/eq-labeled.png', titre: 'Le bac à tiges' },
+        { src: '../img/eq-panel.png', titre: 'Panneau et arrêt d\'urgence' },
+        { src: '../img/eq-track.png', titre: 'Les chenilles' }
+      ];
+      document.querySelectorAll('.eq-frame').forEach((b) => {
+        b.addEventListener('click', () => {
+          const f = FIGURES[+b.dataset.fig];
+          if (f) ouvrirPhoto({ src: f.src, titre: f.titre, alt: f.titre });
+        });
+      });
+      document.querySelectorAll('.eq-3d').forEach((b) => {
+        b.addEventListener('click', () => {
+          const cible = b.dataset.cible;
+          document.getElementById('explorer').scrollIntoView({ block: 'start' });
+          reglerRotation(false);
+          if (cible === 'home' || !hotspotById(cible)) v.home(FLY);
+          else ouvrirFiche(cible, false);
+        });
+      });
 
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
