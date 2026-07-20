@@ -166,15 +166,32 @@
       </div>
     </section>
 
-    <!-- ============ PRÉSENTATION ============ -->
+    <!-- ============ LE MANUEL EN BREF ============ -->
     <section id="presentation" aria-labelledby="presTitre">
       <div class="wrap">
-        <span class="eyebrow">La machine</span>
-        <h2 class="title" id="presTitre">Le manipulateur de tiges robotisé</h2>
+        <span class="eyebrow">Le manuel en bref</span>
+        <h2 class="title" id="presTitre">L'essentiel à retenir</h2>
         <div class="prose">
-          <p>Le LP RodBot est un système robotisé hydraulique de manutention de tiges de forage : il charge et décharge les tiges à la place des mains humaines — la manutention manuelle des tiges est l'une des principales causes d'accidents de travail liés aux foreuses. Monté sur chenilles, il transporte son bac de 35 tiges, se repositionne dans la galerie et se pilote entièrement à la télécommande radio, l'opérateur derrière une barrière.</p>
-          <p>Il n'a aucune source d'énergie embarquée : la foreuse mère l'alimente en hydraulique et en électricité par des ombilicaux de 10 mètres, et leurs circuits d'arrêt d'urgence sont couplés — un bouton enfoncé d'un bord arrête les deux machines.</p>
-          <p>Ce que tu vois ici n'est pas un dessin 3D&nbsp;: c'est un scan réel de la machine, capté chez Machines Roger International. Tourne autour, approche-toi, clique les huit pastilles et arrive à ta formation déjà familier avec la machine.</p>
+          <p>Le LP RodBot manipule les tiges de forage à ta place — piloté à la télécommande radio, l'opérateur derrière une barrière. Alimenté par la foreuse mère, arrêts d'urgence couplés entre les deux machines.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="v">35</span><span class="l">tiges dans le bac</span></div>
+          <div class="stat"><span class="v">4</span><span class="l">arrêts d'urgence</span></div>
+          <div class="stat"><span class="v">3</span><span class="l">modes de commande du mât</span></div>
+          <div class="stat"><span class="v">10&nbsp;m</span><span class="l">d'ombilicaux depuis la foreuse</span></div>
+        </div>
+        <div class="manuel-carte">
+          <div class="manuel-info">
+            <span class="manuel-ic" aria-hidden="true">📘</span>
+            <div>
+              <div class="manuel-titre">Manuel de l'opérateur</div>
+              <div class="manuel-ref">BM260024 · OM 10667 · R0 — 87 pages, MEDATech</div>
+            </div>
+          </div>
+          <div class="manuel-actions">
+            <a class="btn" href="../manuel-operateur.pdf" target="_blank" rel="noopener">Ouvrir le manuel (PDF)</a>
+            <a class="btn ghost" href="../manual-en.pdf" target="_blank" rel="noopener">English version</a>
+          </div>
         </div>
       </div>
     </section>
@@ -245,6 +262,16 @@
     .prose p{color:var(--muted);max-width:760px;margin-bottom:1.1rem;text-wrap:pretty}
     .prose p:first-child{color:#cbd5e1;font-size:1.08rem}
     .view-bar{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,205px),1fr));gap:1rem;margin-top:1.6rem}
+    .stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem 1.4rem;box-shadow:var(--shadow-card)}
+    .stat .v{display:block;font-family:var(--font-display);font-size:2.7rem;font-weight:800;line-height:1;background:var(--g-red);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;font-variant-numeric:tabular-nums}
+    .stat .l{display:block;color:var(--muted);font-size:.9rem;margin-top:.45rem;line-height:1.45}
+    .manuel-carte{display:flex;align-items:center;justify-content:space-between;gap:1.2rem;flex-wrap:wrap;margin-top:1.6rem;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.4rem 1.6rem;box-shadow:var(--shadow-card)}
+    .manuel-info{display:flex;align-items:center;gap:1rem}
+    .manuel-ic{font-size:2rem}
+    .manuel-titre{font-family:var(--font-display);font-weight:800;font-size:1.25rem;text-transform:uppercase;letter-spacing:.02em}
+    .manuel-ref{color:var(--muted);font-size:.88rem}
+    .manuel-actions{display:flex;gap:.7rem;flex-wrap:wrap}
   </style>
 
   <script type="module">
