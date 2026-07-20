@@ -278,6 +278,13 @@ html,body{overflow-x:hidden;max-width:100%}
 .rb-hero-bg.rb-3d-live .rb-hero-3d-hint{opacity:1}
 .rb-hero-3d-hint.rb-hint-vue{opacity:0 !important;transition-delay:0s}
 @media(max-width:880px){.rb-hero-3d-hint{display:none}}
+/* v1.12.0 : le glisser atteint le canvas 3D — les calques au-dessus laissent passer la souris,
+   seuls les boutons et liens du héros restent cliquables */
+.rb-hero-bg-scrim{pointer-events:none}
+.rb-hero-inner{pointer-events:none}
+.rb-hero-inner a,.rb-hero-inner button,.rb-hero-inner input,.rb-hero-inner select,.rb-hero-inner [role="button"]{pointer-events:auto}
+.rb-hero-bg canvas{cursor:grab}
+.rb-hero-bg canvas:active{cursor:grabbing}
 .rb-hero-photo-card{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.16);border-top:4px solid #D92624;box-shadow:0 34px 70px -30px rgba(0,0,0,.85);animation:rbHeroTextIn .6s cubic-bezier(.22,.61,.36,1) .3s both}
 .rb-hero-photo-card img{display:block;width:100%;height:100%;min-height:250px;max-height:430px;object-fit:cover;object-position:62% 45%;animation:rbHeroImgZoom 18s ease-in-out infinite alternate;filter:saturate(1.05) contrast(1.05)}
 /* vidéo 3D du héros : mêmes dimensions que la photo, sans le zoom CSS (la caméra bouge déjà) */

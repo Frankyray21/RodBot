@@ -11,18 +11,27 @@ import * as pc from 'https://cdn.jsdelivr.net/npm/playcanvas@2.13.3/build/playca
 
 const SOG_URL = '3d/assets/rodbot_mobile.sog';
 const FOND = [0x14 / 255, 0x14 / 255, 0x13 / 255]; // #141413 (fond du héros formation)
-const DUREE = 26; // secondes, boucle parfaite
+const DUREE = 52; // secondes, boucle parfaite
 
-/* mêmes keyframes que la vidéo hero_rodbot (orbite → grappin → mât → bac → recul) */
+/* visite complète (identique à la vidéo hero_rodbot) :
+   tour 360° de la machine, puis zoom sur chaque composante —
+   grappin, mât, bac, chenilles, stabilisateur, panneau électrique,
+   boyaux, télécommande — et recul final. La yaw progresse en continu
+   (fin ≡ début mod 360) pour une boucle sans couture. */
 const KEYS = [
-  { t: 0,    yaw: 305, pitch: 16, dist: 5.6, target: [-0.3, -0.9, -0.8] },
-  { t: 4,    yaw: 245, pitch: 18, dist: 6.5, target: [-0.3, -0.9, -0.8] },
-  { t: 8,    yaw: 335, pitch: 18, dist: 2.9, target: [0.18, 0.31, 1.14] },
-  { t: 10.5, yaw: 352, pitch: 21, dist: 2.7, target: [0.18, 0.31, 1.14] },
-  { t: 14,   yaw: 300, pitch: 22, dist: 3.4, target: [-0.2, 0.6, -0.2] },
-  { t: 17.5, yaw: 290, pitch: 33, dist: 3.2, target: [-0.44, -0.9, 1.3] },
-  { t: 22,   yaw: 205, pitch: 20, dist: 6.8, target: [-0.3, -0.9, -0.8] },
-  { t: 26,   yaw: 305, pitch: 16, dist: 5.6, target: [-0.3, -0.9, -0.8] }
+  { t: 0,  yaw: 305, pitch: 16, dist: 5.6, target: [-0.3, -0.9, -0.8] },   // vue d'ensemble
+  { t: 6,  yaw: 485, pitch: 24, dist: 6.4, target: [-0.3, -0.9, -0.8] },   // orbite — face arrière
+  { t: 12, yaw: 665, pitch: 16, dist: 5.6, target: [-0.3, -0.9, -0.8] },   // tour complet 360°
+  { t: 16, yaw: 695, pitch: 18, dist: 2.9, target: [0.18, 0.31, 1.14] },   // grappin (pince)
+  { t: 19, yaw: 712, pitch: 21, dist: 2.7, target: [0.18, 0.31, 1.14] },   // grappin — micro-orbite
+  { t: 23, yaw: 660, pitch: 22, dist: 3.4, target: [-0.2, 0.6, -0.2] },    // mât (bras robotisé)
+  { t: 27, yaw: 650, pitch: 33, dist: 3.2, target: [-0.44, -0.9, 1.3] },   // bac à tiges — plongée
+  { t: 31, yaw: 615, pitch: 10, dist: 3.6, target: [-1.2, -1.5, 0.4] },    // chenilles — profil bas
+  { t: 35, yaw: 650, pitch: 14, dist: 2.8, target: [-0.86, -1.5, 2.2] },   // vérin de stabilisation
+  { t: 39, yaw: 645, pitch: 15, dist: 2.6, target: [-0.74, -0.35, -0.45] },// panneau électrique
+  { t: 42, yaw: 640, pitch: 38, dist: 3.0, target: [-1.2, -2.1, -1.5] },   // boyaux — plongée
+  { t: 46, yaw: 690, pitch: 12, dist: 2.8, target: [-0.08, -0.6, -3.0] },  // télécommande
+  { t: 52, yaw: 665, pitch: 16, dist: 5.6, target: [-0.3, -0.9, -0.8] }    // recul = départ (mod 360)
 ];
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -46,9 +55,12 @@ function viewAt(ts) {
 let app = null, cam = null, canvas = null, hint = null, pret = false;
 
 function monterDans(bg) {
+  // le canvas s'insère SOUS le voile dégradé (le voile garde le texte lisible
+  // et laisse passer les clics via pointer-events:none)
+  const scrim = bg.querySelector('.rb-hero-bg-scrim');
   if (canvas) { // déjà créé (retour à l'accueil ou changement de langue) : on replace
     if (canvas.parentElement !== bg) {
-      bg.appendChild(canvas);
+      bg.insertBefore(canvas, scrim || null);
       if (hint) bg.appendChild(hint);
     }
     if (pret) bg.classList.add('rb-3d-live');
@@ -56,7 +68,7 @@ function monterDans(bg) {
   }
   canvas = document.createElement('canvas');
   canvas.setAttribute('aria-label', 'Vue 3D interactive du RodBot — glisser pour tourner');
-  bg.appendChild(canvas);
+  bg.insertBefore(canvas, scrim || null);
   hint = document.createElement('span');
   hint.className = 'rb-hero-3d-hint';
   hint.textContent = '🖐 Glisse pour tourner la machine';
