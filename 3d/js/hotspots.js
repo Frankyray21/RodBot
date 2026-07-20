@@ -70,8 +70,8 @@ export const URGENCES = [
   {
     id: 'u2', num: 'U', classe: 'hs-urgence', encercle: true,
     label: 'Arrêt d\'urgence — télécommande',
-    pos: [-0.10, -0.51, -2.99], normal: [-0.46, 0.15, 0.88],
-    view: { yaw: 332, pitch: 8, dist: 1.5, target: [-0.09, -0.5, -3.0] }
+    pos: [-0.10, -0.51, -2.99], normal: [0.05, 0.18, -0.98],
+    view: { yaw: 165, pitch: 14, dist: 1.35, target: [-0.09, -0.46, -2.98] }
   },
   {
     id: 'u3', num: 'U', classe: 'hs-urgence', encercle: true,
