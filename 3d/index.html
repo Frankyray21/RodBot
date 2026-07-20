@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.20.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.21.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -52,7 +52,6 @@
         <p>Le manipulateur de tiges robotisé qui garde les mains loin des tiges. Scanné en 3D chez Machines Roger International : tourne autour, clique chaque composant et arrive à ta formation déjà prêt.</p>
         <div class="hero-actions">
           <a class="btn lg" href="#explorer">Explorer la machine en 3D</a>
-          <a class="btn ghost lg" href="#presentation">La machine</a>
         </div>
       </div>
       <button class="scroll-cue" id="scrollCue" type="button">Défiler<span aria-hidden="true">&darr;</span></button>
@@ -158,47 +157,6 @@
               <button class="vbtn eq-3d" type="button" data-cible="elec">Voir sur le scan 3D</button>
             </div>
           </article>
-          <article class="eq-card">
-            <button class="eq-frame" type="button" data-fig="5" aria-label="Agrandir : les chenilles">
-              <img src="../img/eq-track.png" alt="Chenille en caoutchouc du RodBot" loading="lazy" style="object-position:50% 55%">
-              <span class="eq-badge">🔍 Agrandir</span>
-            </button>
-            <div class="eq-body">
-              <div class="eq-tag">Les chenilles</div>
-              <p class="eq-desc">Train de roulement en caoutchouc, contrôle de la flèche (mou) de 20 à 25 mm, couvert à l'entretien.</p>
-              <button class="vbtn eq-3d" type="button" data-cible="chenille">Voir sur le scan 3D</button>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ LE MANUEL EN BREF ============ -->
-    <section id="presentation" aria-labelledby="presTitre">
-      <div class="wrap">
-        <span class="eyebrow">Le manuel en bref</span>
-        <h2 class="title" id="presTitre">L'essentiel à retenir</h2>
-        <div class="prose">
-          <p>Le LP RodBot manipule les tiges de forage à ta place — piloté à la télécommande radio, l'opérateur derrière une barrière. Alimenté par la foreuse mère, arrêts d'urgence couplés entre les deux machines.</p>
-        </div>
-        <div class="stats">
-          <div class="stat"><span class="v">35</span><span class="l">tiges dans le bac</span></div>
-          <div class="stat"><span class="v">4</span><span class="l">arrêts d'urgence</span></div>
-          <div class="stat"><span class="v">3</span><span class="l">modes de commande du mât</span></div>
-          <div class="stat"><span class="v">10&nbsp;m</span><span class="l">d'ombilicaux depuis la foreuse</span></div>
-        </div>
-        <div class="manuel-carte">
-          <div class="manuel-info">
-            <span class="manuel-ic" aria-hidden="true">📘</span>
-            <div>
-              <div class="manuel-titre">Manuel de l'opérateur</div>
-              <div class="manuel-ref">BM260024 · OM 10667 · R0 — 87 pages, MEDATech</div>
-            </div>
-          </div>
-          <div class="manuel-actions">
-            <a class="btn" href="../manuel-operateur.pdf" target="_blank" rel="noopener">Ouvrir le manuel (PDF)</a>
-            <a class="btn ghost" href="../manual-en.pdf" target="_blank" rel="noopener">English version</a>
-          </div>
         </div>
       </div>
     </section>
@@ -457,7 +415,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.20.0';
+      const VER = '1.21.0';
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
