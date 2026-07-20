@@ -752,3 +752,13 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 /* vues commutables de la visionneuse (photo réelle / page du manuel) */
 .pb-vues{position:absolute;bottom:.9rem;left:1rem;z-index:2;display:flex;gap:.5rem}
 .pb-vues .vbtn[aria-pressed="true"]{background:var(--brand);border-color:transparent;color:#fff}
+/* pastilles d'arrêt d'urgence : style danger distinct */
+.hs-urgence .hs-dot{background:linear-gradient(135deg,#f59e0b,#d22325);border-color:#fff;animation:hsPulse 1.5s ease-out infinite}
+.hs-urgence .hs-n{font-size:.72rem}
+.hs-urgence .hs-lb{border-color:rgba(245,158,11,.55)}
+/* carte « manuel de l'opérateur » dans la fiche */
+.fiche-manuel{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:rgba(210,35,37,.07);border:1px solid rgba(210,35,37,.25);border-radius:14px;padding:1rem 1.2rem;margin-top:1.2rem}
+.fm-info{display:flex;gap:.8rem;align-items:center}
+.fm-ic{font-size:1.6rem}
+.fm-titre{font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.9rem}
+.fm-ref{color:var(--muted);font-size:.85rem}

@@ -197,7 +197,7 @@ export const RodbotViewer = {
       if (!overlay) return;
       for (const h of hotspots) {
         const el = document.createElement('button');
-        el.className = 'hs';
+        el.className = 'hs' + (h.classe ? ' ' + h.classe : '');
         el.dataset.id = h.id;
         el.setAttribute('aria-label', h.label);
         el.innerHTML = `<span class="hs-dot"><span class="hs-n">${h.num ?? ''}</span></span><span class="hs-lb">${h.label}</span>`;

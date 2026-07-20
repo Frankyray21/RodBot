@@ -63,7 +63,7 @@
       <div class="wrap">
         <span class="eyebrow">Scan 3D réel</span>
         <h2 class="title" id="explorerTitre">Explore le RodBot sous tous ses angles</h2>
-        <p class="lead">Le manipulateur de tiges robotisé pour le forage souterrain, scanné en 3D. Huit composants à découvrir : clique une pastille numérotée pour voler vers le composant et ouvrir sa fiche.</p>
+        <p class="lead">Huit composants à découvrir et les quatre arrêts d'urgence (pastilles <strong>U</strong> orangées). Chaque pastille : un résumé bref, puis la page du manuel de l'opérateur.</p>
 
         <div class="viewer-wrap">
           <canvas id="canvas3d"></canvas>
@@ -208,12 +208,16 @@
     </div>
     <div class="fiche-body">
       <p class="fiche-desc" id="ficheDesc"></p>
-      <div class="fiche-secu">
-        <h4>Rôle sécurité</h4>
-        <p id="ficheSecuTexte"></p>
+      <div class="fiche-manuel">
+        <div class="fm-info">
+          <span class="fm-ic" aria-hidden="true">📖</span>
+          <div>
+            <div class="fm-titre">Manuel de l'opérateur</div>
+            <div class="fm-ref" id="ficheManuelRef"></div>
+          </div>
+        </div>
+        <button class="btn sm" id="ficheManuelBtn" type="button">Voir la page</button>
       </div>
-      <h3 class="sub-h">Points clés</h3>
-      <ul class="fiche-points" id="fichePoints"></ul>
     </div>
     <div class="fiche-nav">
       <button class="btn ghost sm" id="fichePrev" type="button" aria-label="Composant précédent">Précédent</button>
@@ -284,102 +288,118 @@
     /* ---------- Données des fiches composants ----------
        Source : Manuel de l'opérateur BM260024 (MEDATech / Borterra LP RodBot, R0, juillet 2026) */
     const FICHES = [
-      {
-        "id": "bras",
-        "titre": "Mât télescopique (bras robotisé)",
-        "description": "Le mât, c'est le bras robotisé du RodBot : six degrés de mobilité — pivotement, épaule, télescope, poignet, rotation et inclinaison — pour amener chaque tige du bac jusqu'à la foreuse. Tu le commandes en mode DIRECT (chaque articulation séparément, comme une grue), en mode LINÉAIRE (la tige suit une ligne droite, le plus simple pour la plupart des opérateurs) ou en mode TRAJECTOIRE (le mât suit tout seul un chemin calculé entre des points enregistrés). Le pivotement couvre 330 degrés entre ses butées mécaniques.",
-        "roleSecurite": "Personne ne se place sous le mât ou le grappin — jamais. Le RodBot n'a aucun système de vision : c'est à toi de garder le personnel hors de son enveloppe de travail et de surveiller les câbles, conduites et tuyaux suspendus de la galerie. Si le mât fait un mouvement que tu n'as pas commandé, tu appuies immédiatement sur un arrêt d'urgence.",
-        "pointsCles": [
-          "Six degrés de mobilité",
-          "Trois modes : DIRECT, LINÉAIRE, TRAJECTOIRE",
-          "Aucun système de vision : zone dégagée",
-          "Mouvement non commandé : arrêt d'urgence"
-        ]
-      },
-      {
-        "id": "pince",
-        "titre": "Grappin (pince)",
-        "description": "Le grappin au bout du mât saisit les tiges de forage de 5 pouces, jusqu'à 6 pieds de long. Sa commande demande deux actions en même temps sur la télécommande : pour fermer, tu appuies sur le bouton vert GRAPPIN en poussant la bascule vers le bas; pour ouvrir et libérer la tige, bouton vert enfoncé et bascule maintenue vers le haut au moins une seconde. Un électroaimant complète le grappin pour le levage de tiges jusqu'à 120 livres.",
-        "roleSecurite": "En mode TRAJECTOIRE, le planificateur suppose que la tige est tenue à moins de 2 pouces de son centre — saisis-la toujours par le centre, sinon le calcul d'évitement ne protège plus rien. La machine refuse de passer en mode déplacement tant que les mâchoires sont fermées. Et la règle de base reste la même : personne en dessous, tige ou pas.",
-        "pointsCles": [
-          "Deux actions en même temps pour commander",
-          "Ouvrir : bouton et bascule, une seconde",
-          "Saisis toujours la tige par son centre",
-          "Personne dessous, jamais"
-        ]
-      },
-      {
-        "id": "panier",
-        "titre": "Bac à tiges (plateau)",
-        "description": "Le bac blanc sur le porteur contient jusqu'à 35 tiges de forage de 5 pouces sur 6 pieds. Il est amovible : ses fourreaux à fourches s'engagent dans les profilés du châssis et deux pattes de retenue le tiennent en place — pas de boulons, ce sont les éléments d'alignement qui font le travail. En mode TRAJECTOIRE, le POINT PLATEAU 1 est défini par défaut au-dessus du centre du bac.",
-        "roleSecurite": "Un bac mal engagé dans ses éléments d'alignement, c'est une charge instable et des tiges qui peuvent tomber. Vérifie que les fourreaux sont bien engagés et le bac assis entre ses deux pattes avant de le charger. Après un déplacement de la machine, tous les points de trajectoire sont effacés sauf le PLATEAU 1 : reconfigure les autres avant de repartir en mode automatique.",
-        "pointsCles": [
-          "Capacité : 35 tiges de 6 pieds",
-          "Amovible : fourreaux et pattes de retenue",
-          "Point PLATEAU 1 par défaut au-dessus du bac",
-          "Bien aligné et assis avant de charger"
-        ]
-      },
-      {
-        "id": "chenille",
-        "titre": "Chenilles et déplacement",
-        "description": "Le porteur sur chenilles déplace le RodBot dans la galerie — c'est le mode RALENTI, qui ne commande rien d'autre que les chenilles. Deux vitesses : lente à 1,5 km/h, rapide à 2,8 km/h. Avant de rouler, le bras prend sa pose de déplacement : pivotement parallèle au châssis, bras abaissé, télescope rentré, poignet vers le bas, grappin ouvert. Les freins à serrage par ressort (SAHR) se serrent d'eux-mêmes dès que la pression tombe.",
-        "roleSecurite": "Le déplacement se fait à la télécommande radio, jamais avec les leviers manuels — ceux-ci servent uniquement à l'entretien. Avant de bouger : inspecte la trajectoire (personnel, obstacles, cavités, terrain instable), et personne devant ni à côté de la machine pendant qu'elle roule. Visibilité obstruée? Signaleur obligatoire. Et ne roule jamais sur les ombilicaux.",
-        "pointsCles": [
-          "Mode RALENTI : chenilles seulement",
-          "Pose de déplacement obligatoire avant de rouler",
-          "Trajectoire inspectée, personne à côté",
-          "Jamais rouler sur les ombilicaux"
-        ]
-      },
-      {
-        "id": "stab",
-        "titre": "Vérins de stabilisation",
-        "description": "Les quatre vérins de stabilisation ancrent le RodBot au sol avant la manutention. Ils ont leur propre mode sur la télécommande — le mode STABILISATEURS, qui ne commande rien d'autre — et offrent une course de 10 pouces et demie pour rattraper le terrain inégal de la galerie.",
-        "roleSecurite": "La stabilité de toute la machine repose sur eux : la pente maximale passe de 35 degrés à vide à 15 degrés en manipulation de tiges. En entretien, méfie-toi : les vérins munis de valves d'équilibrage emmagasinent de l'énergie hydraulique même machine arrêtée — cadenassage obligatoire avant d'y toucher.",
-        "pointsCles": [
-          "Quatre vérins, un mode dédié",
-          "Course de 10 pouces et demie",
-          "Stabilité avant toute manutention",
-          "Énergie emmagasinée : cadenasse avant l'entretien"
-        ]
-      },
-      {
-        "id": "boyaux",
-        "titre": "Ombilicaux hydraulique et électrique",
-        "description": "Le RodBot n'a aucune source d'énergie embarquée : tout vient de la foreuse mère par des ensembles de liaison de 10 mètres. Côté hydraulique, quatre flexibles — pression, réservoir, détection de charge et drainage — alimentés par une pompe de 2 500 à 3 000 psi. Côté électrique, une gaine spirale regroupe le câble 24 volts et le câble d'arrêt d'urgence qui relie les circuits des deux machines : un arrêt d'urgence déclenché d'un bord arrête les deux.",
-        "roleSecurite": "Une fuite d'huile sous haute pression peut injecter le fluide sous la peau — c'est une urgence médicale immédiate, avec un protocole particulier : dis-le clairement aux secours. Inspecte les flexibles et câbles chaque jour pour détecter dommages et fuites, et garde-les hors de la trajectoire des chenilles en tout temps.",
-        "pointsCles": [
-          "Toute l'énergie vient de la foreuse",
-          "Arrêts d'urgence couplés entre les deux machines",
-          "Fuite sous pression : urgence médicale",
-          "Inspection quotidienne des flexibles"
-        ]
-      },
-      {
-        "id": "elec",
-        "titre": "Panneau électrique 24 V",
-        "description": "Le panneau de commande basse tension, c'est le poste fixe du RodBot. On y trouve le sélecteur LOCAL / À DISTANCE — en LOCAL, la télécommande radio n'est pas écoutée, même son arrêt d'urgence —, le bouton de réinitialisation de sécurité qui réarme le circuit après un arrêt d'urgence, et l'écran tactile IHM : modes actifs, alarmes, diagnostics et vue TRAJECTOIRE en 3D temps réel.",
-        "roleSecurite": "Un des quatre arrêts d'urgence de la machine est juste sous l'écran. Les valves d'isolement hydraulique sont normalement fermées : une coupure de courant coupe automatiquement toute l'hydraulique. Avant de te fier à la télécommande, vérifie le sélecteur — en LOCAL, son bouton d'arrêt d'urgence ne fait rien.",
-        "pointsCles": [
-          "Sélecteur LOCAL / À DISTANCE",
-          "Réarmement de sécurité après un arrêt",
-          "Écran IHM : alarmes, diagnostics, trajectoire",
-          "Arrêt d'urgence juste sous l'écran"
-        ]
-      },
-      {
-        "id": "remote",
-        "titre": "Télécommande radio",
-        "description": "La télécommande radio, c'est ton poste de pilotage : manettes proportionnelles à rappel au zéro, boutons de modes, écran d'état et clé physique — sans la clé, elle ne s'allume pas. Le mode Lent (tortue) réduit toutes les vitesses de moitié, sauf le grappin. Son bouton d'arrêt d'urgence est en série avec ceux du RodBot et de la foreuse : une pression arrête les deux machines. Sa boîte de rangement sur la machine contient le chargeur de batterie.",
-        "roleSecurite": "L'interrupteur d'inclinaison est ta ceinture de sécurité : si la télécommande tombe ou s'incline, la machine passe en arrêt de sécurité — vérifie son fonctionnement au début de chaque quart. Batterie à plat en pleine opération = arrêt d'urgence automatique. Et le manuel est clair : l'opérateur et la machine doivent être séparés par une barrière, chacun de son côté.",
-        "pointsCles": [
-          "Clé physique obligatoire",
-          "Teste l'interrupteur d'inclinaison chaque quart",
-          "Arrêt d'urgence : les deux machines s'arrêtent",
-          "Toi d'un bord de la barrière, elle de l'autre"
-        ]
-      }
+          {
+                "id": "bras",
+                "titre": "Mât télescopique (bras robotisé)",
+                "resume": "Six articulations — pivotement, épaule, télescope, poignet, rotation, inclinaison — et trois modes de commande : DIRECT, LINÉAIRE, TRAJECTOIRE.",
+                "manuel": {
+                      "ref": "§3 — Fonctions du mât télescopique",
+                      "page": 13
+                }
+          },
+          {
+                "id": "pince",
+                "titre": "Grappin (pince)",
+                "resume": "Saisit les tiges jusqu'à 6 pi. Commande à deux actions : bouton vert + bascule, une seconde maintenue pour ouvrir. Personne dessous, jamais.",
+                "manuel": {
+                      "ref": "§11.6.1 — Commande du grappin",
+                      "page": 55
+                }
+          },
+          {
+                "id": "panier",
+                "titre": "Bac à tiges (plateau)",
+                "resume": "Bac amovible de 35 tiges, aligné par fourreaux de fourches et pattes de retenue — jamais boulonné au châssis.",
+                "manuel": {
+                      "ref": "§11.7 — Chargement du bac à tiges",
+                      "page": 65
+                }
+          },
+          {
+                "id": "chenille",
+                "titre": "Chenilles et déplacement",
+                "resume": "Déplacement en mode RALENTI, à la télécommande seulement, bras en pose de transport. Deux vitesses : 1,5 et 2,8 km/h.",
+                "manuel": {
+                      "ref": "§11.4.1 — Mode ralenti (déplacement)",
+                      "page": 52
+                }
+          },
+          {
+                "id": "stab",
+                "titre": "Vérins de stabilisation",
+                "resume": "Quatre vérins avec leur mode dédié, course de 10 po ½ — la stabilité avant toute manutention.",
+                "manuel": {
+                      "ref": "§11.4.1 — Vérins (stabilisateurs)",
+                      "page": 51
+                }
+          },
+          {
+                "id": "boyaux",
+                "titre": "Ombilicaux hydraulique et électrique",
+                "resume": "Aucune énergie embarquée : ombilicaux de 10 m depuis la foreuse mère, circuits d'arrêt d'urgence couplés entre les deux machines.",
+                "manuel": {
+                      "ref": "§11.1 — Connexion filaire",
+                      "page": 47
+                }
+          },
+          {
+                "id": "elec",
+                "titre": "Panneau électrique 24 V",
+                "resume": "Sélecteur LOCAL / À DISTANCE, bouton de réarmement de sécurité et écran IHM — un arrêt d'urgence loge juste sous l'écran.",
+                "manuel": {
+                      "ref": "§4 — Panneau de commande basse tension",
+                      "page": 14
+                }
+          },
+          {
+                "id": "remote",
+                "titre": "Télécommande radio",
+                "resume": "Manettes proportionnelles à rappel au zéro, clé physique obligatoire, interrupteur d'inclinaison à tester chaque début de quart.",
+                "manuel": {
+                      "ref": "§6 — Télécommande radio",
+                      "page": 21
+                }
+          },
+          {
+                "id": "u1",
+                "titre": "Arrêt d'urgence — panneau",
+                "kicker": "Sécurité",
+                "resume": "Sous l'écran IHM du panneau basse tension. Un appui arrête le RodBot ET la foreuse mère.",
+                "manuel": {
+                      "ref": "§2.4 — Emplacements des arrêts d'urgence",
+                      "page": 12
+                }
+          },
+          {
+                "id": "u2",
+                "titre": "Arrêt d'urgence — télécommande",
+                "kicker": "Sécurité",
+                "resume": "Au centre, en bas de la télécommande radio. Actif seulement quand le sélecteur est en mode À DISTANCE.",
+                "manuel": {
+                      "ref": "§2.4 — Emplacements des arrêts d'urgence",
+                      "page": 12
+                }
+          },
+          {
+                "id": "u3",
+                "titre": "Arrêt d'urgence — châssis",
+                "kicker": "Sécurité",
+                "resume": "Au coin inférieur avant droit du châssis. Un appui arrête les deux machines.",
+                "manuel": {
+                      "ref": "§2.4 — Emplacements des arrêts d'urgence",
+                      "page": 12
+                }
+          },
+          {
+                "id": "u4",
+                "titre": "Arrêt d'urgence — leviers du mât",
+                "kicker": "Sécurité",
+                "resume": "À l'arrière, près des leviers hydrauliques de commande du mât.",
+                "manuel": {
+                      "ref": "§2.4 — Emplacements des arrêts d'urgence",
+                      "page": 12
+                }
+          }
     ];
 
     const REDUIT = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -429,10 +449,13 @@
     }
 
     try {
-      const [{ default: RodbotViewer }, { HOTSPOTS, VUES, hotspotById }] = await Promise.all([
-        import('./js/viewer.js'),
-        import('./js/hotspots.js')
+      /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
+      const VER = '1.16.0';
+      const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
+        import('./js/viewer.js?v=' + VER),
+        import('./js/hotspots.js?v=' + VER)
       ]);
+      const TOUS_POINTS = HOTSPOTS.concat(URGENCES);
 
       const v = await RodbotViewer.create({
         canvas: '#canvas3d',
@@ -453,7 +476,7 @@
       if (loaderPct) loaderPct.textContent = '100 %';
       if (loader) loader.classList.add('hide');
 
-      v.setHotspots(HOTSPOTS);
+      v.setHotspots(TOUS_POINTS);
 
       /* rotation auto : active au départ, coupée à la première interaction */
       const btnRotate = document.getElementById('btnRotate');
@@ -494,11 +517,12 @@
       const ficheNum = document.getElementById('ficheNum');
       const ficheTitle = document.getElementById('ficheTitle');
       const ficheDesc = document.getElementById('ficheDesc');
-      const ficheSecuTexte = document.getElementById('ficheSecuTexte');
-      const fichePoints = document.getElementById('fichePoints');
+      const ficheManuelRef = document.getElementById('ficheManuelRef');
+      const ficheManuelBtn = document.getElementById('ficheManuelBtn');
+      const ficheKicker = document.querySelector('.fiche-kicker');
       const ficheClose = document.getElementById('ficheClose');
       const overlay = document.getElementById('hsOverlay');
-      const ORDRE = HOTSPOTS.map((h) => h.id);
+      const ORDRE = TOUS_POINTS.map((h) => h.id);
       let courant = null;
       let declencheur = null;
 
@@ -519,15 +543,14 @@
         if (!data) return; /* pas de fiche : on vole quand même vers le composant */
         courant = id;
         ficheNum.textContent = h.num;
+        if (ficheKicker) ficheKicker.lastChild.textContent = ' ' + (data.kicker || 'Composant');
         ficheTitle.textContent = data.titre;
-        ficheDesc.textContent = data.description;
-        ficheSecuTexte.textContent = data.roleSecurite;
-        fichePoints.innerHTML = '';
-        for (const point of data.pointsCles) {
-          const li = document.createElement('li');
-          li.textContent = point;
-          fichePoints.appendChild(li);
-        }
+        ficheDesc.textContent = data.resume;
+        ficheManuelRef.textContent = data.manuel.ref + ' · page ' + data.manuel.page;
+        ficheManuelBtn.onclick = () => ouvrirPhoto({
+          titre: 'Manuel — ' + data.titre,
+          vues: [{ label: null, src: 'assets/manuel/p' + data.manuel.page + '.jpg', alt: 'Page ' + data.manuel.page + ' du manuel de l\'opérateur' }]
+        });
         overlay.querySelectorAll('.hs.is-active').forEach((el) => el.classList.remove('is-active'));
         const pastille = overlay.querySelector('.hs[data-id="' + id + '"]');
         if (pastille) { pastille.classList.add('is-active'); declencheur = pastille; }
