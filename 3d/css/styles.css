@@ -766,9 +766,14 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 /* anneau qui ENCERCLE l'arrêt d'urgence (centre transparent : on voit le bouton) */
 .hs-ring{position:absolute;left:-27px;top:-27px;width:54px;height:54px;border-radius:50%;border:3px solid #f59e0b;background:rgba(245,158,11,.07);animation:ringPulse 1.6s ease-out infinite;transition:transform .2s}
 .hs:hover .hs-ring,.hs:focus-visible .hs-ring{transform:scale(1.12);animation-play-state:paused}
-.hs.is-active .hs-ring{border-color:#fff;background:rgba(210,35,37,.18);animation:none}
-.hs-ring-tag{position:absolute;top:-11px;right:-11px;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d22325);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:.72rem;color:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+/* CLIC : on MET EN ÉVIDENCE le bouton exact — anneau blanc épais + lueur ambrée
+   + halo « radar » qui pulse vers l'extérieur, centré pile sur le bouton */
+.hs.is-active .hs-ring{border-color:#fff;border-width:4px;background:rgba(245,158,11,.16);animation:none;box-shadow:0 0 0 2px rgba(9,12,20,.5),0 0 24px 5px rgba(245,158,11,.6)}
+.hs.is-active .hs-ring::before{content:"";position:absolute;inset:-4px;border-radius:50%;border:3px solid #fbbf24;pointer-events:none;animation:estopPing 1.5s cubic-bezier(0,0,.2,1) infinite}
+.hs-ring-tag{position:absolute;top:-11px;right:-11px;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d22325);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:.72rem;color:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));z-index:1}
+.hs.is-active .hs-ring-tag{background:linear-gradient(135deg,#fbbf24,#d22325);transform:scale(1.08)}
 @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(245,158,11,.55)}70%{box-shadow:0 0 0 18px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
+@keyframes estopPing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(2.6);opacity:0}}
 .hs-urgence .hs-lb{left:34px}
 
 /* pastille CACHÉE derrière la machine (viewer.js pose .is-occluded) :
@@ -778,6 +783,12 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 .hs-urgence.is-occluded .hs-ring-tag{background:#6b7280;border-color:#cbd5e1;filter:none}
 .hs.is-occluded .hs-dot{background:#6b7280;border-color:#cbd5e1;animation:none;box-shadow:none}
 .hs.is-occluded:hover{filter:none} /* au survol, on la révèle nettement */
+/* le CLIC prime sur l'état caché : l'arrêt sélectionné est toujours mis en évidence */
+.hs.is-active.is-occluded{filter:none}
+.hs-urgence.is-active.is-occluded .hs-ring{border-style:solid;border-color:#fff;background:rgba(245,158,11,.16);box-shadow:0 0 0 2px rgba(9,12,20,.5),0 0 24px 5px rgba(245,158,11,.6)}
+.hs-urgence.is-active.is-occluded .hs-ring-tag{background:linear-gradient(135deg,#fbbf24,#d22325);border-color:#fff}
+/* mouvement réduit : halo statique (cible) au lieu du pulse */
+@media (prefers-reduced-motion:reduce){.hs.is-active .hs-ring::before{animation:none;opacity:.85;transform:scale(1.18);border-color:#fbbf24}}
 /* barre de choix du parcours */
 .mode-bar{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem}
 .mode-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.2rem;border-radius:50px;border:1px solid var(--border);background:var(--card-2);color:var(--muted);font-weight:700;font-size:.95rem;cursor:pointer;transition:color .2s,background .2s,border-color .2s}
