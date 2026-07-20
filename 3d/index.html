@@ -123,9 +123,26 @@
     </div>
     <div class="fiche-nav">
       <button class="btn ghost sm" id="fichePrev" type="button" aria-label="Composant précédent">Précédent</button>
+      <button class="btn ghost sm" id="fichePhoto" type="button" hidden>📷 Photo</button>
       <button class="btn sm" id="ficheNext" type="button" aria-label="Composant suivant">Suivant</button>
     </div>
   </aside>
+
+  <!-- ============ PHOTO INTERACTIVE ============ -->
+  <div class="photobox" id="photobox" role="dialog" aria-modal="true" aria-labelledby="photoboxTitre">
+    <div class="photobox-scene" id="pbScene">
+      <div class="photobox-plan" id="pbPlan">
+        <img id="pbImg" src="" alt="">
+        <div id="pbPoints"></div>
+      </div>
+    </div>
+    <div class="photobox-top">
+      <span class="photobox-titre" id="photoboxTitre"></span>
+      <button class="photobox-fermer" id="pbFermer" type="button" aria-label="Fermer la photo">&times;</button>
+    </div>
+    <span class="photobox-hint">Molette ou pince pour zoomer · glisse pour te déplacer</span>
+    <button class="vbtn pb-basc" id="pbBascule" type="button" aria-pressed="true">Repères</button>
+  </div>
 
   <!-- ============ PIED DE PAGE ============ -->
   <footer class="foot">
@@ -405,6 +422,8 @@
         overlay.querySelectorAll('.hs.is-active').forEach((el) => el.classList.remove('is-active'));
         const pastille = overlay.querySelector('.hs[data-id="' + id + '"]');
         if (pastille) { pastille.classList.add('is-active'); declencheur = pastille; }
+        const btnPhoto = document.getElementById('fichePhoto');
+        if (btnPhoto) btnPhoto.hidden = !PHOTOS[id];
         fiche.classList.add('open');
         if (depuisPastille && ficheClose) ficheClose.focus({ preventScroll: true });
       }
@@ -427,7 +446,152 @@
       if (ficheClose) ficheClose.addEventListener('click', fermerFiche);
       document.getElementById('fichePrev').addEventListener('click', () => voisin(-1));
       document.getElementById('ficheNext').addEventListener('click', () => voisin(1));
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermerFiche(); });
+
+      /* ---------- Photo interactive (zoom/pan + repères annotés) ----------
+         Positions en % de l'image; libellés d'après le manuel BM260024. */
+      const PHOTOS = {
+        remote: {
+          src: 'assets/photos/manette.jpg',
+          titre: 'La télécommande radio',
+          alt: 'Télécommande radio du RodBot avec manettes, interrupteurs et arrêt d\'urgence',
+          points: [
+            { x: 63, y: 12, n: 1, l: 'Écran d\'état (non tactile)' },
+            { x: 29, y: 27, n: 2, l: 'Manette gauche — inclinaison de la pince' },
+            { x: 72, y: 51, n: 3, l: 'Manette droite — rotation de la pince' },
+            { x: 45, y: 37, n: 4, l: 'PTS AUTO — points de trajectoire' },
+            { x: 36, y: 56, n: 5, l: 'Klaxon et gyrophare' },
+            { x: 21, y: 53, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
+            { x: 43, y: 62, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
+            { x: 54, y: 66, n: 8, l: 'Arrêt d\'urgence — arrête les deux machines' },
+            { x: 60, y: 71, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' }
+          ]
+        }
+      };
+      const photobox = document.getElementById('photobox');
+      const pbScene = document.getElementById('pbScene');
+      const pbPlan = document.getElementById('pbPlan');
+      const pbImg = document.getElementById('pbImg');
+      const pbPoints = document.getElementById('pbPoints');
+      const pbTitre = document.getElementById('photoboxTitre');
+      const pbFermer = document.getElementById('pbFermer');
+      const pbBascule = document.getElementById('pbBascule');
+      const fichePhoto = document.getElementById('fichePhoto');
+      const pb = { sc: 1, min: 1, tx: 0, ty: 0, w: 0, h: 0 };
+
+      function pbApplique() {
+        const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
+        const vw = pb.w * pb.sc, vh = pb.h * pb.sc;
+        /* borne le déplacement : l'image reste couvrante ou centrée */
+        pb.tx = vw <= sw ? (sw - vw) / 2 : clampNb(pb.tx, sw - vw, 0);
+        pb.ty = vh <= sh ? (sh - vh) / 2 : clampNb(pb.ty, sh - vh, 0);
+        pbPlan.style.transform = `translate(${pb.tx}px, ${pb.ty}px) scale(${pb.sc})`;
+      }
+      const clampNb = (v, a, b) => Math.max(a, Math.min(b, v));
+
+      function ouvrirPhoto(id) {
+        const ph = PHOTOS[id];
+        if (!ph) return;
+        pbTitre.textContent = ph.titre;
+        pbImg.alt = ph.alt || ph.titre;
+        pbPoints.innerHTML = '';
+        pbImg.onload = () => {
+          pb.w = pbImg.naturalWidth; pb.h = pbImg.naturalHeight;
+          for (const p of ph.points || []) {
+            const el = document.createElement('span');
+            el.className = 'pb-pt';
+            el.style.left = (p.x / 100 * pb.w) + 'px';
+            el.style.top = (p.y / 100 * pb.h) + 'px';
+            el.innerHTML = `<span class="pb-dot">${p.n}</span><span class="pb-lb">${p.l}</span>`;
+            pbPoints.appendChild(el);
+          }
+          const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
+          pb.min = Math.min(sw / pb.w, sh / pb.h);
+          pb.sc = pb.min;
+          pb.tx = 0; pb.ty = 0;
+          pbApplique();
+        };
+        pbImg.src = ph.src;
+        photobox.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        pbFermer.focus({ preventScroll: true });
+      }
+      function fermerPhoto() {
+        photobox.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+      pbFermer.addEventListener('click', fermerPhoto);
+      pbBascule.addEventListener('click', () => {
+        const visibles = pbPoints.style.display !== 'none';
+        pbPoints.style.display = visibles ? 'none' : '';
+        pbBascule.setAttribute('aria-pressed', String(!visibles));
+      });
+
+      /* zoom molette centré sur le curseur */
+      pbScene.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const k = e.deltaY > 0 ? 0.88 : 1.14;
+        const ns = clampNb(pb.sc * k, pb.min, pb.min * 8);
+        const r = pbScene.getBoundingClientRect();
+        const mx = e.clientX - r.left, my = e.clientY - r.top;
+        pb.tx = mx - (mx - pb.tx) * (ns / pb.sc);
+        pb.ty = my - (my - pb.ty) * (ns / pb.sc);
+        pb.sc = ns;
+        pbApplique();
+      }, { passive: false });
+
+      /* glisser + pince */
+      let pbDrag = null, pbPinch = null;
+      const pbPtrs = new Map();
+      pbScene.addEventListener('pointerdown', (e) => {
+        pbPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pbPtrs.size === 1) pbDrag = { x: e.clientX, y: e.clientY };
+        else if (pbPtrs.size === 2) {
+          const [a, b] = [...pbPtrs.values()];
+          pbPinch = { d: Math.hypot(a.x - b.x, a.y - b.y) };
+          pbDrag = null;
+        }
+        pbScene.classList.add('drag');
+        try { pbScene.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+      pbScene.addEventListener('pointermove', (e) => {
+        const p = pbPtrs.get(e.pointerId);
+        if (!p) return;
+        p.x = e.clientX; p.y = e.clientY;
+        if (pbPinch && pbPtrs.size === 2) {
+          const [a, b] = [...pbPtrs.values()];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          const ns = clampNb(pb.sc * (d / pbPinch.d), pb.min, pb.min * 8);
+          const r = pbScene.getBoundingClientRect();
+          const cx = (a.x + b.x) / 2 - r.left, cy = (a.y + b.y) / 2 - r.top;
+          pb.tx = cx - (cx - pb.tx) * (ns / pb.sc);
+          pb.ty = cy - (cy - pb.ty) * (ns / pb.sc);
+          pb.sc = ns; pbPinch.d = d;
+          pbApplique();
+          return;
+        }
+        if (!pbDrag) return;
+        pb.tx += e.clientX - pbDrag.x;
+        pb.ty += e.clientY - pbDrag.y;
+        pbDrag = { x: e.clientX, y: e.clientY };
+        pbApplique();
+      });
+      const pbFin = (e) => {
+        pbPtrs.delete(e.pointerId);
+        if (pbPtrs.size < 2) pbPinch = null;
+        if (pbPtrs.size === 0) { pbDrag = null; pbScene.classList.remove('drag'); }
+      };
+      pbScene.addEventListener('pointerup', pbFin);
+      pbScene.addEventListener('pointercancel', pbFin);
+      pbScene.addEventListener('dblclick', () => { pb.sc = pb.min; pbApplique(); });
+
+      fichePhoto.addEventListener('click', () => { if (courant) ouvrirPhoto(courant); });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (photobox.classList.contains('open')) fermerPhoto();
+          else fermerFiche();
+        }
+      });
 
     } catch (err) {
       console.error('Viewer 3D indisponible :', err);
