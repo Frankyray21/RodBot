@@ -26,31 +26,25 @@ export const HOTSPOTS = [
     view: { yaw: 290, pitch: 32, dist: 3.2, target: [-0.44, -0.9, 1.3] }
   },
   {
-    id: 'chenille', num: 4,
-    label: 'Chenilles',
-    pos: [-1.6, -1.4, 0.6],
-    view: { yaw: 255, pitch: 8, dist: 3.6, target: [-1.2, -1.5, 0.4] }
-  },
-  {
-    id: 'stab', num: 5,
+    id: 'stab', num: 4,
     label: 'Vérins de stabilisation',
     pos: [-0.86, -1.4, 2.32],
     view: { yaw: 290, pitch: 14, dist: 2.6, target: [-0.86, -1.5, 2.2] }
   },
   {
-    id: 'boyaux', num: 6,
+    id: 'boyaux', num: 5,
     label: 'Ombilicaux',
     pos: [-1.3, -2.05, -1.6],
     view: { yaw: 280, pitch: 38, dist: 2.8, target: [-1.2, -2.1, -1.5] }
   },
   {
-    id: 'elec', num: 7,
+    id: 'elec', num: 6,
     label: 'Panneau électrique 24 V',
     pos: [-0.74, -0.29, -0.42],
     view: { yaw: 285, pitch: 12, dist: 2.4, target: [-0.74, -0.35, -0.45] }
   },
   {
-    id: 'remote', num: 8,
+    id: 'remote', num: 7,
     label: 'Télécommande radio',
     pos: [-0.08, -0.4, -3.04],
     view: { yaw: 330, pitch: 12, dist: 2.6, target: [-0.08, -0.6, -3.0] }

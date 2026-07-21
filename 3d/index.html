@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.29.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.30.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -65,7 +65,7 @@
         <p class="lead">Choisis ton parcours : les <strong>composants</strong> (pastilles numérotées) ou les <strong>arrêts d'urgence</strong> (anneaux orangés qui encerclent chaque bouton). Chaque point : un résumé bref, puis la page du manuel.</p>
 
         <div class="mode-bar" role="group" aria-label="Choix du parcours">
-          <button class="mode-btn is-on" id="modeComposants" type="button" aria-pressed="true">🔧 Composants <span class="mn">8</span></button>
+          <button class="mode-btn is-on" id="modeComposants" type="button" aria-pressed="true">🔧 Composants <span class="mn">7</span></button>
           <button class="mode-btn mode-btn--urg" id="modeUrgences" type="button" aria-pressed="false">🚨 Arrêts d'urgence <span class="mn">4</span></button>
           <button class="btn sm" id="btnTourUrgences" type="button" hidden>▶ Visiter les 4 arrêts</button>
           <span class="tour-etat" id="tourEtat" aria-live="polite"></span>
@@ -281,15 +281,6 @@
                 }
           },
           {
-                "id": "chenille",
-                "titre": "Chenilles et déplacement",
-                "resume": "Déplacement en mode RALENTI, à la télécommande seulement, bras en pose de transport. Deux vitesses : 1,5 et 2,8 km/h.",
-                "manuel": {
-                      "ref": "§11.4.1 : Mode ralenti (déplacement)",
-                      "page": 52
-                }
-          },
-          {
                 "id": "stab",
                 "titre": "Vérins de stabilisation",
                 "resume": "Quatre vérins avec leur mode dédié, course de 10 po ½ : la stabilité avant toute manutention.",
@@ -415,7 +406,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.29.0';
+      const VER = '1.30.0';
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
