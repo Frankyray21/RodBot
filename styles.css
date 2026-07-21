@@ -68,6 +68,16 @@ input::placeholder{color:rgba(29,30,27,.35)}
 
 @keyframes rbFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes rbPulse{0%,100%{opacity:.55}50%{opacity:1}}
+/* Voyant ambre anime : remplace la photo dans la section "Savoir arreter la machine".
+   Cycle en 6 s : fixe (allume), clignotant, puis eteint. */
+.rb-beacon{width:46px;height:46px;border-radius:50%;background:#F0A81E;box-shadow:0 0 26px 8px rgba(240,168,30,.9);animation:rbBeaconCycle 6s ease-in-out infinite}
+@keyframes rbBeaconCycle{
+  0%,20%{background:#F0A81E;box-shadow:0 0 26px 8px rgba(240,168,30,.9)}
+  28%,44%{background:#F0A81E;box-shadow:0 0 28px 9px rgba(240,168,30,1)}
+  32%,40%{background:#4a3f22;box-shadow:0 0 4px rgba(240,168,30,.15)}
+  56%,100%{background:#332d20;box-shadow:0 0 3px rgba(0,0,0,0)}
+}
+@media (prefers-reduced-motion:reduce){.rb-beacon{animation:none;background:#F0A81E;box-shadow:0 0 20px 6px rgba(240,168,30,.7)}}
 @keyframes rbPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes rbSheet{from{transform:translateY(100%)}to{transform:none}}
 /* Fiche commande télécommande : feuille du bas sur mobile, carte centrée sur ordinateur */
