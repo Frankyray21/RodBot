@@ -63,25 +63,25 @@ export const HOTSPOTS = [
 export const URGENCES = [
   {
     id: 'u1', num: 'U', classe: 'hs-urgence', encercle: true,
-    label: 'Arrêt d\'urgence — panneau',
+    label: 'Arrêt d\'urgence : panneau',
     pos: [-0.85, -0.88, -0.72], normal: [1, 0, 0],
     view: { yaw: 98, pitch: 8, dist: 1.8, target: [-0.85, -0.8, -0.5] }
   },
   {
     id: 'u2', num: 'U', classe: 'hs-urgence', encercle: true,
-    label: 'Arrêt d\'urgence — télécommande',
+    label: 'Arrêt d\'urgence : télécommande',
     pos: [-0.10, -0.51, -2.99], normal: [0.05, 0.18, -0.98],
     view: { yaw: 165, pitch: 14, dist: 1.35, target: [-0.09, -0.46, -2.98] }
   },
   {
     id: 'u3', num: 'U', classe: 'hs-urgence', encercle: true,
-    label: 'Arrêt d\'urgence — châssis',
+    label: 'Arrêt d\'urgence : châssis',
     pos: [-0.48, -1.05, 2.19], normal: [-0.81, 0, 0.58],
     view: { yaw: 306, pitch: 9, dist: 1.8, target: [-0.5, -1.15, 1.7] }
   },
   {
     id: 'u4', num: 'U', classe: 'hs-urgence', encercle: true,
-    label: 'Arrêt d\'urgence — leviers du mât',
+    label: 'Arrêt d\'urgence : leviers du mât',
     pos: [-0.21, -0.70, -1.06], normal: [0, 0, -1],
     view: { yaw: 186, pitch: 6, dist: 1.6, target: [-0.16, -0.62, -1.02] }
   }
