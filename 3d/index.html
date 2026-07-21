@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.23.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.24.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -415,7 +415,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.23.0';
+      const VER = '1.24.0';
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
