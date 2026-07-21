@@ -232,7 +232,7 @@
         <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden;display:flex;flex-direction:column">
           <div style="padding:16px 22px 13px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
             <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">FIGURE DU MANUEL</div>
-            <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUEL · P. 13</span>
+            <button onClick="{{ pgMat.open }}" title="Ouvrir la page {{ pgMat.n }} du manuel" style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;background:none;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap;cursor:pointer" style-hover="background:rgba(217,38,36,.08)">📖 MANUEL · P. {{ pgMat.n }}</button>
           </div>
           <div style="background:#fff;padding:24px 28px 12px"><img src="img/mat-annote.png" alt="Figure annotée du mât articulé : pivotement, articulation (épaule), télescope, joint rotatif (poignet), rotation, inclinaison, grappin" loading="lazy" style="display:block;width:100%;max-width:530px;margin:0 auto;height:auto"></div>
           <div style="padding:14px 22px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;flex-wrap:wrap;gap:7px;align-items:center"><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">PIVOTEMENT</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ARTICULATION (ÉPAULE)</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TÉLESCOPE</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">POIGNET</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ROTATION</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">INCLINAISON</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">GRAPPIN</span></div>
@@ -246,7 +246,7 @@
         <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden">
           <div style="padding:16px 22px 13px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
             <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">VUE DE DESSUS ET VUE DE CÔTÉ · PIVOTEMENT 330°, ZONE MORTE 30°</div>
-            <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUEL · P. 54</span>
+            <button onClick="{{ pgPortee.open }}" title="Ouvrir la page {{ pgPortee.n }} du manuel" style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;background:none;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap;cursor:pointer" style-hover="background:rgba(217,38,36,.08)">📖 MANUEL · P. {{ pgPortee.n }}</button>
           </div>
           <div style="background:#fff;padding:20px 24px"><img src="img/portee.webp" alt="Zone de travail du RodBot : portée de 3 m (R119 po) et 1,9 m (R75 po), zone morte de 30 degrés, hauteur 5 m (180 po)" loading="lazy" style="display:block;width:100%;max-width:820px;margin:0 auto;height:auto"></div>
         </div>
@@ -260,7 +260,7 @@
 
         <div style="display:grid;grid-template-columns:1.05fr .95fr;gap:18px;align-items:stretch">
           <div class="mr-grain" style="background:#141413;color:#FAF9F5;padding:24px;display:flex;flex-direction:column">
-            <div style="font-weight:800;font-size:15px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:18px;color:#FAF9F5">Le voyant ambre <span style="color:#8A8985;font-weight:600;font-size:13px">· p. 20</span></div>
+            <div style="font-weight:800;font-size:15px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:18px;color:#FAF9F5">Le voyant ambre <button onClick="{{ pgBeacon.open }}" title="Ouvrir la page {{ pgBeacon.n }} du manuel" style="font-family:inherit;font-size:13px;font-weight:600;letter-spacing:inherit;text-transform:inherit;color:#8A8985;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#F0A81E">· p. {{ pgBeacon.n }}</button></div>
             <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;flex:1">
               <div style="text-align:center;flex:none">
                 <div style="width:82px;height:82px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#0F0F0E;border:2px solid rgba(255,255,255,.16)">
@@ -281,7 +281,7 @@
 
           <div style="display:flex;flex-direction:column;gap:18px">
             <div style="background:#D92624;color:#FFFFFF;padding:22px 24px;flex:1;display:flex;flex-direction:column;justify-content:center">
-              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#FFFFFF;margin-bottom:6px">⚠ AUCUN SYSTÈME DE VISION · P. 63</div>
+              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#FFFFFF;margin-bottom:6px">⚠ AUCUN SYSTÈME DE VISION <button onClick="{{ pgVision.open }}" title="Ouvrir la page {{ pgVision.n }} du manuel" style="font:inherit;letter-spacing:inherit;color:#FFFFFF;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px">· P. {{ pgVision.n }}</button></div>
               <div style="font-size:13.5px;line-height:1.55;color:#FFE9E8">Le RodBot ne voit <strong style="color:#FFFFFF">ni les travailleurs ni les équipements</strong> dans sa zone. Avant de bouger : <strong style="color:#FFFFFF">barrière en place</strong>, opérateur séparé de la machine et de la foreuse (p. 45), pilotage radio de part et d'autre.</div>
             </div>
           </div>
@@ -1207,7 +1207,7 @@
         <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden;display:flex;flex-direction:column">
           <div style="padding:16px 22px 13px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
             <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">MANUAL FIGURE</div>
-            <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUEL · P. 13</span>
+            <button onClick="{{ pgMat.open }}" title="Open manual page {{ pgMat.n }}" style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;background:none;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap;cursor:pointer" style-hover="background:rgba(217,38,36,.08)">📖 MANUAL · P. {{ pgMat.n }}</button>
           </div>
           <div style="background:#fff;padding:24px 28px 12px"><img src="img/mat-annote.png" alt="Annotated figure of the articulated mast: slew, joint (shoulder), telescope, wrist, rotation, tilt, gripper" loading="lazy" style="display:block;width:100%;max-width:530px;margin:0 auto;height:auto"></div>
           <div style="padding:14px 22px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;flex-wrap:wrap;gap:7px;align-items:center"><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">SLEW</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">JOINT (SHOULDER)</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TELESCOPE</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">WRIST</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ROTATION</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TILT</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">GRIPPER</span></div>
@@ -1221,7 +1221,7 @@
         <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden">
           <div style="padding:16px 22px 13px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
             <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">TOP VIEW AND SIDE VIEW · 330° SLEW, 30° DEAD ZONE</div>
-            <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUAL · P. 54</span>
+            <button onClick="{{ pgPortee.open }}" title="Open manual page {{ pgPortee.n }}" style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;background:none;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap;cursor:pointer" style-hover="background:rgba(217,38,36,.08)">📖 MANUAL · P. {{ pgPortee.n }}</button>
           </div>
           <div style="background:#fff;padding:20px 24px"><img src="img/portee.webp" alt="RodBot work envelope: reach 3 m (R119 in) and 1.9 m (R75 in), 30 degree dead zone, height 5 m (180 in)" loading="lazy" style="display:block;width:100%;max-width:820px;margin:0 auto;height:auto"></div>
         </div>
@@ -1235,7 +1235,7 @@
 
         <div style="display:grid;grid-template-columns:1.05fr .95fr;gap:18px;align-items:stretch">
           <div class="mr-grain" style="background:#141413;color:#FAF9F5;padding:24px;display:flex;flex-direction:column">
-            <div style="font-weight:800;font-size:15px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:18px;color:#FAF9F5">Amber beacon <span style="color:#8A8985;font-weight:600;font-size:13px">· p. 20</span></div>
+            <div style="font-weight:800;font-size:15px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:18px;color:#FAF9F5">Amber beacon <button onClick="{{ pgBeacon.open }}" title="Open manual page {{ pgBeacon.n }}" style="font-family:inherit;font-size:13px;font-weight:600;letter-spacing:inherit;text-transform:inherit;color:#8A8985;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#F0A81E">· p. {{ pgBeacon.n }}</button></div>
             <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;flex:1">
               <div style="text-align:center;flex:none">
                 <div style="width:82px;height:82px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#0F0F0E;border:2px solid rgba(255,255,255,.16)">
@@ -1256,7 +1256,7 @@
 
           <div style="display:flex;flex-direction:column;gap:18px">
             <div style="background:#D92624;color:#FFFFFF;padding:22px 24px;flex:1;display:flex;flex-direction:column;justify-content:center">
-              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#FFFFFF;margin-bottom:6px">⚠ NO VISION SYSTEM · P. 63</div>
+              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#FFFFFF;margin-bottom:6px">⚠ NO VISION SYSTEM <button onClick="{{ pgVision.open }}" title="Open manual page {{ pgVision.n }}" style="font:inherit;letter-spacing:inherit;color:#FFFFFF;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px">· P. {{ pgVision.n }}</button></div>
               <div style="font-size:13.5px;line-height:1.55;color:#FFE9E8">The RodBot does not see <strong style="color:#FFFFFF">workers or equipment</strong> in its area. Before moving: <strong style="color:#FFFFFF">barrier in place</strong>, operator separated from the machine and drill (p. 45), radio control from either side.</div>
             </div>
           </div>
@@ -1972,7 +1972,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.47"></script>
+<script src="app.js?v=1.9.48"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.38.0';
+var APP_VERSION = '1.39.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1990,6 +1990,12 @@ class Component extends DCLogic {
       border: on?"#F0A81E":"rgba(255,255,255,.15)",
       fg: on?"#FAF9F5":"#C9C8C4"
     }; });
+    // Renvois vers le manuel (page exacte) sur l'accueil : chaque « P. XX » ouvre la visionneuse
+    // a la bonne page (n = page remappee selon la langue).
+    base.pgMat    = { n:this.mp(13), open:()=>this.openManual(this.mp(13)) };
+    base.pgPortee = { n:this.mp(54), open:()=>this.openManual(this.mp(54)) };
+    base.pgBeacon = { n:this.mp(20), open:()=>this.openManual(this.mp(20)) };
+    base.pgVision = { n:this.mp(63), open:()=>this.openManual(this.mp(63)) };
     base.klaxonOn = S.klaxon;
     base.valveTracks = curMode.tracks ? "OUVERTE" : "FERMÉE";
     base.valveTracksFg = curMode.tracks ? "#2F7D48" : "#535252";

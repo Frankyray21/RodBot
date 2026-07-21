@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.30.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.39.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -146,17 +146,6 @@
               <button class="vbtn eq-3d" type="button" data-cible="panier">Voir sur le scan 3D</button>
             </div>
           </article>
-          <article class="eq-card">
-            <button class="eq-frame" type="button" data-fig="4" aria-label="Agrandir : panneau et arrêt d'urgence">
-              <img src="../img/eq-panel.png" alt="Panneau basse tension avec champignon d'arrêt d'urgence" loading="lazy" style="object-position:50% 12%">
-              <span class="eq-badge">🔍 Agrandir</span>
-            </button>
-            <div class="eq-body">
-              <div class="eq-tag">Panneau &amp; arrêt d'urgence</div>
-              <p class="eq-desc">Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques.</p>
-              <button class="vbtn eq-3d" type="button" data-cible="elec">Voir sur le scan 3D</button>
-            </div>
-          </article>
         </div>
       </div>
     </section>
@@ -223,6 +212,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
+        <span id="rbSiteVer">Version 1.39.0</span>
         <span>Scan 3D réel. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -406,7 +396,8 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.30.0';
+      const VER = '1.39.0';
+      try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
