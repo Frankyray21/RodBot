@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.51.0';
+var APP_VERSION = '1.52.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -2601,6 +2601,9 @@ function bootRodbot() {
   TPL_ROOT = doc.getElementById('rb-wrap');
   try { document.documentElement.setAttribute('lang', COMP.state.lang); } catch (e) {}
   fullRender();
+  // L'app est rendue : on retire immédiatement l'écran de démarrage (logo) pour
+  // qu'il ne masque jamais la manette interactive. Repli CSS si l'appel manque.
+  try { if (window.__rbBootHide) window.__rbBootHide(); } catch (e) {}
   // Suivi de formation du même utilisateur : si un nom est déjà connu sur cet
   // appareil, relit silencieusement sa progression sauvegardée (nouvel appareil
   // / appareil partagé), au plus toutes les 6 h. Renvoie aussi au serveur toute
@@ -2639,7 +2642,11 @@ function bootRodbot() {
       var __hadController = !!navigator.serviceWorker.controller;
       var __reloaded = false;
       navigator.serviceWorker.addEventListener('controllerchange', function () {
-        if (!__hadController || __reloaded) return; __reloaded = true; location.reload();
+        if (!__hadController || __reloaded) return; __reloaded = true;
+        // Marque le rechargement pour que l'écran de démarrage ne clignote pas
+        // une 2e fois après la mise à jour (« on voit l'ancienne avant »).
+        try { sessionStorage.setItem('rb_reloading', '1'); } catch (e) {}
+        location.reload();
       });
       navigator.serviceWorker.register('sw.js').then(function (reg) {
         try { reg.update(); } catch (e) {}

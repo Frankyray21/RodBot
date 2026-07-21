@@ -19,9 +19,14 @@
 <link rel="apple-touch-icon" href="icon-192.png?v=1.9.59">
 <link rel="icon" type="image/png" href="icon-192.png?v=1.9.59">
 <style>
-  #rb-boot{position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease}
+  /* Écran de démarrage (logo). pointer-events:none : il ne peut JAMAIS bloquer
+     une commande de la manette. Repli 100 % CSS : même sans JavaScript, il
+     disparaît tout seul (rbBootFade) au bout de 2,4 s. */
+  #rb-boot{position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:rbBootFade .5s ease 2.4s forwards}
   #rb-boot img{width:min(64vw,270px);height:auto;filter:drop-shadow(0 22px 55px rgba(0,0,0,.55));animation:rbBootPulse 1.5s ease-in-out infinite}
+  #rb-boot.rb-gone{animation:none;opacity:0;visibility:hidden;transition:opacity .35s ease}
   @keyframes rbBootPulse{0%,100%{opacity:.7;transform:scale(.975)}50%{opacity:1;transform:scale(1)}}
+  @keyframes rbBootFade{to{opacity:0;visibility:hidden}}
   @media (prefers-reduced-motion:reduce){#rb-boot img{animation:none}}
 </style>
 </head>
@@ -30,10 +35,19 @@
 <script>
   (function(){
     var b=document.getElementById('rb-boot'); if(!b) return;
-    function hide(){ if(!b) return; b.style.opacity='0'; var n=b; setTimeout(function(){ if(n&&n.parentNode) n.parentNode.removeChild(n); },500); b=null; }
+    function drop(n){ if(n&&n.parentNode) n.parentNode.removeChild(n); }
+    // Rechargement automatique juste avant (nouvelle version) : NE PAS remontrer
+    // le logo, sinon on voit « l'ancienne » page puis le logo qui réapparaît.
+    try{ if(sessionStorage.getItem('rb_reloading')){ sessionStorage.removeItem('rb_reloading'); drop(b); return; } }catch(e){}
+    // Retrait global, réutilisable par app.js dès que l'app est rendue.
+    window.__rbBootHide=function(){ if(!b) return; var n=b; b=null; n.className='rb-gone'; setTimeout(function(){ drop(n); },400); };
     var app=document.getElementById('app');
-    var iv=setInterval(function(){ if(app && app.children.length>0){ clearInterval(iv); setTimeout(hide,160); } },40);
-    setTimeout(function(){ clearInterval(iv); hide(); },5000);
+    // Filet 1 : dès que #app a du contenu (rendu terminé).
+    var iv=setInterval(function(){ if(app && app.children.length>0){ clearInterval(iv); window.__rbBootHide(); } },40);
+    // Filet 2 : chargement complet de la page.
+    window.addEventListener('load',function(){ if(app && app.children.length>0) window.__rbBootHide(); });
+    // Filet 3 : délai maximal (le CSS le masque déjà à 2,4 s).
+    setTimeout(function(){ clearInterval(iv); if(window.__rbBootHide) window.__rbBootHide(); },2600);
   })();
 </script>
 <div id="app"></div>
@@ -2056,7 +2070,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.60"></script>
+<script src="app.js?v=1.9.61"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>
