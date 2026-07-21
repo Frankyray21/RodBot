@@ -800,4 +800,9 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 .mode-btn.is-on{background:var(--brand);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(210,35,37,.35)}
 .mode-btn--urg.is-on{background:linear-gradient(135deg,#f59e0b,#c01e20);box-shadow:0 4px 14px rgba(245,158,11,.35)}
 .mode-btn.is-on .mn{background:rgba(255,255,255,.2)}
+/* Bouton de la visite guidee : style acier neutre, bien distinct du bouton
+   ambre "Arrets d'urgence" juste a cote (ils se ressemblaient trop en rouge). */
+#btnTourUrgences{background:#243247;border:1px solid rgba(255,255,255,.30);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.38)}
+#btnTourUrgences::after{display:none}
+#btnTourUrgences:hover{background:#2b3c54;border-color:rgba(255,255,255,.55);box-shadow:0 8px 22px rgba(0,0,0,.45)}
 .tour-etat{color:var(--muted);font-size:.85rem;font-weight:600}
