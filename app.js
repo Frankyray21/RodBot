@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.42.0';
+var APP_VERSION = '1.43.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -894,7 +894,7 @@ class Component extends DCLogic {
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
-      simMode:"VEILLE", klaxon:false, homeBeacon:"on"
+      simMode:"VEILLE", klaxon:false
     };
   }
 
@@ -916,7 +916,6 @@ class Component extends DCLogic {
     clearTimeout(this._kt);
     this._kt = setTimeout(()=>this.setState({ klaxon:false }), 1400);
   };
-  pickHomeBeacon = (st)=>{ if(st!==this.state.homeBeacon) this.setState({ homeBeacon:st }); };
   persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name, attEmpId:this.state.attEmpId })); } catch(e){} }
 
   scrollHomeSection = (key)=>{
@@ -1978,24 +1977,14 @@ class Component extends DCLogic {
     base.simModeName = curMode.id;
     base.simModeDesc = curMode.desc;
     base.beaconState = curMode.beacon; // voyant ambre du simulateur : "on" | "blink" | "off"
-    // Voyant ambre INTERACTIF de l'accueil : l'operateur appuie sur un etat, le voyant reagit.
-    base.homeBeacon = S.homeBeacon;
-    base.homeBeaconBtns = [
-      { k:"on",    l:this.tr("Fixe","Steady"),          s:this.tr("commande À DISTANCE active","REMOTE control active") },
-      { k:"blink", l:this.tr("Clignotant","Flashing"),  s:this.tr("mât en TRAJECTOIRE ou RALENTI","mast in TRAJECTORY or CRAWL") },
-      { k:"off",   l:this.tr("Éteint","Off"),           s:this.tr("mode LOCAL","LOCAL mode") }
-    ].map(b=>{ const on=S.homeBeacon===b.k; return {
-      l:b.l, s:b.s, pick:()=>this.pickHomeBeacon(b.k),
-      bg: on?"rgba(240,168,30,.15)":"rgba(255,255,255,.04)",
-      border: on?"#F0A81E":"rgba(255,255,255,.15)",
-      fg: on?"#FAF9F5":"#C9C8C4"
-    }; });
     // Renvois vers le manuel (page exacte) sur l'accueil : chaque « P. XX » ouvre la visionneuse
     // a la bonne page (n = page remappee selon la langue).
     base.pgMat    = { n:this.mp(13), open:()=>this.openManual(this.mp(13)) };
     base.pgPortee = { n:this.mp(54), open:()=>this.openManual(this.mp(54)) };
     base.pgBeacon = { n:this.mp(20), open:()=>this.openManual(this.mp(20)) };
     base.pgVision = { n:this.mp(63), open:()=>this.openManual(this.mp(63)) };
+    base.pgKlaxon = { n:this.mp(16), open:()=>this.openManual(this.mp(16)) };
+    base.pgValves = { n:this.mp(50), open:()=>this.openManual(this.mp(50)) };
     base.klaxonOn = S.klaxon;
     base.valveTracks = curMode.tracks ? "OUVERTE" : "FERMÉE";
     base.valveTracksFg = curMode.tracks ? "#2F7D48" : "#535252";

@@ -198,6 +198,19 @@
         </div>
       </section>
 
+      <!-- AUCUN SYSTEME DE VISION : deplacee avant la section du mat articule -->
+      <section style="max-width:1180px;margin:0 auto;padding:28px 28px 0">
+        <div style="background:#D92624;color:#FFFFFF;padding:26px 24px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="font-size:36px;line-height:1;flex:none">🛑</span>
+            <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">Aucun système de vision</div>
+          </div>
+          <button onClick="{{ pgVision.open }}" title="Ouvrir la page {{ pgVision.n }} du manuel" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:12px;letter-spacing:.04em;color:#FFFFFF;background:rgba(255,255,255,.14);border:1.5px solid #FFFFFF;padding:8px 14px;cursor:pointer" style-hover="background:rgba(255,255,255,.26)"><span style="font-weight:800;font-size:13px">📖</span>Voir la page {{ pgVision.n }} du manuel</button>
+          <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF">Le RodBot ne voit <strong>ni les travailleurs ni les équipements</strong> dans sa zone.</div>
+          <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF;background:rgba(0,0,0,.18);padding:13px 15px;border-left:3px solid #FFFFFF">👉 Avant de bouger : <strong>barrière en place</strong>, opérateur séparé de la machine et de la foreuse (p. 45), pilotage radio de part et d'autre.</div>
+        </div>
+      </section>
+
       <!-- MAT ARTICULE : figure du manuel (deplacee des simulateurs) -->
       <section class="mr-ghost" data-ghost="Mât" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
         <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">LE MÂT ARTICULÉ</div>
@@ -230,37 +243,48 @@
         <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Lire le voyant ambre</h2>
         <p style="font-size:15px;line-height:1.55;color:#535252;max-width:640px;margin:0 0 28px">Le voyant dit ce que fait la machine. Appuyez pour voir chaque état.</p>
 
-        <div style="display:grid;grid-template-columns:1.05fr .95fr;gap:18px;align-items:stretch">
-          <div class="mr-grain" style="background:#141413;color:#FAF9F5;padding:24px;display:flex;flex-direction:column">
-            <div style="font-weight:800;font-size:15px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:18px;color:#FAF9F5">Le voyant ambre <button onClick="{{ pgBeacon.open }}" title="Ouvrir la page {{ pgBeacon.n }} du manuel" style="font-family:inherit;font-size:13px;font-weight:600;letter-spacing:inherit;text-transform:inherit;color:#8A8985;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#F0A81E">· p. {{ pgBeacon.n }}</button></div>
-            <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;flex:1">
-              <div style="text-align:center;flex:none">
-                <div style="width:82px;height:82px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#0F0F0E;border:2px solid rgba(255,255,255,.16)">
-                  <span class="rb-gyro {{ homeBeacon }}"></span>
-                </div>
-                <div style="font-weight:700;font-size:9.5px;letter-spacing:.14em;color:#8A8985;margin-top:10px">VOYANT AMBRE</div>
-              </div>
-              <div style="flex:1;min-width:188px;display:flex;flex-direction:column;gap:9px">
-                <sc-for list="{{ homeBeaconBtns }}" as="b" hint-placeholder-count="3">
-                  <button onClick="{{ b.pick }}" style="text-align:left;padding:11px 14px;cursor:pointer;border:1.5px solid {{ b.border }};background: {{ b.bg }};color: {{ b.fg }};display:flex;flex-direction:column;gap:2px;transition:background .15s,border-color .15s">
-                    <span style="font-weight:800;font-size:13px;letter-spacing:.02em">{{ b.l }}</span>
-                    <span style="font-size:11.5px;line-height:1.35;color:#989898">{{ b.s }}</span>
-                  </button>
-                </sc-for>
-              </div>
+        <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:24px;align-items:start">
+          <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
+            <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898;margin-bottom:14px">CHOISISSEZ UN MODE</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ simModes }}" as="m" hint-placeholder-count="7">
+                <button onClick="{{ m.pick }}" style="text-align:left;padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;font-weight:700;font-size:14px;transition:background .15s;border:1.5px solid {{ m.border }};background: {{ m.bg }};color: {{ m.fg }}">
+                  <span style="font-weight:700;font-size:10px;letter-spacing:.08em;min-width:64px;color: {{ m.tagFg }}">{{ m.tag }}</span>
+                  {{ m.name }}
+                </button>
+              </sc-for>
             </div>
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:18px">
-            <div style="background:#D92624;color:#FFFFFF;padding:26px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
-              <div style="display:flex;align-items:center;gap:14px">
-                <span style="font-size:36px;line-height:1;flex:none">🛑</span>
-                <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">Aucun système de vision</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="mr-grain" style="background:#141413;color:#FAF9F5;padding:26px;display:flex;align-items:center;gap:26px">
+              <div style="text-align:center;flex:none">
+                <div style="width:74px;height:74px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#0F0F0E;border:2px solid rgba(255,255,255,.16)">
+                  <span class="rb-gyro {{ beaconState }}"></span>
+                </div>
+                <div style="font-weight:700;font-size:9.5px;letter-spacing:.14em;color:#8A8985;margin-top:10px">VOYANT AMBRE</div>
               </div>
-              <button onClick="{{ pgVision.open }}" title="Ouvrir la page {{ pgVision.n }} du manuel" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:12px;letter-spacing:.04em;color:#FFFFFF;background:rgba(255,255,255,.14);border:1.5px solid #FFFFFF;padding:8px 14px;cursor:pointer" style-hover="background:rgba(255,255,255,.26)"><span style="font-weight:800;font-size:13px">📖</span>Voir la page {{ pgVision.n }} du manuel</button>
-              <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF">Le RodBot ne voit <strong>ni les travailleurs ni les équipements</strong> dans sa zone.</div>
-              <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF;background:rgba(0,0,0,.18);padding:13px 15px;border-left:3px solid #FFFFFF">👉 Avant de bouger : <strong>barrière en place</strong>, opérateur séparé de la machine et de la foreuse (p. 45), pilotage radio de part et d'autre.</div>
+              <div style="flex:1">
+                <div style="font-weight:900;font-size:22px;letter-spacing:.02em;text-transform:uppercase;margin-bottom:4px;color:#FAF9F5">{{ simModeName }}</div>
+                <div style="font-size:14px;line-height:1.55;color:#B8B7B2">{{ simModeDesc }}</div>
+                <sc-if value="{{ klaxonOn }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:#F0A81E;color:#141413;padding:6px 14px;font-weight:800;font-size:12px;animation:rbPulse .4s ease-in-out infinite">📣 KLAXON : changement de mode</div>
+                </sc-if>
+              </div>
             </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:18px">
+                <div style="font-weight:800;font-size:10px;letter-spacing:.12em;color:#989898;margin-bottom:8px">VALVE D'ISOLEMENT : CHENILLES & VÉRINS</div>
+                <div style="display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color: {{ valveTracksFg }}"><span style="width:10px;height:10px;background: {{ valveTracksFg }}"></span>{{ valveTracks }}</div>
+              </div>
+              <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:18px">
+                <div style="font-weight:800;font-size:10px;letter-spacing:.12em;color:#989898;margin-bottom:8px">VALVE D'ISOLEMENT : MÂT & AUTRES</div>
+                <div style="display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color: {{ valveMastFg }}"><span style="width:10px;height:10px;background: {{ valveMastFg }}"></span>{{ valveMast }}</div>
+              </div>
+            </div>
+
+            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">Le klaxon retentit à chaque changement de mode (TRAM/MÂT) et les valves normalement fermées ne s'ouvrent que pour le mode sélectionné. Voyant : <strong style="color:#1D1E1B">fixe</strong> = à distance · <strong style="color:#1D1E1B">clignotant</strong> = trajectoire ou déplacement · <strong style="color:#1D1E1B">éteint</strong> = local. Manuel <button onClick="{{ pgKlaxon.open }}" title="Ouvrir la page {{ pgKlaxon.n }} du manuel" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgKlaxon.n }}</button>, <button onClick="{{ pgBeacon.open }}" title="Ouvrir la page {{ pgBeacon.n }} du manuel" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgBeacon.n }}</button> et <button onClick="{{ pgValves.open }}" title="Ouvrir la page {{ pgValves.n }} du manuel" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgValves.n }}</button>.</div>
           </div>
         </div>
       </section>
@@ -423,7 +447,7 @@
               </div>
             </div>
 
-            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">Le klaxon retentit à chaque changement de mode (TRAM/MÂT) et les valves normalement fermées ne s'ouvrent que pour le mode sélectionné. Voyant : <strong style="color:#1D1E1B">fixe</strong> = à distance · <strong style="color:#1D1E1B">clignotant</strong> = trajectoire ou déplacement · <strong style="color:#1D1E1B">éteint</strong> = local. Manuel p. 16, 20 et 50.</div>
+            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">Le klaxon retentit à chaque changement de mode (TRAM/MÂT) et les valves normalement fermées ne s'ouvrent que pour le mode sélectionné. Voyant : <strong style="color:#1D1E1B">fixe</strong> = à distance · <strong style="color:#1D1E1B">clignotant</strong> = trajectoire ou déplacement · <strong style="color:#1D1E1B">éteint</strong> = local. Manuel <button onClick="{{ pgKlaxon.open }}" title="Ouvrir la page {{ pgKlaxon.n }} du manuel" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgKlaxon.n }}</button>, <button onClick="{{ pgBeacon.open }}" title="Ouvrir la page {{ pgBeacon.n }} du manuel" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgBeacon.n }}</button> et <button onClick="{{ pgValves.open }}" title="Ouvrir la page {{ pgValves.n }} du manuel" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgValves.n }}</button>.</div>
           </div>
         </div>
       </section>
@@ -1150,6 +1174,19 @@
         </div>
       </section>
 
+      <!-- NO VISION SYSTEM : moved before the mast section -->
+      <section style="max-width:1180px;margin:0 auto;padding:28px 28px 0">
+        <div style="background:#D92624;color:#FFFFFF;padding:26px 24px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="font-size:36px;line-height:1;flex:none">🛑</span>
+            <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">No vision system</div>
+          </div>
+          <button onClick="{{ pgVision.open }}" title="Open manual page {{ pgVision.n }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:12px;letter-spacing:.04em;color:#FFFFFF;background:rgba(255,255,255,.14);border:1.5px solid #FFFFFF;padding:8px 14px;cursor:pointer" style-hover="background:rgba(255,255,255,.26)"><span style="font-weight:800;font-size:13px">📖</span>View manual page {{ pgVision.n }}</button>
+          <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF">The RodBot does not see <strong>workers or equipment</strong> in its area.</div>
+          <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF;background:rgba(0,0,0,.18);padding:13px 15px;border-left:3px solid #FFFFFF">👉 Before moving: <strong>barrier in place</strong>, operator separated from the machine and drill (p. 45), radio control from either side.</div>
+        </div>
+      </section>
+
       <!-- MAT ARTICULE : figure du manuel (deplacee des simulateurs) -->
       <section class="mr-ghost" data-ghost="Mât" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
         <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">THE ARTICULATED MAST</div>
@@ -1182,37 +1219,48 @@
         <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Read the amber beacon</h2>
         <p style="font-size:15px;line-height:1.55;color:#535252;max-width:640px;margin:0 0 28px">The beacon tells you what the machine is doing. Tap to see each state.</p>
 
-        <div style="display:grid;grid-template-columns:1.05fr .95fr;gap:18px;align-items:stretch">
-          <div class="mr-grain" style="background:#141413;color:#FAF9F5;padding:24px;display:flex;flex-direction:column">
-            <div style="font-weight:800;font-size:15px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:18px;color:#FAF9F5">Amber beacon <button onClick="{{ pgBeacon.open }}" title="Open manual page {{ pgBeacon.n }}" style="font-family:inherit;font-size:13px;font-weight:600;letter-spacing:inherit;text-transform:inherit;color:#8A8985;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#F0A81E">· p. {{ pgBeacon.n }}</button></div>
-            <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;flex:1">
-              <div style="text-align:center;flex:none">
-                <div style="width:82px;height:82px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#0F0F0E;border:2px solid rgba(255,255,255,.16)">
-                  <span class="rb-gyro {{ homeBeacon }}"></span>
-                </div>
-                <div style="font-weight:700;font-size:9.5px;letter-spacing:.14em;color:#8A8985;margin-top:10px">AMBER BEACON</div>
-              </div>
-              <div style="flex:1;min-width:188px;display:flex;flex-direction:column;gap:9px">
-                <sc-for list="{{ homeBeaconBtns }}" as="b" hint-placeholder-count="3">
-                  <button onClick="{{ b.pick }}" style="text-align:left;padding:11px 14px;cursor:pointer;border:1.5px solid {{ b.border }};background: {{ b.bg }};color: {{ b.fg }};display:flex;flex-direction:column;gap:2px;transition:background .15s,border-color .15s">
-                    <span style="font-weight:800;font-size:13px;letter-spacing:.02em">{{ b.l }}</span>
-                    <span style="font-size:11.5px;line-height:1.35;color:#989898">{{ b.s }}</span>
-                  </button>
-                </sc-for>
-              </div>
+        <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:24px;align-items:start">
+          <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
+            <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898;margin-bottom:14px">CHOOSE A MODE</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ simModes }}" as="m" hint-placeholder-count="7">
+                <button onClick="{{ m.pick }}" style="text-align:left;padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;font-weight:700;font-size:14px;transition:background .15s;border:1.5px solid {{ m.border }};background: {{ m.bg }};color: {{ m.fg }}">
+                  <span style="font-weight:700;font-size:10px;letter-spacing:.08em;min-width:64px;color: {{ m.tagFg }}">{{ m.tag }}</span>
+                  {{ m.name }}
+                </button>
+              </sc-for>
             </div>
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:18px">
-            <div style="background:#D92624;color:#FFFFFF;padding:26px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
-              <div style="display:flex;align-items:center;gap:14px">
-                <span style="font-size:36px;line-height:1;flex:none">🛑</span>
-                <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">No vision system</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="mr-grain" style="background:#141413;color:#FAF9F5;padding:26px;display:flex;align-items:center;gap:26px">
+              <div style="text-align:center;flex:none">
+                <div style="width:74px;height:74px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#0F0F0E;border:2px solid rgba(255,255,255,.16)">
+                  <span class="rb-gyro {{ beaconState }}"></span>
+                </div>
+                <div style="font-weight:700;font-size:9.5px;letter-spacing:.14em;color:#8A8985;margin-top:10px">AMBER BEACON</div>
               </div>
-              <button onClick="{{ pgVision.open }}" title="Open manual page {{ pgVision.n }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:12px;letter-spacing:.04em;color:#FFFFFF;background:rgba(255,255,255,.14);border:1.5px solid #FFFFFF;padding:8px 14px;cursor:pointer" style-hover="background:rgba(255,255,255,.26)"><span style="font-weight:800;font-size:13px">📖</span>View manual page {{ pgVision.n }}</button>
-              <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF">The RodBot does not see <strong>workers or equipment</strong> in its area.</div>
-              <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF;background:rgba(0,0,0,.18);padding:13px 15px;border-left:3px solid #FFFFFF">👉 Before moving: <strong>barrier in place</strong>, operator separated from the machine and drill (p. 45), radio control from either side.</div>
+              <div style="flex:1">
+                <div style="font-weight:900;font-size:22px;letter-spacing:.02em;text-transform:uppercase;margin-bottom:4px;color:#FAF9F5">{{ simModeName }}</div>
+                <div style="font-size:14px;line-height:1.55;color:#B8B7B2">{{ simModeDesc }}</div>
+                <sc-if value="{{ klaxonOn }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:#F0A81E;color:#141413;padding:6px 14px;font-weight:800;font-size:12px;animation:rbPulse .4s ease-in-out infinite">📣 HORN : mode change</div>
+                </sc-if>
+              </div>
             </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:18px">
+                <div style="font-weight:800;font-size:10px;letter-spacing:.12em;color:#989898;margin-bottom:8px">ISOLATION VALVE : TRACKS & CYLINDERS</div>
+                <div style="display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color: {{ valveTracksFg }}"><span style="width:10px;height:10px;background: {{ valveTracksFg }}"></span>{{ valveTracks }}</div>
+              </div>
+              <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:18px">
+                <div style="font-weight:800;font-size:10px;letter-spacing:.12em;color:#989898;margin-bottom:8px">ISOLATION VALVE : MAST & OTHERS</div>
+                <div style="display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color: {{ valveMastFg }}"><span style="width:10px;height:10px;background: {{ valveMastFg }}"></span>{{ valveMast }}</div>
+              </div>
+            </div>
+
+            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">The horn sounds at every mode change (TRAM/MAST) and the normally closed valves open only for the selected mode. Beacon: <strong style="color:#1D1E1B">steady</strong> = remote · <strong style="color:#1D1E1B">flashing</strong> = trajectory or travel · <strong style="color:#1D1E1B">off</strong> = local. Manual <button onClick="{{ pgKlaxon.open }}" title="Open manual page {{ pgKlaxon.n }}" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgKlaxon.n }}</button>, <button onClick="{{ pgBeacon.open }}" title="Open manual page {{ pgBeacon.n }}" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgBeacon.n }}</button> and <button onClick="{{ pgValves.open }}" title="Open manual page {{ pgValves.n }}" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgValves.n }}</button>.</div>
           </div>
         </div>
       </section>
@@ -1375,7 +1423,7 @@
               </div>
             </div>
 
-            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">The horn sounds at every mode change (TRAM/MAST) and the normally closed valves open only for the selected mode. Beacon: <strong style="color:#1D1E1B">steady</strong> = remote · <strong style="color:#1D1E1B">flashing</strong> = trajectory or travel · <strong style="color:#1D1E1B">off</strong> = local. Manual p. 16, 20 and 50.</div>
+            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">The horn sounds at every mode change (TRAM/MAST) and the normally closed valves open only for the selected mode. Beacon: <strong style="color:#1D1E1B">steady</strong> = remote · <strong style="color:#1D1E1B">flashing</strong> = trajectory or travel · <strong style="color:#1D1E1B">off</strong> = local. Manual <button onClick="{{ pgKlaxon.open }}" title="Open manual page {{ pgKlaxon.n }}" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgKlaxon.n }}</button>, <button onClick="{{ pgBeacon.open }}" title="Open manual page {{ pgBeacon.n }}" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgBeacon.n }}</button> and <button onClick="{{ pgValves.open }}" title="Open manual page {{ pgValves.n }}" style="font:inherit;font-weight:700;color:#1D1E1B;background:none;border:none;padding:0;margin:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px" style-hover="color:#D92624">p. {{ pgValves.n }}</button>.</div>
           </div>
         </div>
       </section>
@@ -1926,7 +1974,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.51"></script>
+<script src="app.js?v=1.9.52"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>
