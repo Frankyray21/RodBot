@@ -225,6 +225,20 @@
         </div>
       </section>
 
+      <!-- MAT ARTICULE : figure du manuel (deplacee des simulateurs) -->
+      <section class="mr-ghost" data-ghost="Mât" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
+        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">LE MÂT ARTICULÉ</div>
+        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 24px;color:#1D1E1B">Chaque mouvement, du pivot au grappin</h2>
+        <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:16px 22px 13px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+            <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">FIGURE DU MANUEL</div>
+            <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUEL · P. 13</span>
+          </div>
+          <div style="background:#fff;padding:24px 28px 12px"><img src="img/mat-annote.png" alt="Figure annotée du mât articulé : pivotement, articulation (épaule), télescope, joint rotatif (poignet), rotation, inclinaison, grappin" loading="lazy" style="display:block;width:100%;max-width:530px;margin:0 auto;height:auto"></div>
+          <div style="padding:14px 22px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;flex-wrap:wrap;gap:7px;align-items:center"><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">PIVOTEMENT</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ARTICULATION (ÉPAULE)</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TÉLESCOPE</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">POIGNET</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ROTATION</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">INCLINAISON</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">GRAPPIN</span></div>
+        </div>
+      </section>
+
       <!-- ESSENTIEL SÉCURITÉ -->
       <section id="rb-safety" class="mr-ghost" data-ghost="Sécurité" data-rb-scroll-section="safety" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px;scroll-margin-top:80px">
         <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">02 : AVANT DE BOUGER</div>
@@ -281,14 +295,8 @@
             <span style="font-size:13px;line-height:1.5;color:#535252">Photo réelle, zones cliquables : manettes, boutons, arrêt d'urgence à tester.</span>
             <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Explorer →</span>
           </button>
-          <button onClick="{{ openSimMast }}" style="text-align:left;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.15);padding:22px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px -24px rgba(20,20,19,.5);border-color:#D92624">
-            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATEUR 2</span>
-            <span style="font-weight:800;font-size:17.5px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">Le mât articulé J1-J6</span>
-            <span style="font-size:13px;line-height:1.5;color:#535252">Pilotez chaque articulation aux curseurs et voyez le mât bouger en direct.</span>
-            <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Manipuler →</span>
-          </button>
           <button onClick="{{ openSimModes }}" style="text-align:left;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.15);padding:22px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px -24px rgba(20,20,19,.5);border-color:#D92624">
-            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATEUR 3</span>
+            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATEUR 2</span>
             <span style="font-weight:800;font-size:17.5px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">Modes & voyant ambre</span>
             <span style="font-size:13px;line-height:1.5;color:#535252">Changez de mode et observez le voyant, le klaxon et les valves d'isolement.</span>
             <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Tester →</span>
@@ -333,7 +341,6 @@
           <h1 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 20px;color:#FAF9F5">Simulateurs interactifs</h1>
           <div style="display:flex;gap:6px">
             <button onClick="{{ openSimRrc }}" style="border:none;padding:12px 20px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;background: {{ tabRrcBg }};color: {{ tabRrcFg }}">Télécommande</button>
-            <button onClick="{{ openSimMast }}" style="border:none;padding:12px 20px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;background: {{ tabMastBg }};color: {{ tabMastFg }}">Mât J1-J6</button>
             <button onClick="{{ openSimModes }}" style="border:none;padding:12px 20px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;background: {{ tabModesBg }};color: {{ tabModesFg }}">Modes & voyant</button>
           </div>
         </div>
@@ -391,118 +398,7 @@
       </section>
       </sc-if>
 
-      <!-- ===== TAB MÂT ===== -->
-      <sc-if value="{{ simTabMast }}" hint-placeholder-val="{{ false }}">
-      <section style="max-width:1180px;margin:0 auto;padding:30px 28px 60px">
-        <div style="display:grid;grid-template-columns:1.12fr 1fr;gap:24px;align-items:start">
-
-          <!-- FIGURE DU MANUEL : visuel principal -->
-          <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden;display:flex;flex-direction:column">
-            <div style="padding:18px 22px 15px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
-              <div>
-                <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898;margin-bottom:6px">LE MÂT ARTICULÉ : FIGURE DU MANUEL</div>
-                <div style="font-weight:800;font-size:19px;letter-spacing:.01em;text-transform:uppercase;color:#1D1E1B">Chaque mouvement, du pivot au grappin</div>
-              </div>
-              <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUEL · P. 13</span>
-            </div>
-            <div style="background:#fff;padding:24px 28px 12px">
-              <img src="img/mat-annote.png" alt="Figure annotée du mât articulé : pivotement, articulation (épaule), télescope, joint rotatif (poignet), rotation, inclinaison, grappin" loading="lazy" style="display:block;width:100%;max-width:530px;margin:0 auto;height:auto">
-            </div>
-            <div style="padding:14px 22px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;flex-wrap:wrap;gap:7px;align-items:center">
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">PIVOTEMENT</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ARTICULATION (ÉPAULE)</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TÉLESCOPE</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">POIGNET</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ROTATION</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">INCLINAISON</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">GRAPPIN</span>
-            </div>
-          </div>
-
-          <!-- Colonne secondaire : schéma interactif + commandes -->
-          <div style="display:flex;flex-direction:column;gap:12px">
-          <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden">
-            <div style="padding:13px 18px 11px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">OUTIL D'ENTRAÎNEMENT : SCHÉMA INTERACTIF</div>
-              <span style="width:8px;height:8px;background:#3E9C5A;box-shadow:0 0 10px rgba(62,156,90,.8);flex:none;animation:rbPulse 2s ease-in-out infinite"></span>
-            </div>
-            <svg viewBox="0 0 640 430" style="display:block;width:100%;height:auto;background:linear-gradient(180deg,#FAF9F5 0%,#F0EFEA 100%)">
-              <line x1="0" y1="400" x2="640" y2="400" stroke="#C6C4BE" stroke-width="2"></line>
-              <rect x="0" y="400" width="640" height="30" fill="#E6E4DD"></rect>
-              <g opacity="0.9">
-                <rect x="40" y="368" width="150" height="32" fill="#D8D6D0" stroke="#989898"></rect>
-                <circle cx="70" cy="376" r="5" fill="#989898"></circle><circle cx="88" cy="376" r="5" fill="#989898"></circle><circle cx="106" cy="376" r="5" fill="#989898"></circle><circle cx="124" cy="376" r="5" fill="#989898"></circle><circle cx="142" cy="376" r="5" fill="#989898"></circle><circle cx="160" cy="376" r="5" fill="#989898"></circle>
-                <text x="115" y="425" text-anchor="middle" font-family="Heebo" font-weight="600" font-size="10" fill="#989898">BAC À TIGES (35)</text>
-              </g>
-              <rect x="480" y="386" width="130" height="16" fill="#3A3B38"></rect>
-              <rect x="500" y="352" width="90" height="38" fill="#535252" stroke="#3A3B38"></rect>
-              <rect x="524" y="322" width="42" height="34" fill="#454542" stroke="#3A3B38"></rect>
-              <text x="556" y="416" text-anchor="middle" font-family="Heebo" font-weight="600" font-size="10" fill="#989898">PORTEUR À CHENILLES</text>
-              <g transform="translate(545,330) rotate({{ boomRot }})">
-                <rect x="-12" y="-15" width="210" height="30" fill="#1D1E1B" stroke="#D92624" stroke-width="1.5"></rect>
-                <rect x="150" y="-10" width="{{ outerLen }}" height="20" fill="#454542"></rect>
-                <circle cx="0" cy="0" r="10" fill="#141413"></circle>
-                <g transform="translate({{ wristX }},0) rotate({{ wristRot }})">
-                  <circle cx="0" cy="0" r="8" fill="#141413"></circle>
-                  <g transform="rotate({{ tilt }})">
-                    <rect x="-5" y="0" width="10" height="42" fill="#535252"></rect>
-                    <rect x="-26" y="42" width="52" height="24" fill="#3A3B38"></rect>
-                    <g transform="translate(-14,66) rotate({{ jawLRot }})"><rect x="-4" y="0" width="8" height="26" fill="#D92624"></rect></g>
-                    <g transform="translate(14,66) rotate({{ jawRRot }})"><rect x="-4" y="0" width="8" height="26" fill="#D92624"></rect></g>
-                    <sc-if value="{{ rodHeld }}" hint-placeholder-val="{{ true }}">
-                      <rect x="-85" y="86" width="170" height="9" fill="#8A8985" stroke="#535252"></rect>
-                    </sc-if>
-                  </g>
-                </g>
-              </g>
-              <text x="545" y="312" text-anchor="middle" font-family="Heebo" font-size="10" fill="#D92624" font-weight="700">J2 ARTICULATION</text>
-              <text x="30" y="30" font-family="Heebo" font-weight="800" font-size="13" fill="#1D1E1B">VUE DE CÔTÉ : {{ mastReadout }}</text>
-              <sc-if value="{{ rodDropped }}" hint-placeholder-val="{{ false }}">
-                <text x="30" y="52" font-family="Heebo" font-weight="700" font-size="11" fill="#B71F1D">⚠ Grappin ouvert : la tige a été relâchée</text>
-              </sc-if>
-            </svg>
-            <div style="padding:12px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-              <div style="display:flex;align-items:center;gap:10px">
-                <svg viewBox="0 0 80 80" style="width:64px;height:64px">
-                  <circle cx="40" cy="40" r="34" fill="#FFFFFF" stroke="#C6C4BE"></circle>
-                  <path d="M 40 40 L 34.8 6.4 A 34 34 0 0 1 45.2 6.4 Z" fill="rgba(217,38,36,.25)"></path>
-                  <rect x="32" y="30" width="16" height="26" fill="#535252"></rect>
-                  <g transform="rotate({{ slew }} 40 40)"><line x1="40" y1="40" x2="40" y2="10" stroke="#D92624" stroke-width="3"></line></g>
-                </svg>
-                <div style="font-weight:600;font-size:10px;line-height:1.5;letter-spacing:.03em;color:#535252">J1 PIVOTEMENT<br>vue de dessus · zone morte 30° à l'avant<br>butées ±165°</div>
-              </div>
-              <div style="flex:1"></div>
-              <div style="font-weight:600;font-size:10px;letter-spacing:.03em;color:#989898;text-align:right">RÉPOND AUX<br>CURSEURS CI-DESSOUS</div>
-            </div>
-          </div>
-
-            <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:20px;display:flex;flex-direction:column;gap:16px">
-              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">PILOTEZ LES ARTICULATIONS</div>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J1 · PIVOTEMENT</strong><span style="font-weight:700;color:#D92624">{{ slew }}°</span></span>
-                <input type="range" min="-165" max="165" value="{{ slew }}" onInput="{{ setSlew }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J2 · ARTICULATION (levage)</strong><span style="font-weight:700;color:#D92624">{{ hoist }}°</span></span>
-                <input type="range" min="8" max="78" value="{{ hoist }}" onInput="{{ setHoist }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J3 · TÉLESCOPE</strong><span style="font-weight:700;color:#D92624">{{ extPct }}%</span></span>
-                <input type="range" min="0" max="110" value="{{ ext }}" onInput="{{ setExt }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J6 · INCLINAISON (pince)</strong><span style="font-weight:700;color:#D92624">{{ tilt }}°</span></span>
-                <input type="range" min="-40" max="40" value="{{ tilt }}" onInput="{{ setTilt }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <button onClick="{{ toggleJaw }}" style="border:none;padding:13px;font-weight:800;font-size:14px;letter-spacing:.03em;cursor:pointer;background: {{ jawBtnBg }};color: {{ jawBtnFg }}">{{ jawBtnLabel }}</button>
-              <div style="font-size:12px;line-height:1.5;color:#989898">Sur la vraie machine : bouton vert PINCE + bascule (ouverture maintenue ≥ 1 s) : manuel p. 55.</div>
-            </div>
-          </div>
-        </div>
-      </section>
-      </sc-if>
-
-      <!-- ===== TAB MODES ===== -->
+<!-- ===== TAB MODES ===== -->
       <sc-if value="{{ simTabModes }}" hint-placeholder-val="{{ false }}">
       <section style="max-width:1180px;margin:0 auto;padding:30px 28px 60px">
         <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:24px;align-items:start">
@@ -1300,6 +1196,20 @@
         </div>
       </section>
 
+      <!-- MAT ARTICULE : figure du manuel (deplacee des simulateurs) -->
+      <section class="mr-ghost" data-ghost="Mât" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
+        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">THE ARTICULATED MAST</div>
+        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 24px;color:#1D1E1B">Every movement, from slew to gripper</h2>
+        <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:16px 22px 13px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+            <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">MANUAL FIGURE</div>
+            <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUEL · P. 13</span>
+          </div>
+          <div style="background:#fff;padding:24px 28px 12px"><img src="img/mat-annote.png" alt="Annotated figure of the articulated mast: slew, joint (shoulder), telescope, wrist, rotation, tilt, gripper" loading="lazy" style="display:block;width:100%;max-width:530px;margin:0 auto;height:auto"></div>
+          <div style="padding:14px 22px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;flex-wrap:wrap;gap:7px;align-items:center"><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">SLEW</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">JOINT (SHOULDER)</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TELESCOPE</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">WRIST</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ROTATION</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TILT</span><span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">GRIPPER</span></div>
+        </div>
+      </section>
+
       <!-- SAFETY ESSENTIALS -->
       <section id="rb-safety" class="mr-ghost" data-ghost="Safety" data-rb-scroll-section="safety" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px;scroll-margin-top:80px">
         <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">02 : BEFORE MOVING</div>
@@ -1356,14 +1266,8 @@
             <span style="font-size:13px;line-height:1.5;color:#535252">Real photo, clickable zones: joysticks, buttons, emergency stop to test.</span>
             <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Explore →</span>
           </button>
-          <button onClick="{{ openSimMast }}" style="text-align:left;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.15);padding:22px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px -24px rgba(20,20,19,.5);border-color:#D92624">
-            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATOR 2</span>
-            <span style="font-weight:800;font-size:17.5px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">The articulated mast J1-J6</span>
-            <span style="font-size:13px;line-height:1.5;color:#535252">Drive each joint with the sliders and watch the mast move live.</span>
-            <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Operate →</span>
-          </button>
           <button onClick="{{ openSimModes }}" style="text-align:left;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.15);padding:22px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px -24px rgba(20,20,19,.5);border-color:#D92624">
-            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATOR 3</span>
+            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATOR 2</span>
             <span style="font-weight:800;font-size:17.5px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">Modes & amber beacon</span>
             <span style="font-size:13px;line-height:1.5;color:#535252">Change mode and watch the beacon, the horn and the isolation valves.</span>
             <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Test →</span>
@@ -1408,7 +1312,6 @@
           <h1 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 20px;color:#FAF9F5">Interactive simulators</h1>
           <div style="display:flex;gap:6px">
             <button onClick="{{ openSimRrc }}" style="border:none;padding:12px 20px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;background: {{ tabRrcBg }};color: {{ tabRrcFg }}">Remote</button>
-            <button onClick="{{ openSimMast }}" style="border:none;padding:12px 20px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;background: {{ tabMastBg }};color: {{ tabMastFg }}">Mast J1-J6</button>
             <button onClick="{{ openSimModes }}" style="border:none;padding:12px 20px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;background: {{ tabModesBg }};color: {{ tabModesFg }}">Modes & beacon</button>
           </div>
         </div>
@@ -1466,118 +1369,7 @@
       </section>
       </sc-if>
 
-      <!-- ===== MAST TAB ===== -->
-      <sc-if value="{{ simTabMast }}" hint-placeholder-val="{{ false }}">
-      <section style="max-width:1180px;margin:0 auto;padding:30px 28px 60px">
-        <div style="display:grid;grid-template-columns:1.12fr 1fr;gap:24px;align-items:start">
-
-          <!-- MANUAL FIGURE : main visual -->
-          <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden;display:flex;flex-direction:column">
-            <div style="padding:18px 22px 15px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
-              <div>
-                <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898;margin-bottom:6px">THE ARTICULATED MAST : MANUAL FIGURE</div>
-                <div style="font-weight:800;font-size:19px;letter-spacing:.01em;text-transform:uppercase;color:#1D1E1B">Every motion, from slew to gripper</div>
-              </div>
-              <span style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap">MANUAL · P. 13</span>
-            </div>
-            <div style="background:#fff;padding:24px 28px 12px">
-              <img src="img/mat-annote.png" alt="Annotated figure of the articulated mast, slew, joint (shoulder), telescope, rotary joint (wrist), rotation, tilt, gripper" loading="lazy" style="display:block;width:100%;max-width:530px;margin:0 auto;height:auto">
-            </div>
-            <div style="padding:14px 22px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;flex-wrap:wrap;gap:7px;align-items:center">
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">SLEW</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">JOINT (SHOULDER)</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TELESCOPE</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">WRIST</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">ROTATION</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">TILT</span>
-              <span style="font-weight:700;font-size:9.5px;letter-spacing:.1em;color:#535252;background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:5px 11px">GRIPPER</span>
-            </div>
-          </div>
-
-          <!-- Secondary column: interactive diagram + controls -->
-          <div style="display:flex;flex-direction:column;gap:12px">
-          <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);overflow:hidden">
-            <div style="padding:13px 18px 11px;border-bottom:1px solid rgba(29,30,27,.12);display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">TRAINING TOOL : INTERACTIVE DIAGRAM</div>
-              <span style="width:8px;height:8px;background:#3E9C5A;box-shadow:0 0 10px rgba(62,156,90,.8);flex:none;animation:rbPulse 2s ease-in-out infinite"></span>
-            </div>
-            <svg viewBox="0 0 640 430" style="display:block;width:100%;height:auto;background:linear-gradient(180deg,#FAF9F5 0%,#F0EFEA 100%)">
-              <line x1="0" y1="400" x2="640" y2="400" stroke="#C6C4BE" stroke-width="2"></line>
-              <rect x="0" y="400" width="640" height="30" fill="#E6E4DD"></rect>
-              <g opacity="0.9">
-                <rect x="40" y="368" width="150" height="32" fill="#D8D6D0" stroke="#989898"></rect>
-                <circle cx="70" cy="376" r="5" fill="#989898"></circle><circle cx="88" cy="376" r="5" fill="#989898"></circle><circle cx="106" cy="376" r="5" fill="#989898"></circle><circle cx="124" cy="376" r="5" fill="#989898"></circle><circle cx="142" cy="376" r="5" fill="#989898"></circle><circle cx="160" cy="376" r="5" fill="#989898"></circle>
-                <text x="115" y="425" text-anchor="middle" font-family="Heebo" font-weight="600" font-size="10" fill="#989898">ROD BASKET (35)</text>
-              </g>
-              <rect x="480" y="386" width="130" height="16" fill="#3A3B38"></rect>
-              <rect x="500" y="352" width="90" height="38" fill="#535252" stroke="#3A3B38"></rect>
-              <rect x="524" y="322" width="42" height="34" fill="#454542" stroke="#3A3B38"></rect>
-              <text x="556" y="416" text-anchor="middle" font-family="Heebo" font-weight="600" font-size="10" fill="#989898">TRACKED CARRIER</text>
-              <g transform="translate(545,330) rotate({{ boomRot }})">
-                <rect x="-12" y="-15" width="210" height="30" fill="#1D1E1B" stroke="#D92624" stroke-width="1.5"></rect>
-                <rect x="150" y="-10" width="{{ outerLen }}" height="20" fill="#454542"></rect>
-                <circle cx="0" cy="0" r="10" fill="#141413"></circle>
-                <g transform="translate({{ wristX }},0) rotate({{ wristRot }})">
-                  <circle cx="0" cy="0" r="8" fill="#141413"></circle>
-                  <g transform="rotate({{ tilt }})">
-                    <rect x="-5" y="0" width="10" height="42" fill="#535252"></rect>
-                    <rect x="-26" y="42" width="52" height="24" fill="#3A3B38"></rect>
-                    <g transform="translate(-14,66) rotate({{ jawLRot }})"><rect x="-4" y="0" width="8" height="26" fill="#D92624"></rect></g>
-                    <g transform="translate(14,66) rotate({{ jawRRot }})"><rect x="-4" y="0" width="8" height="26" fill="#D92624"></rect></g>
-                    <sc-if value="{{ rodHeld }}" hint-placeholder-val="{{ true }}">
-                      <rect x="-85" y="86" width="170" height="9" fill="#8A8985" stroke="#535252"></rect>
-                    </sc-if>
-                  </g>
-                </g>
-              </g>
-              <text x="545" y="312" text-anchor="middle" font-family="Heebo" font-size="10" fill="#D92624" font-weight="700">J2 JOINT</text>
-              <text x="30" y="30" font-family="Heebo" font-weight="800" font-size="13" fill="#1D1E1B">SIDE VIEW : {{ mastReadout }}</text>
-              <sc-if value="{{ rodDropped }}" hint-placeholder-val="{{ false }}">
-                <text x="30" y="52" font-family="Heebo" font-weight="700" font-size="11" fill="#B71F1D">⚠ Gripper open: the rod has been released</text>
-              </sc-if>
-            </svg>
-            <div style="padding:12px 18px;border-top:1px solid rgba(29,30,27,.12);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-              <div style="display:flex;align-items:center;gap:10px">
-                <svg viewBox="0 0 80 80" style="width:64px;height:64px">
-                  <circle cx="40" cy="40" r="34" fill="#FFFFFF" stroke="#C6C4BE"></circle>
-                  <path d="M 40 40 L 34.8 6.4 A 34 34 0 0 1 45.2 6.4 Z" fill="rgba(217,38,36,.25)"></path>
-                  <rect x="32" y="30" width="16" height="26" fill="#535252"></rect>
-                  <g transform="rotate({{ slew }} 40 40)"><line x1="40" y1="40" x2="40" y2="10" stroke="#D92624" stroke-width="3"></line></g>
-                </svg>
-                <div style="font-weight:600;font-size:10px;line-height:1.5;letter-spacing:.03em;color:#535252">J1 SLEW<br>top view · 30° dead zone at the front<br>stops ±165°</div>
-              </div>
-              <div style="flex:1"></div>
-              <div style="font-weight:600;font-size:10px;letter-spacing:.03em;color:#989898;text-align:right">RESPONDS TO<br>THE SLIDERS BELOW</div>
-            </div>
-          </div>
-
-            <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:20px;display:flex;flex-direction:column;gap:16px">
-              <div style="font-weight:800;font-size:10px;letter-spacing:.16em;color:#989898">DRIVE THE JOINTS</div>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J1 · SLEW</strong><span style="font-weight:700;color:#D92624">{{ slew }}°</span></span>
-                <input type="range" min="-165" max="165" value="{{ slew }}" onInput="{{ setSlew }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J2 · JOINT (hoist)</strong><span style="font-weight:700;color:#D92624">{{ hoist }}°</span></span>
-                <input type="range" min="8" max="78" value="{{ hoist }}" onInput="{{ setHoist }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J3 · TELESCOPE</strong><span style="font-weight:700;color:#D92624">{{ extPct }}%</span></span>
-                <input type="range" min="0" max="110" value="{{ ext }}" onInput="{{ setExt }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <label style="display:flex;flex-direction:column;gap:6px">
-                <span style="display:flex;justify-content:space-between;font-size:13px;color:#1D1E1B"><strong style="letter-spacing:.02em">J6 · TILT (jaws)</strong><span style="font-weight:700;color:#D92624">{{ tilt }}°</span></span>
-                <input type="range" min="-40" max="40" value="{{ tilt }}" onInput="{{ setTilt }}" style="width:100%;accent-color:#D92624">
-              </label>
-              <button onClick="{{ toggleJaw }}" style="border:none;padding:13px;font-weight:800;font-size:14px;letter-spacing:.03em;cursor:pointer;background: {{ jawBtnBg }};color: {{ jawBtnFg }}">{{ jawBtnLabel }}</button>
-              <div style="font-size:12px;line-height:1.5;color:#989898">On the real machine: green JAWS button + toggle (hold open ≥ 1 s) : manual p. 55.</div>
-            </div>
-          </div>
-        </div>
-      </section>
-      </sc-if>
-
-      <!-- ===== MODES TAB ===== -->
+<!-- ===== MODES TAB ===== -->
       <sc-if value="{{ simTabModes }}" hint-placeholder-val="{{ false }}">
       <section style="max-width:1180px;margin:0 auto;padding:30px 28px 60px">
         <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:24px;align-items:start">
@@ -2172,7 +1964,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.41"></script>
+<script src="app.js?v=1.9.42"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>
