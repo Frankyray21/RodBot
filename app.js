@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.47.0';
+var APP_VERSION = '1.48.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -863,18 +863,18 @@ class Component extends DCLogic {
     { x:33.5, y:76, name:"Klaxon & gyrophare", page:21, desc:"Avertisseur sonore et feux. Le klaxon sonne **à chaque changement de mode** pour prévenir le personnel." },
     { x:79, y:76, name:"MÂT / DÉP. LENTE", page:50, desc:"Choix du grand mode : commande du **mât** (DIRECT, LINÉAIRE, TRAJECTOIRE) ou déplacement (**RALENTI** : chenilles). ##Impossible en RALENTI si le grappin est fermé.##" },
     { x:11, y:86, name:"Interrupteur d'inclinaison (interne)", page:19, desc:"Capteur interne. Manette penchée ou tombée : ##arrêt de sécurité, hydraulique coupée.## Remise à plat + manettes au neutre = retour en veille. **À tester chaque quart.**" },
-    { x:50, y:45, name:"Manette centrale (JS2)", page:22, desc:"Manette du **milieu**. Commande le **grappin** (ouvrir/fermer avec le bouton vert). En **RALENTI**, avance et recul de la machine. Chaque direction : page 22." },
-    { x:35, y:15, name:"Boutons de modes (gauche)", page:21, desc:"Sélection des modes de gauche : **MARCHE**, **stabilisateurs** et **balayage**." },
-    { x:65, y:15, name:"Boutons de modes (droite)", page:21, desc:"Sélection des modes du mât : **VEILLE** (attente), **DIRECT** et **LINÉAIRE**." },
-    { x:14.5, y:62, name:"Bouton Commencer", page:21, desc:"Active la télécommande au démarrage du quart." },
-    { x:38, y:11, name:"Luminosité de l'écran", page:23, desc:"Règle la **luminosité** de l'écran (icône soleil)." },
-    { x:50, y:9, name:"Témoins d'état & batterie faible", page:23, desc:"Voyants d'**état** de la commande et alerte de **batterie faible**." },
-    { x:50, y:83, name:"Voyant d'état", page:21, desc:"Indique l'**état** de la commande, sous le champignon d'arrêt d'urgence." },
-    { x:66, y:76, name:"AUX 1 / AUX 2 (libre)", page:21, desc:"Sorties auxiliaires. **AUX 2** est **libre**, sans fonction assignée." },
-    { x:73, y:76, name:"TRAVAIL AV / AR", page:21, desc:"Bascule des fonctions de **travail avant** et **travail arrière**." },
-    { x:80.5, y:83, name:"Feux de travail (Work Lights)", page:21, desc:"Allume les **feux de travail** de la machine." },
-    { x:86, y:38, name:"Aide", page:21, desc:"Bouton d'**aide** affichée à l'écran." },
-    { x:88, y:45, name:"Attendre (ATTENTE)", page:21, desc:"Met la commande en **attente** (veille, côté droit)." }
+    { x:50, y:45, name:"Manette centrale (JS2)", page:22, desc:"Manette du **milieu**. Bouge le **grappin** (avec le bouton vert) : haut = ouvrir, bas = fermer. En **RALENTI**, avance et recul de la machine. Directions par mode : page 22." },
+    { x:35, y:15, name:"Boutons de modes (gauche)", page:21, desc:"Touches **au-dessus de l'écran**. ##L'écran n'est pas tactile## : chaque touche suit l'icône affichée. Sélectionnent les modes de gauche : **marche**, **stabilisateurs** et **balayage**." },
+    { x:65, y:15, name:"Boutons de modes (droite)", page:21, desc:"Touches au-dessus de l'écran. Sélectionnent : **VEILLE** (attente, manettes désactivées), **DIRECT** (chaque articulation, comme une grue) et **LINÉAIRE** (l'effecteur suit des lignes droites)." },
+    { x:14.5, y:62, name:"Bouton Commencer", page:21, desc:"Réveille et **active** la télécommande au début du quart. Sans lui, les manettes restent désactivées." },
+    { x:38, y:11, name:"Luminosité de l'écran", page:23, desc:"Touche **☀** au-dessus de l'écran : règle la **luminosité** de l'IHM." },
+    { x:50, y:9, name:"Témoins d'état & batterie faible", page:23, desc:"En haut de l'écran : **intensité du signal** radio et **alerte de batterie faible**." },
+    { x:50, y:83, name:"Voyant d'état", page:21, desc:"Petit voyant sous le champignon d'arrêt d'urgence : indique l'**état** de la commande." },
+    { x:66, y:76, name:"AUX 1 / AUX 2 (libre)", page:21, desc:"Sorties auxiliaires. **AUX 2** est **libre**, sans fonction assignée sur cette machine." },
+    { x:73, y:76, name:"TRAVAIL AV / AR", page:21, desc:"Bascules de **travail avant** (TRAVAIL AV) et de **travail arrière** (TRAVAIL AR)." },
+    { x:80.5, y:83, name:"Feux de travail (Work Lights)", page:21, desc:"Allume et éteint les **feux de travail** de la machine." },
+    { x:86, y:38, name:"Aide", page:23, desc:"Touche **Aide** (Help), au-dessus de l'écran : affiche l'**aide** à l'écran." },
+    { x:88, y:45, name:"Attendre (ATTENTE)", page:23, desc:"Touche **Attente** (Stand By) : met la commande en **veille**, manettes désactivées. Mode sûr le temps de choisir un mode." }
   ];
 
   SIM_MODES = [
@@ -2553,18 +2553,18 @@ var RRC_SPOTS_EN = [
   { x:33.5, y:76, name:"Horn & beacon", page:21, desc:"Audible alarm and lights. The horn sounds **at every mode change** to warn nearby personnel." },
   { x:79, y:76, name:"MAST / CRAWL", page:50, desc:"Selects the major mode: **mast** control (DIRECT, LINEAR, TRAJECTORY) or movement (**CRAWL**: tracks). ##No CRAWL if the gripper jaws are closed.##" },
   { x:11, y:86, name:"Tilt switch (internal)", page:19, desc:"Internal sensor. Remote tilted or dropped: ##safety stop, hydraulics cut.## Back to level + joysticks neutral = return to standby. **Test every shift.**" },
-  { x:50, y:45, name:"Center joystick (JS2)", page:22, desc:"The **middle** joystick. Controls the **gripper** (open/close with the green button). In **CRAWL**, machine forward and reverse. Each direction: page 22." },
-  { x:35, y:15, name:"Mode buttons (left)", page:21, desc:"Left-side mode selection: **RUN**, **stabilizers** and **sweep**." },
-  { x:65, y:15, name:"Mode buttons (right)", page:21, desc:"Mast mode selection: **STANDBY** (wait), **DIRECT** and **LINEAR**." },
-  { x:14.5, y:62, name:"Start button", page:21, desc:"Wakes the remote at the start of the shift." },
-  { x:38, y:11, name:"Screen brightness", page:23, desc:"Adjusts the screen **brightness** (sun icon)." },
-  { x:50, y:9, name:"Status & low-battery indicators", page:23, desc:"Control **status** lights and **low-battery** warning." },
-  { x:50, y:83, name:"Status light", page:21, desc:"Shows the command **status**, below the emergency-stop mushroom." },
-  { x:66, y:76, name:"AUX 1 / AUX 2 (free)", page:21, desc:"Auxiliary outputs. **AUX 2** is **free**, with no assigned function." },
-  { x:73, y:76, name:"WORK FRONT / REAR", page:21, desc:"Toggles the **front work** and **rear work** functions." },
-  { x:80.5, y:83, name:"Work Lights", page:21, desc:"Turns on the machine **work lights**." },
-  { x:86, y:38, name:"Help", page:21, desc:"On-screen **help** button." },
-  { x:88, y:45, name:"Wait (STANDBY)", page:21, desc:"Puts the command on **standby** (right side)." }
+  { x:50, y:45, name:"Center joystick (JS2)", page:22, desc:"The **middle** joystick. Moves the **gripper** (with the green button): up = open, down = close. In **CRAWL**, machine forward and reverse. Directions by mode: page 22." },
+  { x:35, y:15, name:"Mode buttons (left)", page:21, desc:"Keys **above the screen**. ##The screen is not a touchscreen## : each key follows the on-screen icon. Select the left-side modes: **run**, **stabilizers** and **sweep**." },
+  { x:65, y:15, name:"Mode buttons (right)", page:21, desc:"Keys above the screen. Select: **STANDBY** (wait, joysticks disabled), **DIRECT** (each joint, like a crane) and **LINEAR** (end effector follows straight lines)." },
+  { x:14.5, y:62, name:"Start button", page:21, desc:"Wakes and **enables** the remote at the start of the shift. Without it, the joysticks stay disabled." },
+  { x:38, y:11, name:"Screen brightness", page:23, desc:"**☀** key above the screen: adjusts the HMI **brightness**." },
+  { x:50, y:9, name:"Status & low-battery indicators", page:23, desc:"Top of the screen: radio **signal strength** and **low-battery** warning." },
+  { x:50, y:83, name:"Status light", page:21, desc:"Small light below the emergency-stop mushroom: shows the command **status**." },
+  { x:66, y:76, name:"AUX 1 / AUX 2 (free)", page:21, desc:"Auxiliary outputs. **AUX 2** is **free**, with no assigned function on this machine." },
+  { x:73, y:76, name:"WORK FRONT / REAR", page:21, desc:"Toggles for **front work** (WORK FRONT) and **rear work** (WORK REAR)." },
+  { x:80.5, y:83, name:"Work Lights", page:21, desc:"Turns the machine **work lights** on and off." },
+  { x:86, y:38, name:"Help", page:23, desc:"**Help** key, above the screen: shows on-screen **help**." },
+  { x:88, y:45, name:"Wait (STANDBY)", page:21, desc:"**Stand By** key: puts the command on **standby**, joysticks disabled. Safe mode while choosing a mode." }
 ];
 
 var SIM_MODES_EN = [
