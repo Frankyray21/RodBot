@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.25.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.26.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -415,7 +415,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.25.0';
+      const VER = '1.26.0';
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
         import('./js/hotspots.js?v=' + VER)
@@ -818,6 +818,28 @@
       console.error('Viewer 3D indisponible :', err);
       montrerRepli();
     }
+  </script>
+
+  <script>
+    /* PWA hors-ligne + mise a jour automatique.
+       La page 3D peut etre ouverte directement (lien, favori) sans passer par
+       l'accueil : elle enregistre donc aussi le service worker et se recharge
+       une seule fois quand une nouvelle version prend le controle. Sans ca, le
+       cache reste fige sur tablette / telephone (repere tronque, ancien texte). */
+    (function () {
+      try {
+        if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+          var hadCtrl = !!navigator.serviceWorker.controller;
+          var reloaded = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (!hadCtrl || reloaded) return; reloaded = true; location.reload();
+          });
+          navigator.serviceWorker.register('../sw.js').then(function (reg) {
+            try { reg.update(); } catch (e) {}
+          }).catch(function () {});
+        }
+      } catch (e) {}
+    })();
   </script>
 </body>
 </html>
