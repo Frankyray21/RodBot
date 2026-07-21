@@ -255,11 +255,9 @@
             <div style="background:#D92624;color:#FFFFFF;padding:26px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
               <div style="display:flex;align-items:center;gap:14px">
                 <span style="font-size:36px;line-height:1;flex:none">🛑</span>
-                <div style="flex:1;min-width:0">
-                  <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">Aucun système de vision</div>
-                  <button onClick="{{ pgVision.open }}" title="Ouvrir la page {{ pgVision.n }} du manuel" style="font-weight:700;font-size:11px;letter-spacing:.08em;color:#FFE9E8;background:none;border:none;padding:0;margin-top:4px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">📖 Manuel · P. {{ pgVision.n }}</button>
-                </div>
+                <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">Aucun système de vision</div>
               </div>
+              <button onClick="{{ pgVision.open }}" title="Ouvrir la page {{ pgVision.n }} du manuel" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:12px;letter-spacing:.04em;color:#FFFFFF;background:rgba(255,255,255,.14);border:1.5px solid #FFFFFF;padding:8px 14px;cursor:pointer" style-hover="background:rgba(255,255,255,.26)"><span style="font-weight:800;font-size:13px">📖</span>Voir la page {{ pgVision.n }} du manuel</button>
               <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF">Le RodBot ne voit <strong>ni les travailleurs ni les équipements</strong> dans sa zone.</div>
               <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF;background:rgba(0,0,0,.18);padding:13px 15px;border-left:3px solid #FFFFFF">👉 Avant de bouger : <strong>barrière en place</strong>, opérateur séparé de la machine et de la foreuse (p. 45), pilotage radio de part et d'autre.</div>
             </div>
@@ -1209,11 +1207,9 @@
             <div style="background:#D92624;color:#FFFFFF;padding:26px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
               <div style="display:flex;align-items:center;gap:14px">
                 <span style="font-size:36px;line-height:1;flex:none">🛑</span>
-                <div style="flex:1;min-width:0">
-                  <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">No vision system</div>
-                  <button onClick="{{ pgVision.open }}" title="Open manual page {{ pgVision.n }}" style="font-weight:700;font-size:11px;letter-spacing:.08em;color:#FFE9E8;background:none;border:none;padding:0;margin-top:4px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">📖 Manual · P. {{ pgVision.n }}</button>
-                </div>
+                <div style="font-weight:900;font-size:17px;letter-spacing:.02em;text-transform:uppercase;color:#FFFFFF;line-height:1.25">No vision system</div>
               </div>
+              <button onClick="{{ pgVision.open }}" title="Open manual page {{ pgVision.n }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:12px;letter-spacing:.04em;color:#FFFFFF;background:rgba(255,255,255,.14);border:1.5px solid #FFFFFF;padding:8px 14px;cursor:pointer" style-hover="background:rgba(255,255,255,.26)"><span style="font-weight:800;font-size:13px">📖</span>View manual page {{ pgVision.n }}</button>
               <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF">The RodBot does not see <strong>workers or equipment</strong> in its area.</div>
               <div style="font-size:14.5px;line-height:1.6;color:#FFFFFF;background:rgba(0,0,0,.18);padding:13px 15px;border-left:3px solid #FFFFFF">👉 Before moving: <strong>barrier in place</strong>, operator separated from the machine and drill (p. 45), radio control from either side.</div>
             </div>
@@ -1930,7 +1926,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.50"></script>
+<script src="app.js?v=1.9.51"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>
