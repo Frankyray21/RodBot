@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.28.0';
+var APP_VERSION = '1.29.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -2104,10 +2104,7 @@ class Component extends DCLogic {
         desc:this.tr("Plateau amovible de 35 tiges, pattes de retenue latérales et fourreaux de fourches pour la manutention.","Removable 35-rod rack, side retention tabs and fork pockets for handling.") },
       { src:"img/eq-panel.png", pos:"50% 12%",
         tag:this.tr("PANNEAU & ARRÊT D'URGENCE","PANEL & EMERGENCY STOP"),
-        desc:this.tr("Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques.","The low-voltage panel: emergency-stop mushroom button, pressure gauge, magnet switch and hydraulic valves.") },
-      { src:"img/eq-track.png", pos:"50% 55%",
-        tag:this.tr("LES CHENILLES","THE TRACKS"),
-        desc:this.tr("Train de roulement en caoutchouc, contrôle de la flèche (mou) de 20 à 25 mm, couvert à l'entretien (module 08).","Rubber track undercarriage, track sag check of 20 to 25 mm, covered under maintenance (module 08).") }
+        desc:this.tr("Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques.","The low-voltage panel: emergency-stop mushroom button, pressure gauge, magnet switch and hydraulic valves.") }
     ].map(function(x){ return { src:x.src, tag:x.tag, desc:x.desc, pos:x.pos, open:(function(s,c){ return function(){ self.openImg(s,c); }; })(x.src,x.tag) }; });
 
     // Analyse de risques : 4 pages présentées dans une section dédiée
