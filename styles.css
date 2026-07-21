@@ -78,6 +78,23 @@ input::placeholder{color:rgba(29,30,27,.35)}
   56%,100%{background:#332d20;box-shadow:0 0 3px rgba(0,0,0,0)}
 }
 @media (prefers-reduced-motion:reduce){.rb-beacon{animation:none;background:#F0A81E;box-shadow:0 0 20px 6px rgba(240,168,30,.7)}}
+/* Voyant ambre du simulateur de modes : reagit au mode choisi.
+   .on = fixe (allume + balayage rotatif) · .blink = clignotant · .off = eteint (gris). */
+.rb-gyro{position:relative;width:46px;height:50px;border-radius:23px 23px 5px 5px;overflow:hidden;
+  background:radial-gradient(circle at 50% 34%,#FFE0A3 0%,#F0A81E 48%,#A96C15 100%);
+  box-shadow:0 0 24px 4px rgba(240,168,30,.85)}
+.rb-gyro::before{content:"";position:absolute;inset:-40%;
+  background:conic-gradient(from 0deg,rgba(255,255,255,.6) 0deg,transparent 50deg 310deg,rgba(255,255,255,.6) 360deg);
+  animation:rbGyroSpin 1.5s linear infinite}
+.rb-gyro::after{content:"";position:absolute;left:50%;top:7px;width:11px;height:11px;transform:translateX(-50%);
+  border-radius:50%;background:rgba(255,255,255,.5);filter:blur(1px)}
+.rb-gyro.blink{animation:rbGyroBlink .8s steps(1,end) infinite}
+.rb-gyro.off{background:radial-gradient(circle at 50% 34%,#54544e 0%,#33332e 75%);box-shadow:none}
+.rb-gyro.off::before,.rb-gyro.off::after{display:none}
+@keyframes rbGyroSpin{to{transform:rotate(360deg)}}
+@keyframes rbGyroBlink{0%,48%{box-shadow:0 0 24px 5px rgba(240,168,30,.9);filter:brightness(1.05)}
+  50%,100%{box-shadow:0 0 3px 0 rgba(240,168,30,.12);filter:brightness(.42)}}
+@media (prefers-reduced-motion:reduce){.rb-gyro::before{animation:none}.rb-gyro.blink{animation:none;box-shadow:0 0 18px 5px rgba(240,168,30,.7)}}
 @keyframes rbPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes rbSheet{from{transform:translateY(100%)}to{transform:none}}
 /* Fiche commande télécommande : feuille du bas sur mobile, carte centrée sur ordinateur */
