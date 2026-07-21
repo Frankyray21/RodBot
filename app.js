@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.37.0';
+var APP_VERSION = '1.38.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -894,7 +894,7 @@ class Component extends DCLogic {
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
-      simMode:"VEILLE", klaxon:false
+      simMode:"VEILLE", klaxon:false, homeBeacon:"on"
     };
   }
 
@@ -916,6 +916,7 @@ class Component extends DCLogic {
     clearTimeout(this._kt);
     this._kt = setTimeout(()=>this.setState({ klaxon:false }), 1400);
   };
+  pickHomeBeacon = (st)=>{ if(st!==this.state.homeBeacon) this.setState({ homeBeacon:st }); };
   persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name, attEmpId:this.state.attEmpId })); } catch(e){} }
 
   scrollHomeSection = (key)=>{
@@ -1977,6 +1978,18 @@ class Component extends DCLogic {
     base.simModeName = curMode.id;
     base.simModeDesc = curMode.desc;
     base.beaconState = curMode.beacon; // voyant ambre du simulateur : "on" | "blink" | "off"
+    // Voyant ambre INTERACTIF de l'accueil : l'operateur appuie sur un etat, le voyant reagit.
+    base.homeBeacon = S.homeBeacon;
+    base.homeBeaconBtns = [
+      { k:"on",    l:this.tr("Fixe","Steady"),          s:this.tr("commande À DISTANCE active","REMOTE control active") },
+      { k:"blink", l:this.tr("Clignotant","Flashing"),  s:this.tr("mât en TRAJECTOIRE ou RALENTI","mast in TRAJECTORY or CRAWL") },
+      { k:"off",   l:this.tr("Éteint","Off"),           s:this.tr("mode LOCAL","LOCAL mode") }
+    ].map(b=>{ const on=S.homeBeacon===b.k; return {
+      l:b.l, s:b.s, pick:()=>this.pickHomeBeacon(b.k),
+      bg: on?"rgba(240,168,30,.15)":"rgba(255,255,255,.04)",
+      border: on?"#F0A81E":"rgba(255,255,255,.15)",
+      fg: on?"#FAF9F5":"#C9C8C4"
+    }; });
     base.klaxonOn = S.klaxon;
     base.valveTracks = curMode.tracks ? "OUVERTE" : "FERMÉE";
     base.valveTracksFg = curMode.tracks ? "#2F7D48" : "#535252";
@@ -2099,10 +2112,7 @@ class Component extends DCLogic {
         desc:this.tr("L'écran tactile du panneau : modes, diagnostics, alarmes et calibrage, détaillé au module 05.","The panel touchscreen: modes, diagnostics, alarms and calibration, detailed in module 05.") },
       { src:"img/eq-labeled.png", pos:"50% 42%",
         tag:this.tr("LE BAC À TIGES","THE ROD BASKET"),
-        desc:this.tr("Plateau amovible de 35 tiges, pattes de retenue latérales et fourreaux de fourches pour la manutention.","Removable 35-rod rack, side retention tabs and fork pockets for handling.") },
-      { src:"img/eq-panel.png", pos:"50% 12%",
-        tag:this.tr("PANNEAU & ARRÊT D'URGENCE","PANEL & EMERGENCY STOP"),
-        desc:this.tr("Le panneau basse tension : champignon d'arrêt d'urgence, manomètre, sectionneur d'aimant et valves hydrauliques.","The low-voltage panel: emergency-stop mushroom button, pressure gauge, magnet switch and hydraulic valves.") }
+        desc:this.tr("Plateau amovible de 35 tiges, pattes de retenue latérales et fourreaux de fourches pour la manutention.","Removable 35-rod rack, side retention tabs and fork pockets for handling.") }
     ].map(function(x){ return { src:x.src, tag:x.tag, desc:x.desc, pos:x.pos, open:(function(s,c){ return function(){ self.openImg(s,c); }; })(x.src,x.tag) }; });
 
     // Analyse de risques : 4 pages présentées dans une section dédiée
