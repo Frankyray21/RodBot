@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.46.0';
+var APP_VERSION = '1.47.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -851,8 +851,8 @@ class Component extends DCLogic {
 
   RRC_SPOTS = [
     { x:50, y:22, name:"Écran de la télécommande", page:23, desc:"Écran **non tactile**. Les touches du clavier suivent les icônes affichées. Affiche le mode actif, l'état du **grappin** et de l'**aimant**, la batterie et les points. Encadré **jaune** = élément choisi." },
-    { x:26, y:52, name:"Manette gauche (JS1)", page:21, desc:"Proportionnelle, retour au centre. **DIRECT** : pivotement et levage. **LINÉAIRE** : effecteur haut/bas, gauche/droite. Molette **INCL PINCE** : inclinaison de la pince (**J6**)." },
-    { x:73, y:50, name:"Manette droite (JS2)", page:21, desc:"**DIRECT** : télescope et poignet. **LINÉAIRE** : vers la foreuse ou le bac. **TRAJECTOIRE** : droite = **PLATEAU**, gauche = **FOREUSE**. Molette **ROTATION PINCE** (**J5**)." },
+    { x:26, y:52, name:"Manette gauche (JS1)", page:21, desc:"Proportionnelle, retour au centre. **DIRECT** : pivotement et levage. **LINÉAIRE** : effecteur haut/bas, gauche/droite. Molette **INCL PINCE** : inclinaison de la pince (**J6**). Directions détaillées : page 22." },
+    { x:76.5, y:49, name:"Manette droite (JS3)", page:21, desc:"**DIRECT** : télescope et poignet. **LINÉAIRE** : vers la foreuse ou le bac. **TRAJECTOIRE** : droite = **PLATEAU**, gauche = **FOREUSE**. Molette **ROTATION PINCE** (**J5**). Directions : page 22." },
     { x:50.5, y:74, name:"Arrêt d'urgence", page:18, desc:"Champignon rouge. Une pression arrête les **DEUX** machines (RodBot + foreuse). ##En mode LOCAL, il ne fonctionne pas.## Cliquez pour tester.", estop:true },
     { x:40.5, y:76, name:"Bouton TRAJ (jaune)", page:64, desc:"Active le mode **TRAJECTOIRE**. Maintenir ce bouton + manette droite. Le mât va seul entre les points. Relâcher la manette **arrête** le mât." },
     { x:60, y:76, name:"Bouton PINCE (vert)", page:55, desc:"**Deux gestes** en même temps. **FERMER** : bouton vert + bascule bas. **OUVRIR** : bouton vert + bascule haut tenue **≥ 1 s** (anti-chute de tige)." },
@@ -862,7 +862,19 @@ class Component extends DCLogic {
     { x:26, y:76, name:"Rapide / Lent (Rabbit-Turtle)", page:19, desc:"Règle la vitesse des articulations (DIRECT, LINÉAIRE, TRAJECTOIRE). **Turtle = -50 %**. Le grappin garde sa vitesse." },
     { x:33.5, y:76, name:"Klaxon & gyrophare", page:21, desc:"Avertisseur sonore et feux. Le klaxon sonne **à chaque changement de mode** pour prévenir le personnel." },
     { x:79, y:76, name:"MÂT / DÉP. LENTE", page:50, desc:"Choix du grand mode : commande du **mât** (DIRECT, LINÉAIRE, TRAJECTOIRE) ou déplacement (**RALENTI** : chenilles). ##Impossible en RALENTI si le grappin est fermé.##" },
-    { x:11, y:86, name:"Interrupteur d'inclinaison (interne)", page:19, desc:"Capteur interne. Manette penchée ou tombée : ##arrêt de sécurité, hydraulique coupée.## Remise à plat + manettes au neutre = retour en veille. **À tester chaque quart.**" }
+    { x:11, y:86, name:"Interrupteur d'inclinaison (interne)", page:19, desc:"Capteur interne. Manette penchée ou tombée : ##arrêt de sécurité, hydraulique coupée.## Remise à plat + manettes au neutre = retour en veille. **À tester chaque quart.**" },
+    { x:50, y:45, name:"Manette centrale (JS2)", page:22, desc:"Manette du **milieu**. Commande le **grappin** (ouvrir/fermer avec le bouton vert). En **RALENTI**, avance et recul de la machine. Chaque direction : page 22." },
+    { x:35, y:15, name:"Boutons de modes (gauche)", page:21, desc:"Sélection des modes de gauche : **MARCHE**, **stabilisateurs** et **balayage**." },
+    { x:65, y:15, name:"Boutons de modes (droite)", page:21, desc:"Sélection des modes du mât : **VEILLE** (attente), **DIRECT** et **LINÉAIRE**." },
+    { x:14.5, y:62, name:"Bouton Commencer", page:21, desc:"Active la télécommande au démarrage du quart." },
+    { x:38, y:11, name:"Luminosité de l'écran", page:23, desc:"Règle la **luminosité** de l'écran (icône soleil)." },
+    { x:50, y:9, name:"Témoins d'état & batterie faible", page:23, desc:"Voyants d'**état** de la commande et alerte de **batterie faible**." },
+    { x:50, y:83, name:"Voyant d'état", page:21, desc:"Indique l'**état** de la commande, sous le champignon d'arrêt d'urgence." },
+    { x:66, y:76, name:"AUX 1 / AUX 2 (libre)", page:21, desc:"Sorties auxiliaires. **AUX 2** est **libre**, sans fonction assignée." },
+    { x:73, y:76, name:"TRAVAIL AV / AR", page:21, desc:"Bascule des fonctions de **travail avant** et **travail arrière**." },
+    { x:80.5, y:83, name:"Feux de travail (Work Lights)", page:21, desc:"Allume les **feux de travail** de la machine." },
+    { x:86, y:38, name:"Aide", page:21, desc:"Bouton d'**aide** affichée à l'écran." },
+    { x:88, y:45, name:"Attendre (ATTENTE)", page:21, desc:"Met la commande en **attente** (veille, côté droit)." }
   ];
 
   SIM_MODES = [
@@ -2119,6 +2131,7 @@ class Component extends DCLogic {
     base.closeImg = this.closeImg;
     base.stopEvt = function(e){ if(e&&e.stopPropagation) e.stopPropagation(); };
     base.rrcAnnotOpen = function(){ self.openImg("img/telecommande-annotee.png", self.tr("Télécommande radio, schéma annoté complet","Radio remote, full annotated diagram")); };
+    base.dirMapOpen = function(){ self.openImg("img/directions-manettes.webp", self.tr("Directions des manettes JS1-JS2-JS3 par mode (manuel p. 22)","Joystick directions JS1-JS2-JS3 by mode (manual p. 22)")); };
 
     // ===== Installation de l'app (PWA) =====
     var standalone=false;
@@ -2529,7 +2542,7 @@ var QUIZ2_EN = {"0":[{"type":"qcm","text":"A coworker presses the DRILL's emerge
 var RRC_SPOTS_EN = [
   { x:50, y:22, name:"Remote display", page:23, desc:"**Non-touch** screen. Keypad buttons match the on-screen icons. Shows the active mode, **gripper** and **magnet** status, battery and points. **Yellow** box = selected item." },
   { x:26, y:52, name:"Left joystick (JS1)", page:21, desc:"Proportional, self-centering. **DIRECT**: slew and hoist. **LINEAR**: end effector up/down, left/right. **JAW TILT** thumbwheel: jaw tilt (**J6**)." },
-  { x:73, y:50, name:"Right joystick (JS2)", page:21, desc:"**DIRECT**: telescope and wrist. **LINEAR**: toward the drill or basket. **TRAJECTORY**: right = **DECK**, left = **DRILL**. **JAW ROTATE** thumbwheel (**J5**)." },
+  { x:76.5, y:49, name:"Right joystick (JS3)", page:21, desc:"**DIRECT**: telescope and wrist. **LINEAR**: toward the drill or basket. **TRAJECTORY**: right = **DECK**, left = **DRILL**. **JAW ROTATE** thumbwheel (**J5**). Directions: page 22." },
   { x:50.5, y:74, name:"Emergency stop (e-Stop)", page:18, desc:"Red mushroom button. One press stops **BOTH** machines (RodBot + drill). ##In LOCAL mode, it does not work.## Click to test.", estop:true },
   { x:40.5, y:76, name:"TRAJ button (yellow)", page:64, desc:"Activates **TRAJECTORY** mode. Hold this button + right joystick. The mast moves on its own between points. Releasing the joystick **stops** the mast." },
   { x:60, y:76, name:"GRIPPER button (green)", page:55, desc:"**Two actions** at once. **CLOSE**: green button + rocker down. **OPEN**: green button + rocker up held **≥ 1 s** (anti drop-rod)." },
@@ -2539,7 +2552,19 @@ var RRC_SPOTS_EN = [
   { x:26, y:76, name:"Fast / Slow (Rabbit-Turtle)", page:19, desc:"Sets joint speed (DIRECT, LINEAR, TRAJECTORY). **Turtle = -50%**. The gripper keeps its speed." },
   { x:33.5, y:76, name:"Horn & beacon", page:21, desc:"Audible alarm and lights. The horn sounds **at every mode change** to warn nearby personnel." },
   { x:79, y:76, name:"MAST / CRAWL", page:50, desc:"Selects the major mode: **mast** control (DIRECT, LINEAR, TRAJECTORY) or movement (**CRAWL**: tracks). ##No CRAWL if the gripper jaws are closed.##" },
-  { x:11, y:86, name:"Tilt switch (internal)", page:19, desc:"Internal sensor. Remote tilted or dropped: ##safety stop, hydraulics cut.## Back to level + joysticks neutral = return to standby. **Test every shift.**" }
+  { x:11, y:86, name:"Tilt switch (internal)", page:19, desc:"Internal sensor. Remote tilted or dropped: ##safety stop, hydraulics cut.## Back to level + joysticks neutral = return to standby. **Test every shift.**" },
+  { x:50, y:45, name:"Center joystick (JS2)", page:22, desc:"The **middle** joystick. Controls the **gripper** (open/close with the green button). In **CRAWL**, machine forward and reverse. Each direction: page 22." },
+  { x:35, y:15, name:"Mode buttons (left)", page:21, desc:"Left-side mode selection: **RUN**, **stabilizers** and **sweep**." },
+  { x:65, y:15, name:"Mode buttons (right)", page:21, desc:"Mast mode selection: **STANDBY** (wait), **DIRECT** and **LINEAR**." },
+  { x:14.5, y:62, name:"Start button", page:21, desc:"Wakes the remote at the start of the shift." },
+  { x:38, y:11, name:"Screen brightness", page:23, desc:"Adjusts the screen **brightness** (sun icon)." },
+  { x:50, y:9, name:"Status & low-battery indicators", page:23, desc:"Control **status** lights and **low-battery** warning." },
+  { x:50, y:83, name:"Status light", page:21, desc:"Shows the command **status**, below the emergency-stop mushroom." },
+  { x:66, y:76, name:"AUX 1 / AUX 2 (free)", page:21, desc:"Auxiliary outputs. **AUX 2** is **free**, with no assigned function." },
+  { x:73, y:76, name:"WORK FRONT / REAR", page:21, desc:"Toggles the **front work** and **rear work** functions." },
+  { x:80.5, y:83, name:"Work Lights", page:21, desc:"Turns on the machine **work lights**." },
+  { x:86, y:38, name:"Help", page:21, desc:"On-screen **help** button." },
+  { x:88, y:45, name:"Wait (STANDBY)", page:21, desc:"Puts the command on **standby** (right side)." }
 ];
 
 var SIM_MODES_EN = [

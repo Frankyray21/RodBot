@@ -293,13 +293,60 @@
       <section class="mr-ghost" data-ghost="Pratique" data-rb-scroll-section="practice" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
         <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">03 : APPRENDRE EN MANIPULANT</div>
         <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Pratiquer les commandes</h2>
-        <p style="font-size:15px;line-height:1.55;color:#535252;max-width:680px;margin:0 0 28px">Toucher les commandes. Voir le mouvement. Refaire le geste.</p>
-        <div class="rb-stagger" style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px">
-          <button onClick="{{ openSimRrc }}" style="text-align:left;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.15);padding:22px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px -24px rgba(20,20,19,.5);border-color:#D92624">
-            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATEUR</span>
-            <span style="font-weight:800;font-size:17.5px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">La télécommande radio</span>
-            <span style="font-size:13px;line-height:1.5;color:#535252">Photo réelle, zones cliquables : manettes, boutons, arrêt d'urgence à tester.</span>
-            <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Explorer →</span>
+        <p style="font-size:15px;line-height:1.55;color:#535252;max-width:680px;margin:0 0 28px">La télécommande radio, en vrai. Touchez une pastille pour identifier chaque commande. Le champignon d'arrêt d'urgence est fonctionnel.</p>
+        <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start">
+          <div>
+            <div style="position:relative;overflow:hidden;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);box-shadow:0 24px 50px -36px rgba(20,20,19,.6)">
+              <img src="img/p21-0.png" alt="Télécommande radio du RodBot" style="display:block;width:100%;height:auto">
+              <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:0;background:rgba(217,38,36,.15);border:4px solid #D92624;pointer-events:none;animation:rbPulse 1s ease-in-out infinite"></div>
+              </sc-if>
+              <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
+                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:20px;height:20px;background:transparent;border:2px solid {{ s.ring }};cursor:pointer;box-shadow:0 0 0 1.5px {{ s.halo }};transition:transform .15s" style-hover="transform:translate(-50%,-50%) scale(1.3)">
+                  <span style="position:absolute;top:-9px;right:-9px;min-width:15px;height:15px;padding:0 2px;background: {{ s.bg }};color: {{ s.fg }};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.6)">{{ s.n }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="margin-top:12px;font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898;text-align:center">Photo du manuel, p. 21 : cliquez sur les pastilles pour identifier chaque commande</div>
+          </div>
+
+          <div style="position:sticky;top:84px;display:flex;flex-direction:column;gap:14px">
+            <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#D92624;color:#fff;padding:22px;box-shadow:0 18px 44px -20px rgba(217,38,36,.6)">
+                <div style="font-weight:800;font-size:10px;letter-spacing:.16em;margin-bottom:8px">⚠ ARRÊT D'URGENCE ACTIVÉ</div>
+                <div style="font-weight:900;font-size:19px;text-transform:uppercase;margin-bottom:8px">Tout mouvement est interrompu</div>
+                <div style="font-size:13.5px;line-height:1.55;margin-bottom:16px;color:#FFE9E8">Le relais en série a coupé le RodBot ET la foreuse mère. Pour réarmer : tournez la tête rouge en champignon, puis appuyez sur le bouton de réinitialisation de sécurité du panneau.</div>
+                <button onClick="{{ resetEstop }}" style="background:#fff;color:#B71F1D;border:none;padding:12px 20px;font-weight:800;font-size:14px;cursor:pointer;width:100%">↻ Tourner le champignon & réarmer</button>
+              </div>
+            </sc-if>
+            <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <span style="width:28px;height:28px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none">{{ rrcSelN }}</span>
+                <span style="font-weight:800;font-size:17px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}" style="font-size:14px;line-height:1.5;color:#3A3B38"></div></sc-for></div>
+              <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:12px">📖</span>Voir la page {{ rrcSelPage }} du manuel</button>
+            </div>
+            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 La pastille <strong style="color:#1D1E1B">4</strong> (champignon rouge) est fonctionnelle : appuyez dessus pour vivre un arrêt d'urgence.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:26px;border-top:1px solid rgba(29,30,27,.12);padding-top:22px">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#D92624;margin-bottom:12px">📋 SCHÉMA ANNOTÉ COMPLET : CHAQUE COMMANDE NOMMÉE</div>
+          <button onClick="{{ rrcAnnotOpen }}" style="display:block;width:100%;padding:0;border:1px solid rgba(29,30,27,.16);background:#FFFFFF;cursor:pointer;position:relative;overflow:hidden" style-hover="border-color:#D92624">
+            <img src="img/telecommande-annotee.png" alt="Télécommande radio annotée, tous les boutons, joysticks et voyants nommés" loading="lazy" style="display:block;width:100%;height:auto">
+            <span style="position:absolute;right:10px;bottom:10px;background:rgba(20,20,19,.82);color:#FFFFFF;font-size:10px;font-weight:800;letter-spacing:.1em;padding:5px 9px">🔍 AGRANDIR</span>
+          </button>
+        </div>
+
+        <div style="margin-top:26px;border-top:1px solid rgba(29,30,27,.12);padding-top:22px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+            <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#D92624">🕹️ DIRECTIONS DES MANETTES : CE QUE FAIT CHAQUE MANETTE</div>
+            <button onClick="{{ dirMapOpen }}" style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;background:none;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap;cursor:pointer" style-hover="background:rgba(217,38,36,.08)">📖 MANUEL · P. 22</button>
+          </div>
+          <button onClick="{{ dirMapOpen }}" style="display:block;width:100%;padding:0;border:1px solid rgba(29,30,27,.16);background:#FFFFFF;cursor:pointer;position:relative;overflow:hidden" style-hover="border-color:#D92624">
+            <img src="img/directions-manettes.webp" alt="Directions des manettes JS1, JS2, JS3 par mode : Direct, Linéaire/Trajectoire, Ralenti" loading="lazy" style="display:block;width:100%;height:auto">
+            <span style="position:absolute;right:10px;bottom:10px;background:rgba(20,20,19,.82);color:#FFFFFF;font-size:10px;font-weight:800;letter-spacing:.1em;padding:5px 9px">🔍 AGRANDIR</span>
           </button>
         </div>
       </section>
@@ -1263,13 +1310,60 @@
       <section class="mr-ghost" data-ghost="Practice" data-rb-scroll-section="practice" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
         <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">03 : LEARN BY DOING</div>
         <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Practise the controls</h2>
-        <p style="font-size:15px;line-height:1.55;color:#535252;max-width:680px;margin:0 0 28px">Touch the controls. See the movement. Repeat the move.</p>
-        <div class="rb-stagger" style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px">
-          <button onClick="{{ openSimRrc }}" style="text-align:left;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.15);padding:22px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:10px" style-hover="transform:translateY(-4px);box-shadow:0 18px 40px -24px rgba(20,20,19,.5);border-color:#D92624">
-            <span style="font-weight:800;font-size:10px;letter-spacing:.18em;color:#989898">SIMULATOR</span>
-            <span style="font-weight:800;font-size:17.5px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">The radio remote</span>
-            <span style="font-size:13px;line-height:1.5;color:#535252">Real photo, clickable zones: joysticks, buttons, emergency stop to test.</span>
-            <span style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#D92624;margin-top:auto">Explore →</span>
+        <p style="font-size:15px;line-height:1.55;color:#535252;max-width:680px;margin:0 0 28px">The radio remote, for real. Tap a marker to identify each control. The emergency-stop mushroom is functional.</p>
+        <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start">
+          <div>
+            <div style="position:relative;overflow:hidden;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);box-shadow:0 24px 50px -36px rgba(20,20,19,.6)">
+              <img src="img/p21-0.png" alt="RodBot radio remote" style="display:block;width:100%;height:auto">
+              <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:0;background:rgba(217,38,36,.15);border:4px solid #D92624;pointer-events:none;animation:rbPulse 1s ease-in-out infinite"></div>
+              </sc-if>
+              <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
+                <button onClick="{{ s.pick }}" title="{{ s.name }}" style="position:absolute;left: {{ s.x }}%;top: {{ s.y }}%;transform:translate(-50%,-50%);width:20px;height:20px;background:transparent;border:2px solid {{ s.ring }};cursor:pointer;box-shadow:0 0 0 1.5px {{ s.halo }};transition:transform .15s" style-hover="transform:translate(-50%,-50%) scale(1.3)">
+                  <span style="position:absolute;top:-9px;right:-9px;min-width:15px;height:15px;padding:0 2px;background: {{ s.bg }};color: {{ s.fg }};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.6)">{{ s.n }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="margin-top:12px;font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898;text-align:center">Manual photo, p. 21: click the markers to identify each control</div>
+          </div>
+
+          <div style="position:sticky;top:84px;display:flex;flex-direction:column;gap:14px">
+            <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#D92624;color:#fff;padding:22px;box-shadow:0 18px 44px -20px rgba(217,38,36,.6)">
+                <div style="font-weight:800;font-size:10px;letter-spacing:.16em;margin-bottom:8px">⚠ EMERGENCY STOP ACTIVATED</div>
+                <div style="font-weight:900;font-size:19px;text-transform:uppercase;margin-bottom:8px">All motion is halted</div>
+                <div style="font-size:13.5px;line-height:1.55;margin-bottom:16px;color:#FFE9E8">The series relay cut both the RodBot AND the parent drill. To reset: twist the red mushroom head, then press the safety reset button on the panel.</div>
+                <button onClick="{{ resetEstop }}" style="background:#fff;color:#B71F1D;border:none;padding:12px 20px;font-weight:800;font-size:14px;cursor:pointer;width:100%">↻ Twist the mushroom & reset</button>
+              </div>
+            </sc-if>
+            <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <span style="width:28px;height:28px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none">{{ rrcSelN }}</span>
+                <span style="font-weight:800;font-size:17px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}" style="font-size:14px;line-height:1.5;color:#3A3B38"></div></sc-for></div>
+              <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:12px">📖</span>View manual page {{ rrcSelPage }}</button>
+            </div>
+            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 Marker <strong style="color:#1D1E1B">4</strong> (red mushroom) is functional: press it to experience an emergency stop.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:26px;border-top:1px solid rgba(29,30,27,.12);padding-top:22px">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#D92624;margin-bottom:12px">📋 FULL ANNOTATED DIAGRAM: EVERY CONTROL NAMED</div>
+          <button onClick="{{ rrcAnnotOpen }}" style="display:block;width:100%;padding:0;border:1px solid rgba(29,30,27,.16);background:#FFFFFF;cursor:pointer;position:relative;overflow:hidden" style-hover="border-color:#D92624">
+            <img src="img/telecommande-annotee.png" alt="Annotated radio remote, every button, joystick and light named" loading="lazy" style="display:block;width:100%;height:auto">
+            <span style="position:absolute;right:10px;bottom:10px;background:rgba(20,20,19,.82);color:#FFFFFF;font-size:10px;font-weight:800;letter-spacing:.1em;padding:5px 9px">🔍 ENLARGE</span>
+          </button>
+        </div>
+
+        <div style="margin-top:26px;border-top:1px solid rgba(29,30,27,.12);padding-top:22px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+            <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#D92624">🕹️ JOYSTICK DIRECTIONS: WHAT EACH STICK DOES</div>
+            <button onClick="{{ dirMapOpen }}" style="font-weight:700;font-size:10px;letter-spacing:.12em;color:#D92624;background:none;border:1px solid rgba(217,38,36,.4);padding:5px 10px;white-space:nowrap;cursor:pointer" style-hover="background:rgba(217,38,36,.08)">📖 MANUAL · P. 22</button>
+          </div>
+          <button onClick="{{ dirMapOpen }}" style="display:block;width:100%;padding:0;border:1px solid rgba(29,30,27,.16);background:#FFFFFF;cursor:pointer;position:relative;overflow:hidden" style-hover="border-color:#D92624">
+            <img src="img/directions-manettes.webp" alt="Joystick directions JS1, JS2, JS3 by mode: Direct, Linear/Trajectory, Crawl" loading="lazy" style="display:block;width:100%;height:auto">
+            <span style="position:absolute;right:10px;bottom:10px;background:rgba(20,20,19,.82);color:#FFFFFF;font-size:10px;font-weight:800;letter-spacing:.1em;padding:5px 9px">🔍 ENLARGE</span>
           </button>
         </div>
       </section>
@@ -1962,7 +2056,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.55"></script>
+<script src="app.js?v=1.9.56"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>
