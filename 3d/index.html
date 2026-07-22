@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.41.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.42.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -212,7 +212,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.39.0</span>
+        <span id="rbSiteVer">Version 1.42.0</span>
         <span>Scan 3D réel. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -396,7 +396,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.41.0';
+      const VER = '1.42.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
@@ -494,10 +494,15 @@
         ficheTitle.textContent = data.titre;
         ficheDesc.textContent = data.resume;
         ficheManuelRef.textContent = data.manuel.ref + ' · page ' + data.manuel.page;
-        ficheManuelBtn.onclick = () => ouvrirPhoto({
-          titre: 'Manuel : ' + data.titre,
-          vues: [{ label: null, src: 'assets/manuel/p' + data.manuel.page + '.jpg', alt: 'Page ' + data.manuel.page + ' du manuel de l\'opérateur' }]
-        });
+        ficheManuelBtn.onclick = () => {
+          const _src = 'assets/manuel/p' + data.manuel.page + '.jpg';
+          try {
+            ouvrirPhoto({
+              titre: 'Manuel : ' + data.titre,
+              vues: [{ label: null, src: _src, alt: 'Page ' + data.manuel.page + ' du manuel de l\'opérateur' }]
+            });
+          } catch (e) { window.open(_src, '_blank', 'noopener'); }
+        };
         overlay.querySelectorAll('.hs.is-active').forEach((el) => el.classList.remove('is-active'));
         const pastille = overlay.querySelector('.hs[data-id="' + id + '"]');
         if (pastille) { pastille.classList.add('is-active'); declencheur = pastille; }
@@ -668,8 +673,8 @@
               });
               pbPoints.appendChild(el);
             }
-            const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
-            pb.min = Math.min(sw / pb.w, sh / pb.h);
+            const sw = pbScene.clientWidth || window.innerWidth, sh = pbScene.clientHeight || window.innerHeight;
+            pb.min = Math.min(sw / pb.w, sh / pb.h) || 1;
             pb.sc = pb.min;
             pb.tx = 0; pb.ty = 0;
             pbApplique();
@@ -688,9 +693,9 @@
             pbVues.appendChild(b);
           });
         }
-        chargerVue(0);
         photobox.classList.add('open');
         document.body.style.overflow = 'hidden';
+        chargerVue(0);
         pbFermer.focus({ preventScroll: true });
       }
       function fermerPhoto() {
