@@ -16,13 +16,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="RodBot LP">
-<link rel="apple-touch-icon" href="icon-192.png?v=1.9.59">
-<link rel="icon" type="image/png" href="icon-192.png?v=1.9.59">
+<link rel="apple-touch-icon" href="icon-192.png?v=1.9.62">
+<link rel="icon" type="image/png" href="icon-192.png?v=1.9.62">
 <style>
   /* Écran de démarrage (logo). pointer-events:none : il ne peut JAMAIS bloquer
      une commande de la manette. Repli 100 % CSS : même sans JavaScript, il
      disparaît tout seul (rbBootFade) au bout de 2,4 s. */
-  #rb-boot{position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:rbBootFade .5s ease 2.4s forwards}
+  #rb-boot{position:fixed;inset:0;z-index:99999;background:#141413;display:flex;align-items:center;justify-content:center;pointer-events:none;animation:rbBootFade .5s ease 2.4s forwards}
   #rb-boot img{width:min(64vw,270px);height:auto;filter:drop-shadow(0 22px 55px rgba(0,0,0,.55));animation:rbBootPulse 1.5s ease-in-out infinite}
   #rb-boot.rb-gone{animation:none;opacity:0;visibility:hidden;transition:opacity .35s ease}
   @keyframes rbBootPulse{0%,100%{opacity:.7;transform:scale(.975)}50%{opacity:1;transform:scale(1)}}
@@ -31,7 +31,7 @@
 </style>
 </head>
 <body>
-<div id="rb-boot"><img src="icon-512.png?v=1.9.59" alt="RodBot LP"></div>
+<div id="rb-boot"><img src="icon-512.png?v=1.9.62" alt="RodBot LP"></div>
 <script>
   (function(){
     var b=document.getElementById('rb-boot'); if(!b) return;
@@ -2070,7 +2070,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.61"></script>
+<script src="app.js?v=1.9.62"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>
