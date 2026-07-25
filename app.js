@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.55.0';
+var APP_VERSION = '1.56.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -26,7 +26,7 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '21 JUIL. 2026';
+var APP_VERSION_DATE = '25 JUIL. 2026';
 
 /* ---------- Tour guidé de première utilisation ----------
    Réplique le modèle des sites de formation en ligne : à la première visite,
@@ -877,6 +877,38 @@ class Component extends DCLogic {
     { x:88, y:45, name:"Attendre (ATTENTE)", page:23, desc:"Touche **Attente** (Stand By) : met la commande en **veille**, manettes désactivées. Mode sûr le temps de choisir un mode." }
   ];
 
+  /* Taille de chaque zone tactile [largeur, hauteur] en % de la photo, dans
+     l'ordre exact de RRC_SPOTS (et de RRC_SPOTS_EN). Réglée sur la commande
+     réelle : l'anneau ENTOURE la commande au lieu de se poser dessus, et le
+     doigt a une cible à sa mesure. Minimum de 19 px garanti par styles.css. */
+  RRC_ZONES = [
+    [31,27],   // 1  écran
+    [16,32],   // 2  manette gauche
+    [17,32],   // 3  manette droite
+    [8,15],    // 4  arrêt d'urgence (champignon)
+    [7,12],    // 5  bouton TRAJ
+    [7,12],    // 6  bouton PINCE
+    [4.5,10],  // 7  point de trajectoire
+    [4.5,10],  // 8  ENR / SUPPRIMER
+    [4.5,10],  // 9  électroaimant
+    [4.5,10],  // 10 rapide / lent
+    [4.5,10],  // 11 klaxon & gyrophare
+    [4.5,10],  // 12 mât / dép. lente
+    [4,8],     // 13 interrupteur d'inclinaison (interne)
+    [9,26],    // 14 manette centrale
+    [6,14],    // 15 boutons de modes (gauche)
+    [6,14],    // 16 boutons de modes (droite)
+    [3.5,12],  // 17 bouton Commencer
+    [3.5,6],   // 18 luminosité de l'écran
+    [14,5],    // 19 témoins d'état & batterie
+    [3,5],     // 20 voyant d'état
+    [5,10],    // 21 AUX 1 / AUX 2
+    [5,10],    // 22 travail AV / AR
+    [4,5],     // 23 feux de travail
+    [4,7],     // 24 aide
+    [4,7]      // 25 attendre (ATTENTE)
+  ];
+
   SIM_MODES = [
     { id:"VEILLE",   tag:"SÉCURITÉ", desc:"Aucune commande n'est traitée. E-stop, interrupteur d'inclinaison et feux restent actifs. Mode sûr pour appairer la télécommande.", beacon:"on",    tracks:false, mast:false },
     { id:"RALENTI",  tag:"TRAM",     desc:"Déplacement de la machine, chenilles uniquement. Interdit si les mâchoires du grappin sont fermées. Le voyant clignote pour avertir le personnel.", beacon:"blink", tracks:true, mast:false },
@@ -904,7 +936,7 @@ class Component extends DCLogic {
       suiviHist:null, suiviHistState:"",
       qbFb:{}, qbCommentKey:null, qbComment:"",   // retours pouce haut/bas sur les questions (bêta)
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
-      simTab:"rrc", rrcSel:3, estopped:false, rrcInfoOpen:false,
+      simTab:"rrc", rrcSel:3, estopped:false, rrcNums:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
       simMode:"VEILLE", klaxon:false
     };
@@ -913,12 +945,40 @@ class Component extends DCLogic {
   openSim = (tab)=>{ ptEnter(null,null); this.setState({ view:"sim", simTab:tab }); window.scrollTo(0,0); };
   pickSpot = (i)=>{
     const sp=this.spots()[i];
-    // Toucher/cliquer une pastille ouvre une fiche pop-up de la commande
-    // (fiche centrée sur ordinateur, feuille du bas sur mobile).
-    var patch = sp.estop ? { rrcSel:i, estopped:true, rrcInfoOpen:true } : { rrcSel:i, rrcInfoOpen:true };
-    this.setState(patch);
+    // Toucher une commande n'ouvre plus de fenêtre par-dessus la photo.
+    // La fiche s'affiche à côté (ordinateur) ou juste dessous (téléphone) :
+    // la manette reste visible en tout temps.
+    this.setState(sp.estop ? { rrcSel:i, estopped:true } : { rrcSel:i });
+    this.revealRrcCard();
   };
-  closeRrcInfo = ()=> this.setState({ rrcInfoOpen:false });
+  // Téléphone et tablette : la fiche est SOUS la photo. On cadre le bloc complet
+  // (photo en haut de l'écran, fiche juste dessous) pour que la manette reste
+  // visible pendant la lecture. Sur ordinateur la fiche est déjà à côté : on ne
+  // bouge rien. Le contrôle est refait 2 fois : les images se replacent après
+  // le rendu et décalent la page.
+  revealRrcCard(){
+    if(window.innerWidth > 820) return;   // ordinateur : la fiche est déjà à côté
+    var tries = 0;
+    var step = ()=>{
+      tries++;
+      try{
+        var zone = ROOT && ROOT.querySelector('[data-rb-rrc-zone]');
+        var card = ROOT && ROOT.querySelector('[data-rb-rrc-card]');
+        if(zone && card){
+          var vh = window.innerHeight || document.documentElement.clientHeight;
+          var r = card.getBoundingClientRect();
+          if(r.top < 70 || r.bottom > vh){
+            var y = (window.pageYOffset || document.documentElement.scrollTop || 0) + zone.getBoundingClientRect().top - 74;
+            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
+          }
+        }
+      }catch(e){}
+      finally { if(tries < 3) setTimeout(step, 420); }
+    };
+    if(window.requestAnimationFrame) window.requestAnimationFrame(step); else step();
+  }
+  toggleRrcNums = ()=> this.setState(s=>({ rrcNums: !s.rrcNums }));
   resetEstop = ()=> this.setState({ estopped:false });
   setJoint = (k,e)=> this.setState({ [k]: Number(e.target.value) });
   toggleJaw = ()=> this.setState(s=>({ jawOpen: !s.jawOpen }));
@@ -1074,7 +1134,6 @@ class Component extends DCLogic {
     if(S.showInstallHelp) d += 1;
     if(S.mpage!=null) d += 1;
     if(S.imgView) d += 1;
-    if(S.rrcInfoOpen) d += 1;
     return d;
   }
   navBackOne(){
@@ -1083,7 +1142,6 @@ class Component extends DCLogic {
     if(S.attRemind){ this.setState({ attRemind:false }); return; }
     if(S.imgView){ this.setState({ imgView:null }); return; }
     if(S.mpage!=null){ this.setState({ mpage:null }); return; }
-    if(S.rrcInfoOpen){ this.setState({ rrcInfoOpen:false }); return; }
     if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
     if(S.view==='quiz'){
       // Résultat affiché mais attestation pas enregistrée : rappel avant de quitter
@@ -1932,27 +1990,31 @@ class Component extends DCLogic {
     // RRC
     base.estopped = S.estopped;
     base.resetEstop = this.resetEstop;
+    // Pastilles : zones tactiles transparentes. Rien n'est peint sur la photo.
+    // L'anneau (centre vide) sort au survol et sur la commande choisie.
+    // Les numéros restent cachés tant que l'opérateur ne les demande pas.
     base.rrcSpots = this.spots().map((sp,i)=>{
-      const sel = S.rrcSel===i;
-      const isE = !!sp.estop;
+      var z = this.RRC_ZONES[i] || [4.5,10];
+      var cls = (S.rrcSel===i ? "is-sel" : "");
+      if(S.rrcNums) cls += (cls ? " " : "") + "is-num";
       return {
-        n:i+1, x:sp.x, y:sp.y, name:sp.name, pick:()=>this.pickSpot(i),
-        bg: (sel||isE) ? "#D92624" : "#1D1E1B",   // badge (coin) : rempli
-        fg: "#FFFFFF",                             // numéro
-        ring: (sel||isE) ? "#D92624" : "#FAF9F5",  // anneau autour de la commande (centre vide)
-        halo: sel ? "rgba(217,38,36,.5)" : "rgba(20,20,19,.6)"
+        n:i+1, x:sp.x, y:sp.y, w:z[0], h:z[1], name:sp.name, cls:cls,
+        aria: (i+1)+". "+sp.name,
+        pick:()=>this.pickSpot(i)
       };
     });
+    base.toggleRrcNums = this.toggleRrcNums;
+    base.rrcNumsCls = S.rrcNums ? "is-on" : "";
+    base.rrcNumsLabel = S.rrcNums ? this.tr("Cacher les numéros","Hide the numbers")
+                                  : this.tr("Voir les numéros","Show the numbers");
     const selSp = this.spots()[S.rrcSel] || this.spots()[0];
     base.rrcSelN = S.rrcSel+1;
     base.rrcSelName = selSp.name;
     base.rrcSelDesc = selSp.desc;
-    base.rrcSelLines = this.splitSentences(selSp.desc);   // phrases courtes, une par ligne (pop-up manette)
+    base.rrcSelLines = this.splitSentences(selSp.desc);   // phrases courtes, une par ligne (fiche de la commande)
     base.rrcSelPage = this.mp(selSp.page);
     base.rrcSelHref = this.pdfAt(selSp.page);
     base.rrcSelOpen = ()=>this.openManual(this.mp(selSp.page));
-    base.rrcInfoOpen = S.rrcInfoOpen;
-    base.closeRrcInfo = this.closeRrcInfo;
 
     // MÂT
     base.slew=S.slew; base.hoist=S.hoist; base.ext=S.ext; base.tilt=S.tilt;

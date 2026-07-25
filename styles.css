@@ -96,12 +96,34 @@ input::placeholder{color:rgba(29,30,27,.35)}
   50%,100%{box-shadow:0 0 3px 0 rgba(240,168,30,.12);filter:brightness(.42)}}
 @media (prefers-reduced-motion:reduce){.rb-gyro::before{animation:none}.rb-gyro.blink{animation:none;box-shadow:0 0 18px 5px rgba(240,168,30,.7)}}
 @keyframes rbPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
-@keyframes rbSheet{from{transform:translateY(100%)}to{transform:none}}
-/* Fiche commande télécommande : feuille du bas sur mobile, carte centrée sur ordinateur */
-@media (min-width:821px){
-  .rb-rrc-pop{align-items:center !important;justify-content:center !important;padding:24px !important}
-  .rb-rrc-card{max-width:460px !important;border:1px solid rgba(29,30,27,.16) !important;border-top:4px solid #D92624 !important;box-shadow:0 40px 90px -28px rgba(0,0,0,.55) !important;animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both !important;max-height:88vh !important}
-}
+/* ---------- Pastilles de la telecommande (photo du manuel, p. 21) ----------
+   REGLE : la photo de la manette n'est jamais couverte. Chaque pastille est
+   une zone tactile transparente. L'anneau se dessine seulement au survol, au
+   clavier ou sur la commande choisie. Les numeros restent optionnels : ils
+   apparaissent uniquement si l'operateur touche le bouton sous la photo.
+   La fiche de la commande s'affiche a cote (ordinateur) ou dessous
+   (telephone) : plus aucune fenetre par-dessus l'image. */
+/* Largeur et hauteur viennent de RRC_ZONES (app.js), en % de la photo : chaque
+   zone a la taille de sa commande. Le minimum garde une cible au doigt sur
+   telephone. */
+.rb-spot{position:absolute;transform:translate(-50%,-50%);min-width:19px;min-height:19px;margin:0;padding:0;background:transparent;border:0;cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent;transition:box-shadow .16s ease}
+.rb-spot:hover,.rb-spot:focus-visible{outline:none;box-shadow:0 0 0 2px rgba(250,249,245,.95),0 0 0 4px rgba(20,20,19,.6)}
+.rb-spot.is-sel{box-shadow:0 0 0 2px #D92624,0 0 0 4px rgba(250,249,245,.9)}
+.rb-spot.is-sel::before{content:"";position:absolute;inset:-3px;border:2px solid rgba(217,38,36,.6);animation:rbSpotRing 1.8s ease-out infinite}
+@keyframes rbSpotRing{0%{transform:scale(1);opacity:.9}70%,100%{transform:scale(1.9);opacity:0}}
+/* Numeros : affiches seulement sur demande. Le centre reste toujours vide. */
+.rb-spot.is-num{box-shadow:0 0 0 2px rgba(250,249,245,.92),0 0 0 3.5px rgba(20,20,19,.55)}
+.rb-spot.is-num.is-sel{box-shadow:0 0 0 2px #D92624,0 0 0 4px rgba(250,249,245,.9)}
+.rb-spot.is-num::after{content:attr(data-n);position:absolute;top:-9px;right:-9px;min-width:15px;height:15px;padding:0 2px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.6)}
+.rb-spot.is-num.is-sel::after{background:#D92624}
+@media (prefers-reduced-motion:reduce){.rb-spot.is-sel::before{animation:none}}
+/* Arret d'urgence : cadre rouge seul, aucun voile sur la photo */
+.rb-rrc-estop-frame{position:absolute;inset:0;border:4px solid #D92624;box-shadow:inset 0 0 0 2px rgba(255,255,255,.45);pointer-events:none;animation:rbPulse 1s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.rb-rrc-estop-frame{animation:none;opacity:1}}
+/* Bouton "voir les numeros" sous la photo */
+.rb-rrc-numbtn{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:8px 14px;background:#FFFFFF;border:1px solid rgba(29,30,27,.28);color:#3A3B38;font-family:inherit;font-weight:800;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.rb-rrc-numbtn:hover{border-color:#D92624;color:#1D1E1B}
+.rb-rrc-numbtn.is-on{background:#1D1E1B;border-color:#1D1E1B;color:#FAF9F5}
 /* La photo zoome dans un cadre qui conserve toujours l'équipement au complet. */
 @keyframes rbHeroZoom{
   from{background-size:100% 100%,auto 96%}
