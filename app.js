@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.56.0';
+var APP_VERSION = '1.57.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -936,7 +936,7 @@ class Component extends DCLogic {
       suiviHist:null, suiviHistState:"",
       qbFb:{}, qbCommentKey:null, qbComment:"",   // retours pouce haut/bas sur les questions (bêta)
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
-      simTab:"rrc", rrcSel:3, estopped:false, rrcNums:false,
+      simTab:"rrc", rrcSel:3, estopped:false, rrcNums:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
       simMode:"VEILLE", klaxon:false
     };
@@ -945,30 +945,49 @@ class Component extends DCLogic {
   openSim = (tab)=>{ ptEnter(null,null); this.setState({ view:"sim", simTab:tab }); window.scrollTo(0,0); };
   pickSpot = (i)=>{
     const sp=this.spots()[i];
-    // Toucher une commande n'ouvre plus de fenêtre par-dessus la photo.
-    // La fiche s'affiche à côté (ordinateur) ou juste dessous (téléphone) :
-    // la manette reste visible en tout temps.
-    this.setState(sp.estop ? { rrcSel:i, estopped:true } : { rrcSel:i });
-    this.revealRrcCard();
+    // Toucher une commande ouvre la fiche : carte mise en évidence à côté de la
+    // photo sur ordinateur, feuille du bas sur téléphone. Dans les deux cas la
+    // fiche ne couvre JAMAIS la manette.
+    this.setState(sp.estop ? { rrcSel:i, estopped:true, rrcInfoOpen:true } : { rrcSel:i, rrcInfoOpen:true });
+    this.revealRrcPhoto();
   };
-  // Téléphone et tablette : la fiche est SOUS la photo. On cadre le bloc complet
-  // (photo en haut de l'écran, fiche juste dessous) pour que la manette reste
-  // visible pendant la lecture. Sur ordinateur la fiche est déjà à côté : on ne
-  // bouge rien. Le contrôle est refait 2 fois : les images se replacent après
-  // le rendu et décalent la page.
-  revealRrcCard(){
+  /* Toucher la photo AILLEURS que sur une pastille : on prend la commande la plus
+     proche du doigt. Un appui sur la photo répond donc toujours quelque chose,
+     même si les pastilles sont invisibles. */
+  pickNearest = (e)=>{
+    try{
+      var box = e.currentTarget.getBoundingClientRect();
+      if(!box.width || !box.height) return;
+      var px = ((e.clientX - box.left) / box.width) * 100;
+      var py = ((e.clientY - box.top) / box.height) * 100;
+      var ratio = box.height / box.width;      // ramène l'écart vertical en unités de largeur
+      var sp = this.spots(), best = -1, bd = Infinity;
+      for(var i=0;i<sp.length;i++){
+        var dx = px - sp[i].x, dy = (py - sp[i].y) * ratio;
+        var d = dx*dx + dy*dy;
+        if(d < bd){ bd = d; best = i; }
+      }
+      if(best >= 0) this.pickSpot(best);
+    }catch(err){}
+  };
+  closeRrcInfo = ()=> this.setState({ rrcInfoOpen:false });
+  // Téléphone et tablette : la fiche est une feuille au bas de l'écran. On cadre
+  // la photo juste sous la barre du haut pour qu'elle reste entièrement visible
+  // au-dessus de la feuille. Sur ordinateur la fiche est déjà à côté : rien ne
+  // bouge. Le contrôle est refait 2 fois : les images se replacent après le
+  // rendu et décalent la page.
+  revealRrcPhoto(){
     if(window.innerWidth > 820) return;   // ordinateur : la fiche est déjà à côté
     var tries = 0;
     var step = ()=>{
       tries++;
       try{
-        var zone = ROOT && ROOT.querySelector('[data-rb-rrc-zone]');
-        var card = ROOT && ROOT.querySelector('[data-rb-rrc-card]');
-        if(zone && card){
+        var ph = ROOT && ROOT.querySelector('[data-rb-rrc-photo]');
+        if(ph){
           var vh = window.innerHeight || document.documentElement.clientHeight;
-          var r = card.getBoundingClientRect();
-          if(r.top < 70 || r.bottom > vh){
-            var y = (window.pageYOffset || document.documentElement.scrollTop || 0) + zone.getBoundingClientRect().top - 74;
+          var r = ph.getBoundingClientRect();
+          if(r.top < 66 || r.bottom > vh * 0.46){
+            var y = (window.pageYOffset || document.documentElement.scrollTop || 0) + r.top - 74;
             var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             window.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
           }
@@ -1134,6 +1153,7 @@ class Component extends DCLogic {
     if(S.showInstallHelp) d += 1;
     if(S.mpage!=null) d += 1;
     if(S.imgView) d += 1;
+    if(S.rrcInfoOpen) d += 1;
     return d;
   }
   navBackOne(){
@@ -1142,6 +1162,7 @@ class Component extends DCLogic {
     if(S.attRemind){ this.setState({ attRemind:false }); return; }
     if(S.imgView){ this.setState({ imgView:null }); return; }
     if(S.mpage!=null){ this.setState({ mpage:null }); return; }
+    if(S.rrcInfoOpen){ this.setState({ rrcInfoOpen:false }); return; }
     if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
     if(S.view==='quiz'){
       // Résultat affiché mais attestation pas enregistrée : rappel avant de quitter
@@ -2003,6 +2024,11 @@ class Component extends DCLogic {
         pick:()=>this.pickSpot(i)
       };
     });
+    base.pickNearest = this.pickNearest;
+    base.rrcInfoOpen = S.rrcInfoOpen;
+    // telephone : la feuille du bas remplace la fiche, on evite le doublon
+    base.rrcCardCls = S.rrcInfoOpen ? "is-under-sheet" : "";
+    base.closeRrcInfo = this.closeRrcInfo;
     base.toggleRrcNums = this.toggleRrcNums;
     base.rrcNumsCls = S.rrcNums ? "is-on" : "";
     base.rrcNumsLabel = S.rrcNums ? this.tr("Cacher les numéros","Hide the numbers")

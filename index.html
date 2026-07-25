@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
-<link rel="stylesheet" href="styles.css?v=1.8.17">
+<link rel="stylesheet" href="styles.css?v=1.8.18">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -326,19 +326,23 @@
         <p style="font-size:15px;line-height:1.55;color:#535252;max-width:680px;margin:0 0 28px">La télécommande radio, en vrai. Touchez une commande sur la photo. Rien ne cache la manette. Le champignon d'arrêt d'urgence est fonctionnel.</p>
         <div data-rb-rrc-zone="1" style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start">
           <div>
-            <div style="position:relative;overflow:hidden;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);box-shadow:0 24px 50px -36px rgba(20,20,19,.6)">
-              <img src="img/p21-0.png" alt="Télécommande radio du RodBot" style="display:block;width:100%;height:auto">
-              <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
-                <div class="rb-rrc-estop-frame"></div>
-              </sc-if>
-              <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
-                <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
-              </sc-for>
+            <div class="rb-rrc-photocard">
+              <div class="rb-rrc-bar">
+                <span class="rb-rrc-bar-t">Télécommande radio · manuel p. 21</span>
+                <button type="button" onClick="{{ toggleRrcNums }}" class="rb-rrc-numbtn {{ rrcNumsCls }}" title="{{ rrcNumsLabel }}">🔢 {{ rrcNumsLabel }}</button>
+              </div>
+              <div data-rb-rrc-photo="1" class="rb-rrc-photo">
+                <img src="img/p21-0.png" alt="Télécommande radio du RodBot" style="display:block;width:100%;height:auto">
+                <div class="rb-spot-layer" onClick="{{ pickNearest }}"></div>
+                <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+                  <div class="rb-rrc-estop-frame"></div>
+                </sc-if>
+                <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
+                </sc-for>
+              </div>
             </div>
-            <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
-              <span style="font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898">Photo du manuel, p. 21. Touchez une commande sur la photo.</span>
-              <button type="button" onClick="{{ toggleRrcNums }}" class="rb-rrc-numbtn {{ rrcNumsCls }}" title="{{ rrcNumsLabel }}">🔢 {{ rrcNumsLabel }}</button>
-            </div>
+            <div class="rb-rrc-hint">Touchez une commande sur la photo. Rien ne la couvre.</div>
           </div>
 
           <div style="position:sticky;top:84px;display:flex;flex-direction:column;gap:14px">
@@ -350,15 +354,16 @@
                 <button onClick="{{ resetEstop }}" style="background:#fff;color:#B71F1D;border:none;padding:12px 20px;font-weight:800;font-size:14px;cursor:pointer;width:100%">↻ Tourner le champignon & réarmer</button>
               </div>
             </sc-if>
-            <div data-rb-rrc-card="1" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                <span style="width:28px;height:28px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none">{{ rrcSelN }}</span>
-                <span style="font-weight:800;font-size:17px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+            <div data-rb-rrc-card="1" class="rb-rrc-card {{ rrcCardCls }}">
+              <div class="rb-rrc-card-top">Commande choisie</div>
+              <div class="rb-rrc-card-head">
+                <span class="rb-rrc-n">{{ rrcSelN }}</span>
+                <span class="rb-rrc-name">{{ rrcSelName }}</span>
               </div>
-              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}" style="font-size:14px;line-height:1.5;color:#3A3B38"></div></sc-for></div>
-              <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:12px">📖</span>Voir la page {{ rrcSelPage }} du manuel</button>
+              <div class="rb-rrc-lines"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}"></div></sc-for></div>
+              <button type="button" onClick="{{ rrcSelOpen }}" class="rb-rrc-page">📖 Voir la page {{ rrcSelPage }} du manuel</button>
             </div>
-            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 Rien ne couvre la photo. Touchez la commande directement sur l'image. Le <strong style="color:#1D1E1B">champignon rouge</strong> est fonctionnel : appuyez dessus pour vivre un arrêt d'urgence. Besoin des numéros ? Touchez 🔢 sous la photo.</div>
+            <div class="rb-rrc-tip">💡 Touchez n’importe quelle commande sur la photo. La fiche s’ouvre tout de suite. Le <strong>champignon rouge</strong> déclenche un vrai arrêt d’urgence. Besoin des numéros ? Touchez 🔢 en haut de la photo.</div>
           </div>
         </div>
 
@@ -420,19 +425,23 @@
       <section style="max-width:1180px;margin:0 auto;padding:30px 28px 60px">
         <div data-rb-rrc-zone="1" style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start">
           <div>
-            <div style="position:relative;overflow:hidden;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);box-shadow:0 24px 50px -36px rgba(20,20,19,.6)">
-              <img src="img/p21-0.png" alt="Télécommande radio du RodBot" style="display:block;width:100%;height:auto">
-              <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
-                <div class="rb-rrc-estop-frame"></div>
-              </sc-if>
-              <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
-                <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
-              </sc-for>
+            <div class="rb-rrc-photocard">
+              <div class="rb-rrc-bar">
+                <span class="rb-rrc-bar-t">Télécommande radio · manuel p. 21</span>
+                <button type="button" onClick="{{ toggleRrcNums }}" class="rb-rrc-numbtn {{ rrcNumsCls }}" title="{{ rrcNumsLabel }}">🔢 {{ rrcNumsLabel }}</button>
+              </div>
+              <div data-rb-rrc-photo="1" class="rb-rrc-photo">
+                <img src="img/p21-0.png" alt="Télécommande radio du RodBot" style="display:block;width:100%;height:auto">
+                <div class="rb-spot-layer" onClick="{{ pickNearest }}"></div>
+                <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+                  <div class="rb-rrc-estop-frame"></div>
+                </sc-if>
+                <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
+                </sc-for>
+              </div>
             </div>
-            <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
-              <span style="font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898">Photo du manuel, p. 21. Touchez une commande sur la photo.</span>
-              <button type="button" onClick="{{ toggleRrcNums }}" class="rb-rrc-numbtn {{ rrcNumsCls }}" title="{{ rrcNumsLabel }}">🔢 {{ rrcNumsLabel }}</button>
-            </div>
+            <div class="rb-rrc-hint">Touchez une commande sur la photo. Rien ne la couvre.</div>
           </div>
 
           <div style="position:sticky;top:84px;display:flex;flex-direction:column;gap:14px">
@@ -444,15 +453,16 @@
                 <button onClick="{{ resetEstop }}" style="background:#fff;color:#B71F1D;border:none;padding:12px 20px;font-weight:800;font-size:14px;cursor:pointer;width:100%">↻ Tourner le champignon & réarmer</button>
               </div>
             </sc-if>
-            <div data-rb-rrc-card="1" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                <span style="width:28px;height:28px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none">{{ rrcSelN }}</span>
-                <span style="font-weight:800;font-size:17px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+            <div data-rb-rrc-card="1" class="rb-rrc-card {{ rrcCardCls }}">
+              <div class="rb-rrc-card-top">Commande choisie</div>
+              <div class="rb-rrc-card-head">
+                <span class="rb-rrc-n">{{ rrcSelN }}</span>
+                <span class="rb-rrc-name">{{ rrcSelName }}</span>
               </div>
-              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}" style="font-size:14px;line-height:1.5;color:#3A3B38"></div></sc-for></div>
-              <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:12px">📖</span>Voir la page {{ rrcSelPage }} du manuel</button>
+              <div class="rb-rrc-lines"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}"></div></sc-for></div>
+              <button type="button" onClick="{{ rrcSelOpen }}" class="rb-rrc-page">📖 Voir la page {{ rrcSelPage }} du manuel</button>
             </div>
-            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 Rien ne couvre la photo. Touchez la commande directement sur l'image. Le <strong style="color:#1D1E1B">champignon rouge</strong> est fonctionnel : appuyez dessus pour vivre un arrêt d'urgence. Besoin des numéros ? Touchez 🔢 sous la photo.</div>
+            <div class="rb-rrc-tip">💡 Touchez n’importe quelle commande sur la photo. La fiche s’ouvre tout de suite. Le <strong>champignon rouge</strong> déclenche un vrai arrêt d’urgence. Besoin des numéros ? Touchez 🔢 en haut de la photo.</div>
           </div>
         </div>
 
@@ -997,8 +1007,20 @@
     </sc-if>
 
     <!-- ============ VISIONNEUSE D'IMAGE (photos d'équipement, pop-up, ne quitte pas la page) ============ -->
-    <!-- La fiche de la commande s'affiche a cote de la photo (ordinateur) ou juste
-         dessous (telephone). Plus aucune fenetre par-dessus la manette. -->
+    <!-- Fiche de la commande, telephone : feuille du bas. La photo est cadree au-dessus,
+         la manette reste visible pendant la lecture. Masquee sur ordinateur (styles.css). -->
+    <sc-if value="{{ rrcInfoOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="rb-rrc-sheet" role="dialog" aria-label="Commande choisie">
+      <div class="rb-rrc-card-top">Commande choisie</div>
+      <div class="rb-rrc-card-head">
+        <span class="rb-rrc-n">{{ rrcSelN }}</span>
+        <span class="rb-rrc-name">{{ rrcSelName }}</span>
+        <button type="button" onClick="{{ closeRrcInfo }}" class="rb-rrc-x" title="Fermer" aria-label="Fermer">✕</button>
+      </div>
+      <div class="rb-rrc-lines"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}"></div></sc-for></div>
+      <button type="button" onClick="{{ rrcSelOpen }}" class="rb-rrc-page">📖 Voir la page {{ rrcSelPage }} du manuel</button>
+    </div>
+    </sc-if>
 
     <sc-if value="{{ imgView }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeImg }}" style="position:fixed;inset:0;z-index:220;background:rgba(20,20,19,.82);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
@@ -1325,19 +1347,23 @@
         <p style="font-size:15px;line-height:1.55;color:#535252;max-width:680px;margin:0 0 28px">The radio remote, for real. Tap a control on the photo. Nothing hides the remote. The emergency-stop mushroom is functional.</p>
         <div data-rb-rrc-zone="1" style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start">
           <div>
-            <div style="position:relative;overflow:hidden;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);box-shadow:0 24px 50px -36px rgba(20,20,19,.6)">
-              <img src="img/p21-0.png" alt="RodBot radio remote" style="display:block;width:100%;height:auto">
-              <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
-                <div class="rb-rrc-estop-frame"></div>
-              </sc-if>
-              <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
-                <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
-              </sc-for>
+            <div class="rb-rrc-photocard">
+              <div class="rb-rrc-bar">
+                <span class="rb-rrc-bar-t">Radio remote · manual p. 21</span>
+                <button type="button" onClick="{{ toggleRrcNums }}" class="rb-rrc-numbtn {{ rrcNumsCls }}" title="{{ rrcNumsLabel }}">🔢 {{ rrcNumsLabel }}</button>
+              </div>
+              <div data-rb-rrc-photo="1" class="rb-rrc-photo">
+                <img src="img/p21-0.png" alt="RodBot radio remote" style="display:block;width:100%;height:auto">
+                <div class="rb-spot-layer" onClick="{{ pickNearest }}"></div>
+                <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+                  <div class="rb-rrc-estop-frame"></div>
+                </sc-if>
+                <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
+                </sc-for>
+              </div>
             </div>
-            <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
-              <span style="font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898">Manual photo, p. 21. Tap a control on the photo.</span>
-              <button type="button" onClick="{{ toggleRrcNums }}" class="rb-rrc-numbtn {{ rrcNumsCls }}" title="{{ rrcNumsLabel }}">🔢 {{ rrcNumsLabel }}</button>
-            </div>
+            <div class="rb-rrc-hint">Tap a control on the photo. Nothing covers it.</div>
           </div>
 
           <div style="position:sticky;top:84px;display:flex;flex-direction:column;gap:14px">
@@ -1349,15 +1375,16 @@
                 <button onClick="{{ resetEstop }}" style="background:#fff;color:#B71F1D;border:none;padding:12px 20px;font-weight:800;font-size:14px;cursor:pointer;width:100%">↻ Twist the mushroom & reset</button>
               </div>
             </sc-if>
-            <div data-rb-rrc-card="1" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                <span style="width:28px;height:28px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none">{{ rrcSelN }}</span>
-                <span style="font-weight:800;font-size:17px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+            <div data-rb-rrc-card="1" class="rb-rrc-card {{ rrcCardCls }}">
+              <div class="rb-rrc-card-top">Selected control</div>
+              <div class="rb-rrc-card-head">
+                <span class="rb-rrc-n">{{ rrcSelN }}</span>
+                <span class="rb-rrc-name">{{ rrcSelName }}</span>
               </div>
-              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}" style="font-size:14px;line-height:1.5;color:#3A3B38"></div></sc-for></div>
-              <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:12px">📖</span>View manual page {{ rrcSelPage }}</button>
+              <div class="rb-rrc-lines"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}"></div></sc-for></div>
+              <button type="button" onClick="{{ rrcSelOpen }}" class="rb-rrc-page">📖 View manual page {{ rrcSelPage }}</button>
             </div>
-            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 Nothing covers the photo. Tap the control right on the picture. The <strong style="color:#1D1E1B">red mushroom</strong> is functional: press it to experience an emergency stop. Need the numbers? Tap 🔢 under the photo.</div>
+            <div class="rb-rrc-tip">💡 Tap any control on the photo. The card opens right away. The <strong>red mushroom</strong> fires a real emergency stop. Need the numbers? Tap 🔢 above the photo.</div>
           </div>
         </div>
 
@@ -1419,16 +1446,23 @@
       <section style="max-width:1180px;margin:0 auto;padding:30px 28px 60px">
         <div data-rb-rrc-zone="1" style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start">
           <div>
-            <div style="position:relative;overflow:hidden;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);box-shadow:0 24px 50px -36px rgba(20,20,19,.6)">
-              <img src="img/p21-0.png" alt="RodBot radio remote" style="display:block;width:100%;height:auto">
-              <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
-                <div class="rb-rrc-estop-frame"></div>
-              </sc-if>
-              <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
-                <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
-              </sc-for>
+            <div class="rb-rrc-photocard">
+              <div class="rb-rrc-bar">
+                <span class="rb-rrc-bar-t">Radio remote · manual p. 21</span>
+                <button type="button" onClick="{{ toggleRrcNums }}" class="rb-rrc-numbtn {{ rrcNumsCls }}" title="{{ rrcNumsLabel }}">🔢 {{ rrcNumsLabel }}</button>
+              </div>
+              <div data-rb-rrc-photo="1" class="rb-rrc-photo">
+                <img src="img/p21-0.png" alt="RodBot radio remote" style="display:block;width:100%;height:auto">
+                <div class="rb-spot-layer" onClick="{{ pickNearest }}"></div>
+                <sc-if value="{{ estopped }}" hint-placeholder-val="{{ false }}">
+                  <div class="rb-rrc-estop-frame"></div>
+                </sc-if>
+                <sc-for list="{{ rrcSpots }}" as="s" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ s.pick }}" title="{{ s.name }}" aria-label="{{ s.aria }}" class="rb-spot {{ s.cls }}" data-n="{{ s.n }}" style="left: {{ s.x }}%;top: {{ s.y }}%;width: {{ s.w }}%;height: {{ s.h }}%"></button>
+                </sc-for>
+              </div>
             </div>
-            <div style="margin-top:12px;font-weight:600;font-size:11px;letter-spacing:.04em;color:#989898;text-align:center">Manual photo, p. 21 : click the markers to identify each control</div>
+            <div class="rb-rrc-hint">Tap a control on the photo. Nothing covers it.</div>
           </div>
 
           <div style="position:sticky;top:84px;display:flex;flex-direction:column;gap:14px">
@@ -1440,15 +1474,16 @@
                 <button onClick="{{ resetEstop }}" style="background:#fff;color:#B71F1D;border:none;padding:12px 20px;font-weight:800;font-size:14px;cursor:pointer;width:100%">↻ Turn the mushroom button & reset</button>
               </div>
             </sc-if>
-            <div data-rb-rrc-card="1" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                <span style="width:28px;height:28px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none">{{ rrcSelN }}</span>
-                <span style="font-weight:800;font-size:17px;line-height:1.2;text-transform:uppercase;color:#1D1E1B">{{ rrcSelName }}</span>
+            <div data-rb-rrc-card="1" class="rb-rrc-card {{ rrcCardCls }}">
+              <div class="rb-rrc-card-top">Selected control</div>
+              <div class="rb-rrc-card-head">
+                <span class="rb-rrc-n">{{ rrcSelN }}</span>
+                <span class="rb-rrc-name">{{ rrcSelName }}</span>
               </div>
-              <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}" style="font-size:14px;line-height:1.5;color:#3A3B38"></div></sc-for></div>
-              <button onClick="{{ rrcSelOpen }}" style="display:inline-flex;align-items:center;gap:8px;background:none;font-weight:700;font-size:11.5px;letter-spacing:.04em;color:#D92624;border:1px solid rgba(217,38,36,.4);padding:8px 13px;cursor:pointer" style-hover="background:rgba(217,38,36,.07)"><span style="font-weight:800;font-size:12px">📖</span>View manual page {{ rrcSelPage }}</button>
+              <div class="rb-rrc-lines"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}"></div></sc-for></div>
+              <button type="button" onClick="{{ rrcSelOpen }}" class="rb-rrc-page">📖 View manual page {{ rrcSelPage }}</button>
             </div>
-            <div style="background:#EFEEE9;border:1px solid rgba(29,30,27,.1);padding:16px 18px;font-size:13px;line-height:1.55;color:#535252">💡 Marker <strong style="color:#1D1E1B">4</strong> (red mushroom button) is functional: press it to experience an emergency stop.</div>
+            <div class="rb-rrc-tip">💡 Tap any control on the photo. The card opens right away. The <strong>red mushroom</strong> fires a real emergency stop. Need the numbers? Tap 🔢 above the photo.</div>
           </div>
         </div>
 
@@ -1993,8 +2028,20 @@
     </sc-if>
 
     <!-- ============ IMAGE VIEWER (equipment photos, pop-up, does not leave the page) ============ -->
-    <!-- The control card shows beside the photo (desktop) or right under it
-         (phone). No window ever covers the remote. -->
+    <!-- Fiche de la commande, telephone : feuille du bas. La photo est cadree au-dessus,
+         la manette reste visible pendant la lecture. Masquee sur ordinateur (styles.css). -->
+    <sc-if value="{{ rrcInfoOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="rb-rrc-sheet" role="dialog" aria-label="Selected control">
+      <div class="rb-rrc-card-top">Selected control</div>
+      <div class="rb-rrc-card-head">
+        <span class="rb-rrc-n">{{ rrcSelN }}</span>
+        <span class="rb-rrc-name">{{ rrcSelName }}</span>
+        <button type="button" onClick="{{ closeRrcInfo }}" class="rb-rrc-x" title="Close" aria-label="Close">✕</button>
+      </div>
+      <div class="rb-rrc-lines"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}"></div></sc-for></div>
+      <button type="button" onClick="{{ rrcSelOpen }}" class="rb-rrc-page">📖 View manual page {{ rrcSelPage }}</button>
+    </div>
+    </sc-if>
 
     <sc-if value="{{ imgView }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeImg }}" style="position:fixed;inset:0;z-index:220;background:rgba(20,20,19,.82);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
@@ -2047,7 +2094,7 @@
 </div>
 </script>
 
-<script src="app.js?v=1.9.65"></script>
+<script src="app.js?v=1.9.66"></script>
 <script type="module" src="3d/js/hero-embed.js"></script>
 </body>
 </html>
