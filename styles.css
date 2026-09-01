@@ -104,8 +104,9 @@ input::placeholder{color:rgba(29,30,27,.35)}
      (couche .rb-spot-layer + pickNearest) : un clic repond toujours.
    - Le marqueur de la commande choisie est un viseur en 4 coins : il encadre
      la commande, son centre reste libre.
-   - La fiche s'ouvre a cote de la photo (ordinateur) ou en feuille du bas
-     (telephone), jamais par-dessus la manette.
+   - La fiche s'ouvre en POP-UP sans quitter la page : fenetre a droite de la
+     photo (ordinateur, la manette reste visible) ou feuille du bas (telephone,
+     la photo est cadree au-dessus). Jamais par-dessus la manette.
    - Les numeros sont optionnels (bouton dans la barre du haut). */
 
 /* -- cadre de la photo + barre de titre (hors de l'image) -- */
@@ -152,36 +153,59 @@ input::placeholder{color:rgba(29,30,27,.35)}
 .rb-rrc-numbtn:hover,.rb-rrc-numbtn:focus-visible{border-color:#D92624;background:rgba(217,38,36,.18);outline:none}
 .rb-rrc-numbtn.is-on{background:#D92624;border-color:#D92624;color:#FFFFFF}
 
-/* -- fiche de la commande : carte mise en evidence a cote de la photo -- */
-.rb-rrc-card{background:#FFFFFF;border:1px solid rgba(29,30,27,.15);border-top:4px solid #D92624;
-  padding:18px 20px 20px;box-shadow:0 20px 44px -30px rgba(20,20,19,.55);
-  animation:rbPop .26s cubic-bezier(.2,.9,.3,1.15) both}
+/* -- fiche de la commande : POP-UP par-dessus la page, sans jamais la quitter.
+      Ordinateur : la fenetre se place a DROITE de la photo, dans la colonne
+      libre (largeur alignee sur la grille 1.5fr / 1fr) : la manette reste
+      visible. Telephone : feuille du bas, la photo est cadree au-dessus par
+      revealRrcPhoto(). Fermeture : X, bouton Fermer, voile, Echap, Retour. -- */
+.rb-rrc-pop{position:fixed;inset:0;z-index:190;background:rgba(20,20,19,.55);animation:rbDim .18s ease both;-webkit-tap-highlight-color:transparent}
+@keyframes rbDim{from{opacity:0}to{opacity:1}}
+/* piste = la colonne libre a droite de la photo, mesuree par placeRrcDlg() (app.js) ;
+   repli centre si la mesure manque */
+.rb-rrc-pop-track{position:absolute;top:0;bottom:0;left:var(--rb-rrc-l,calc(50vw - 230px));width:var(--rb-rrc-w,460px);max-width:calc(100vw - 32px);
+  display:flex;align-items:center;padding:24px 0;box-sizing:border-box;pointer-events:none}
+.rb-rrc-dlg{pointer-events:auto;box-sizing:border-box;width:100%;max-height:min(84vh,720px);overflow:auto;
+  background:#FFFFFF;border:1px solid rgba(29,30,27,.15);border-top:4px solid #D92624;padding:18px 20px 20px;
+  box-shadow:0 40px 90px -28px rgba(0,0,0,.6);animation:rbPop .24s cubic-bezier(.2,.9,.3,1.15) both;outline:none}
 .rb-rrc-card-top{font-weight:800;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#D92624;margin-bottom:9px}
 .rb-rrc-card-head{display:flex;align-items:center;gap:11px;margin-bottom:12px}
 .rb-rrc-n{flex:none;width:34px;height:34px;background:#1D1E1B;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}
 .rb-rrc-name{flex:1;font-weight:900;font-size:18px;line-height:1.15;text-transform:uppercase;color:#1D1E1B}
 .rb-rrc-lines{display:flex;flex-direction:column;gap:7px;margin-bottom:15px;font-size:14.5px;line-height:1.5;color:#3A3B38}
+.rb-rrc-dlg-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .rb-rrc-page{display:inline-flex;align-items:center;gap:8px;min-height:42px;background:none;border:1px solid rgba(217,38,36,.45);
   color:#D92624;font-family:inherit;font-weight:800;font-size:12px;letter-spacing:.03em;padding:10px 15px;cursor:pointer;
   transition:background .15s,border-color .15s}
 .rb-rrc-page:hover,.rb-rrc-page:focus-visible{background:rgba(217,38,36,.08);border-color:#D92624;outline:none}
+.rb-rrc-close{display:inline-flex;align-items:center;justify-content:center;min-height:42px;background:#1D1E1B;color:#FFFFFF;border:none;
+  font-family:inherit;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:10px 18px;cursor:pointer;transition:background .15s}
+.rb-rrc-close:hover,.rb-rrc-close:focus-visible{background:#D92624;outline:none}
 .rb-rrc-x{flex:none;width:36px;height:36px;background:#F0EEE9;border:none;color:#1D1E1B;font-size:17px;font-weight:800;cursor:pointer}
 .rb-rrc-x:hover,.rb-rrc-x:focus-visible{background:#D92624;color:#FFFFFF;outline:none}
+/* arret d'urgence declenche : rappel rouge en tete de la fenetre, avec le rearmement */
+.rb-rrc-dlg-estop{background:#D92624;color:#FFFFFF;padding:16px 18px;margin-bottom:16px;box-shadow:0 14px 34px -20px rgba(217,38,36,.7)}
+.rb-rrc-dlg-estop-k{font-weight:800;font-size:10px;letter-spacing:.16em;margin-bottom:6px}
+.rb-rrc-dlg-estop-t{font-weight:900;font-size:17px;line-height:1.15;text-transform:uppercase;margin-bottom:6px}
+.rb-rrc-dlg-estop-x{font-size:13.5px;line-height:1.5;color:#FFE9E8;margin-bottom:12px}
+.rb-rrc-dlg-reset{display:block;width:100%;background:#FFFFFF;color:#B71F1D;border:none;padding:12px 16px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer}
+.rb-rrc-dlg-reset:hover,.rb-rrc-dlg-reset:focus-visible{background:#FFE9E8;outline:none}
+/* encadre "comment ca marche" : une ligne courte par geste, avec pictogramme */
+.rb-rrc-tip-t{font-weight:800;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#D92624;margin-bottom:10px}
+.rb-rrc-tip-l{display:flex;flex-direction:column;gap:8px}
+.rb-rrc-tip-l>div{display:flex;gap:9px;align-items:flex-start}
+.rb-rrc-tip-l>div>span:first-child{flex:none;width:22px;text-align:center;font-size:14px;line-height:1.4}
 
-/* -- telephone : la fiche devient une feuille du bas. La photo est cadree
-      au-dessus par revealRrcPhoto(), donc la manette reste visible. -- */
-.rb-rrc-sheet{position:fixed;left:0;right:0;bottom:0;z-index:190;background:#FFFFFF;
-  border-top:4px solid #D92624;box-shadow:0 -20px 50px -14px rgba(20,20,19,.55);
-  max-height:52vh;overflow:auto;padding:15px 18px 20px;
-  animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both}
+/* -- telephone et tablette : la fenetre devient une feuille du bas. -- */
 @keyframes rbSheet{from{transform:translateY(100%)}to{transform:none}}
-@media (min-width:821px){.rb-rrc-sheet{display:none}}
 @media (max-width:820px){
-  .rb-rrc-card{animation:none;box-shadow:none}
-  .rb-rrc-card.is-under-sheet{display:none}   /* la feuille du bas prend le relais */
-  .rb-rrc-sheet .rb-rrc-page{width:100%;justify-content:center}
+  .rb-rrc-pop-track{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;padding:0;align-items:flex-end}
+  .rb-rrc-dlg{max-height:min(72vh,640px);border-left:0;border-right:0;border-bottom:0;
+    padding:15px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -20px 50px -14px rgba(20,20,19,.55);
+    animation:rbSheet .26s cubic-bezier(.2,.9,.3,1.1) both}
+  .rb-rrc-dlg-foot{flex-direction:column;align-items:stretch}
+  .rb-rrc-dlg .rb-rrc-page,.rb-rrc-dlg .rb-rrc-close{width:100%;justify-content:center}
 }
-@media (prefers-reduced-motion:reduce){.rb-rrc-card,.rb-rrc-sheet{animation:none}}
+@media (prefers-reduced-motion:reduce){.rb-rrc-pop,.rb-rrc-dlg{animation:none}}
 /* La photo zoome dans un cadre qui conserve toujours l'équipement au complet. */
 @keyframes rbHeroZoom{
   from{background-size:100% 100%,auto 96%}

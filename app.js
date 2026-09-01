@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.59.0';
+var APP_VERSION = '1.60.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -26,7 +26,7 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '31 JUIL. 2026';
+var APP_VERSION_DATE = '1 SEPT. 2026';
 
 /* ---------- Tour guidé de première utilisation ----------
    Réplique le modèle des sites de formation en ligne : à la première visite,
@@ -994,12 +994,34 @@ class Component extends DCLogic {
   openSim = (tab)=>{ ptEnter(null,null); this.setState({ view:"sim", simTab:tab }); window.scrollTo(0,0); };
   pickSpot = (i)=>{
     const sp=this.spots()[i];
-    // Toucher une commande ouvre la fiche : carte mise en évidence à côté de la
-    // photo sur ordinateur, feuille du bas sur téléphone. Dans les deux cas la
-    // fiche ne couvre JAMAIS la manette.
+    // Toucher une commande ouvre sa fiche en POP-UP, sans quitter la page :
+    // fenêtre à droite de la photo sur ordinateur (la manette reste visible),
+    // feuille du bas sur téléphone (la photo est cadrée au-dessus).
+    this.placeRrcDlg();
     this.setState(sp.estop ? { rrcSel:i, estopped:true, rrcInfoOpen:true } : { rrcSel:i, rrcInfoOpen:true });
     this.revealRrcPhoto();
+    this.focusRrcDlg();
   };
+  /* Ordinateur : la fenêtre se pose exactement sur la colonne libre à droite de
+     la photo (grille 1.5fr / 1fr, écart 24 px), mesurée à l'écran. Ainsi elle ne
+     couvre jamais la manette, même avec la table des matières à gauche sur les
+     grands écrans. Le résultat est passé au CSS par deux variables. Refait au
+     redimensionnement tant que la fenêtre est ouverte. */
+  placeRrcDlg(){
+    try{
+      var rs = document.documentElement.style;
+      var z = ROOT && ROOT.querySelector('[data-rb-rrc-zone]');
+      var vw = window.innerWidth || document.documentElement.clientWidth;
+      if(!z || vw <= 820){ rs.removeProperty('--rb-rrc-l'); rs.removeProperty('--rb-rrc-w'); return; }
+      var r = z.getBoundingClientRect();
+      if(!r.width) return;
+      var gap = 24, w = Math.round((r.width - gap) * 0.4), l = Math.round(r.left + (r.width - gap) * 0.6 + gap);
+      w = Math.max(330, Math.min(w, vw - 32));           // jamais trop étroit ni plus large que l'écran
+      l = Math.max(16, Math.min(l, vw - 16 - w));        // toujours entièrement visible
+      rs.setProperty('--rb-rrc-l', l + 'px');
+      rs.setProperty('--rb-rrc-w', w + 'px');
+    }catch(e){}
+  }
   /* Toucher la photo AILLEURS que sur une pastille : on prend la commande la plus
      proche du doigt. Un appui sur la photo répond donc toujours quelque chose,
      même si les pastilles sont invisibles. */
@@ -1019,14 +1041,29 @@ class Component extends DCLogic {
       if(best >= 0) this.pickSpot(best);
     }catch(err){}
   };
-  closeRrcInfo = ()=> this.setState({ rrcInfoOpen:false });
+  closeRrcInfo = ()=>{
+    this.setState({ rrcInfoOpen:false });
+    // Le clavier revient sur la commande choisie (lecteur d'écran, tabulation)
+    setTimeout(()=>{ try{
+      var s = ROOT && ROOT.querySelector('.rb-spot.is-sel');
+      if(s && s.focus) s.focus({ preventScroll:true });
+    }catch(e){} }, 40);
+  };
+  // La fenêtre reçoit le focus dès qu'elle s'ouvre : Échap la ferme et le
+  // lecteur d'écran lit la fiche. Sans défilement : la photo reste cadrée.
+  focusRrcDlg(){
+    setTimeout(()=>{ try{
+      var d = ROOT && ROOT.querySelector('.rb-rrc-dlg');
+      if(d && d.focus) d.focus({ preventScroll:true });
+    }catch(e){} }, 40);
+  }
   // Téléphone et tablette : la fiche est une feuille au bas de l'écran. On cadre
   // la photo juste sous la barre du haut pour qu'elle reste entièrement visible
   // au-dessus de la feuille. Sur ordinateur la fiche est déjà à côté : rien ne
   // bouge. Le contrôle est refait 2 fois : les images se replacent après le
   // rendu et décalent la page.
   revealRrcPhoto(){
-    if(window.innerWidth > 820) return;   // ordinateur : la fiche est déjà à côté
+    if(window.innerWidth > 820) return;   // ordinateur : la fenêtre est à droite de la photo, rien ne bouge
     var tries = 0;
     var step = ()=>{
       tries++;
@@ -2075,8 +2112,6 @@ class Component extends DCLogic {
     });
     base.pickNearest = this.pickNearest;
     base.rrcInfoOpen = S.rrcInfoOpen;
-    // telephone : la feuille du bas remplace la fiche, on evite le doublon
-    base.rrcCardCls = S.rrcInfoOpen ? "is-under-sheet" : "";
     base.closeRrcInfo = this.closeRrcInfo;
     base.toggleRrcNums = this.toggleRrcNums;
     base.rrcNumsCls = S.rrcNums ? "is-on" : "";
@@ -2286,7 +2321,7 @@ class Component extends DCLogic {
     base.langFrStyle = (S.lang==="en") ? _inS : _actS;
     base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = this.tr(APP_VERSION_DATE, "JUL 21, 2026");
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 1, 2026");
     base.tourReplay = this.tourReplay;
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
@@ -2812,15 +2847,23 @@ function bootRodbot() {
       }, 600);
     }
   } catch (e) {}
-  // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
+  // Clavier : Échap ferme la couche du dessus (tour, image, manuel, fiche de
+  // la commande) ; ← / → naviguent dans le manuel
   document.addEventListener('keydown', function(e){
     if(!COMP) return;
     if(COMP._tourStep!=null){ if(e.key==='Escape') COMP.tourClose(true); return; }
     if(COMP.state.imgView){ if(e.key==='Escape') COMP.closeImg(); return; }
-    if(COMP.state.mpage==null) return;
-    if(e.key==='Escape') COMP.closeManual();
-    else if(e.key==='ArrowLeft') COMP.manualPrev();
-    else if(e.key==='ArrowRight') COMP.manualNext();
+    if(COMP.state.mpage!=null){
+      if(e.key==='Escape') COMP.closeManual();
+      else if(e.key==='ArrowLeft') COMP.manualPrev();
+      else if(e.key==='ArrowRight') COMP.manualNext();
+      return;
+    }
+    if(COMP.state.rrcInfoOpen && e.key==='Escape') COMP.closeRrcInfo();
+  });
+  // Fenêtre de la commande ouverte : on la replace si l'écran change de taille
+  window.addEventListener('resize', function(){
+    try{ if(COMP && COMP.state.rrcInfoOpen) COMP.placeRrcDlg(); }catch(e){}
   });
   // Bouton RETOUR du navigateur / de la tablette : ferme le manuel ou remonte d'un écran
   window.addEventListener('popstate', function(){
