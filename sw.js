@@ -4,7 +4,7 @@
    première installation. Après ça, le site fonctionne entièrement sans réseau. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.59.0';
+const CACHE = 'rodbot-formation-v1.59.1';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -126,7 +126,10 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => Promise.all(
-      keys.filter((k) => k !== CACHE && k !== ASSETS).map((k) => caches.delete(k))
+      // Ne purger QUE nos propres caches (prefixe rodbot-) : l'origine
+      // frankyray21.github.io est partagee avec les autres sites (Wiki SST,
+      // Procedures MRI, TMS). Leurs caches hors-ligne ne doivent jamais etre touches.
+      keys.filter((k) => k.indexOf('rodbot-') === 0 && k !== CACHE && k !== ASSETS).map((k) => caches.delete(k))
     )).then(() => self.clients.claim())
   );
   // Téléchargement complet du contenu dès la première installation
