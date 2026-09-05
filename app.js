@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.40.0';
+var APP_VERSION = '1.41.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -26,11 +26,11 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '31 JUIL. 2026';
+var APP_VERSION_DATE = '5 SEPT. 2026';
 
-/* ---------- Tour guidé de première utilisation ----------
-   Réplique le modèle des sites de formation en ligne : à la première visite,
-   un tour pas à pas montre comment le site fonctionne. Certaines étapes
+/* ---------- Tour guidé à la demande ----------
+   Depuis l'accueil ou le pied de page, le travailleur peut ouvrir un tour
+   pas à pas qui montre comment le site fonctionne. Certaines étapes
    mettent en surbrillance le vrai élément de la page (cartes de modules,
    bouton MON SUIVI), les autres affichent une carte centrée. Boutons gros
    et texte court, pensé pour les travailleurs sur tablette et téléphone.
@@ -131,6 +131,7 @@ var COMP = null;      // instance Component
 var TPL_ROOT = null;  // racine du gabarit parsé
 var BINDINGS = [];    // liaisons dynamiques enregistrées au rendu complet
 var SOFT = false;     // vrai pendant un événement input (mise à jour douce)
+var RB_FOCUS_SEED = 0;
 
 /* --------- Résolution d'expressions ({{ a.b.c }}) contre une pile de portées --------- */
 function resolveExpr(expr, scope) {
@@ -163,6 +164,7 @@ function interpolate(str, scope) {
 
 /* --------- Rendu complet : reconstruit tout le DOM et ré-enregistre les liaisons --------- */
 function fullRender() {
+  if (window.RBInterface) window.RBInterface.beforeRender(ROOT, COMP);
   var vals = COMP.renderVals();
   BINDINGS = [];
   ROOT.textContent = '';
@@ -183,6 +185,7 @@ function fullRender() {
   try { if (COMP && COMP.setupTocSpy) COMP.setupTocSpy(); } catch (e) {}
   // Le canevas de signature vient d'être recréé : recâble les gestes et redessine les traits
   try { if (COMP && COMP.sigRefresh) COMP.sigRefresh(); } catch (e) {}
+  if (window.RBInterface) window.RBInterface.afterRender(ROOT, COMP);
 }
 
 /* --------- Mise à jour douce : réévalue les liaisons en place (aucun nœud recréé) --------- */
@@ -227,7 +230,7 @@ function renderNode(tnode, scope, parentDom, svg) {
     var list = resolveExpr(getRawAttr(tnode, 'list'), scope) || [];
     var as = tnode.getAttribute('as') || 'item';
     for (var k = 0; k < list.length; k++) {
-      var frame = {}; frame[as] = list[k];
+      var frame = { __rbIndex: k }; frame[as] = list[k];
       renderChildren(tnode, scope.concat([frame]), parentDom, svg);
     }
     return;
@@ -236,6 +239,10 @@ function renderNode(tnode, scope, parentDom, svg) {
   // Élément normal (HTML ou SVG)
   var childSvg = svg || tag === 'svg';
   var el = childSvg ? document.createElementNS(SVG_NS, tag) : document.createElement(tag);
+  if (/^(button|a|input|textarea|select)$/.test(tag)) {
+    if (!tnode.__rbFocusKey) tnode.__rbFocusKey = ++RB_FOCUS_SEED;
+    el.setAttribute('data-rb-focus', tnode.__rbFocusKey + ':' + scope.map(function (s) { return s.__rbIndex == null ? '' : s.__rbIndex; }).join('.'));
+  }
   var baseStyle = '';
 
   var attrs = tnode.attributes;
@@ -972,7 +979,8 @@ class Component extends DCLogic {
     const scroll = ()=>{
       const el=ROOT&&ROOT.querySelector('[data-rb-scroll-section="'+key+'"]');
       if(!el) return;
-      const y=el.getBoundingClientRect().top+window.scrollY-78;
+      const header=ROOT.querySelector('.rb-topbar');
+      const y=el.getBoundingClientRect().top+window.scrollY-(header ? header.offsetHeight : 78)-16;
       window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
     };
     if(this.state.view!=="home"){
@@ -1315,7 +1323,16 @@ class Component extends DCLogic {
   allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
   goHome = ()=> { ptEnter(null,null); this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
-  openModule = (i)=> { ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ view:"module", activeId:i, openKey:null, manualDetailKey:null, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
+  openModule = (i)=> { if(!this.M()[i]) return; ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ view:"module", activeId:i, openKey:i+'-0', manualDetailKey:null, graded:false, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
+  openLesson = (mi,si)=>{
+    if(!this.M()[mi] || !this.M()[mi].sections[si]) return;
+    ptEnter(mi,'module');
+    if(this.state.activeId!==mi) this.sigStrokes=[];
+    this.setState({view:'module',activeId:mi,openKey:mi+'-'+si,manualDetailKey:null,graded:false},()=>{
+      const item=ROOT.querySelector('[data-rb-lesson-index="'+si+'"]');
+      if(item){ item.scrollIntoView({block:'start',behavior:'auto'}); const button=item.querySelector('button'); if(button) button.focus({preventScroll:true}); }
+    });
+  };
   toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key, manualDetailKey:null }));
   toggleManualDetails = (key,page)=>{
     if(this.state.manualDetailKey===key){
@@ -1333,19 +1350,27 @@ class Component extends DCLogic {
      par simple coïncidence de frappe. */
   setName = (e)=>{
     const v=e.target.value;
-    this.setState({name:v, attEmpId:"", attDone:false, attError:""}, ()=>this.persist());
-    if(!v || v.trim().length<2) this.clearSuggestionsUI();
+    if(v!==this.state.name || this.state.attEmpId){
+      this.invalidateIdentityRequests();
+      this.sigStrokes=[];
+      this.sigRefresh();
+    }
+    this.setState({name:v, attEmpId:"", attDone:false, attLinked:false, attSending:false, attError:"", progRestoredMsg:"", suiviHist:null, suiviHistState:""}, ()=>this.persist());
+    this.clearSuggestionsUI();
     this.fetchEmpSuggestions(v);
     // Sur « Mon suivi » : recharge l'historique quand le nom change (sans attendre un pick).
     if(this.state.view==="suivi"){ clearTimeout(this._suiviT); this._suiviT=setTimeout(this.fetchSuiviHist, 700); }
   };
   fetchEmpSuggestions(v){
-    if(!ATTEST_ENDPOINT || !v || v.trim().length<2) return;
     clearTimeout(this._sugT);
+    const token=this.identityToken(), request=this._sugRequest=(this._sugRequest||0)+1;
+    if(!ATTEST_ENDPOINT || !v || v.trim().length<2) return;
     this._sugT=setTimeout(()=>{
+      if(!this.identityCurrent(token) || request!==this._sugRequest) return;
       fetch(ATTEST_ENDPOINT+"?q="+encodeURIComponent(v.trim()))
         .then(r=>r.json())
         .then(d=>{
+          if(!this.identityCurrent(token) || request!==this._sugRequest) return;
           if(!(d && d.ok && Array.isArray(d.results))) return;
           // Mise à jour SANS re-render (sinon le champ perd le focus pendant la frappe).
           this.state.attSug=d.results.slice(0,8);
@@ -1382,26 +1407,65 @@ class Component extends DCLogic {
   /* Confirmation EXPLICITE de l'identité : l'utilisateur a touché une
      suggestion du registre. Relit aussitôt sa progression sauvegardée. */
   pickSuggestion = (sg)=>{
+    if(!sg || !sg.id || !sg.name) return;
+    if(sg.name!==this.state.name || sg.id!==this.state.attEmpId){
+      this.invalidateIdentityRequests();
+      this.sigStrokes=[];
+    }
     this.clearSuggestionsUI();
-    this.setState({ name:sg.name, attEmpId:sg.id, attDone:false, attError:"" }, ()=>{
+    this.setState({ name:sg.name, attEmpId:sg.id, attDone:false, attLinked:false, attSending:false, attError:"", progRestoredMsg:"", suiviHist:null, suiviHistState:"" }, ()=>{
       this.persist();
       this.progPullNow(true);
       if(this.state.view==="suivi") this.fetchSuiviHist();
     });
   };
+  // Les réponses réseau appartiennent à l'identité qui les a demandées.
+  // Une génération distingue aussi deux sessions successives du même nom.
+  identityToken(){
+    return { generation:this._identityGeneration||0, name:this.state.name||"", id:this.state.attEmpId||"" };
+  }
+  identityCurrent(token){
+    return token.generation===(this._identityGeneration||0) &&
+      token.name===(this.state.name||"") && token.id===(this.state.attEmpId||"");
+  }
+  invalidateIdentityRequests(){
+    this._identityGeneration=(this._identityGeneration||0)+1;
+    ["_sugT","_suiviT","_progT","_progRestoredT"].forEach(key=>clearTimeout(this[key]));
+    ["_sugRequest","_pullRequest","_pushRequest","_histRequest","_attRequest"].forEach(key=>{
+      this[key]=(this[key]||0)+1;
+    });
+  }
   /* « Pas vous ? » : efface l'identité ET la progression AFFICHÉE sur cet
      appareil (celle-ci appartenait au travailleur qui vient de partir).
      La progression sauvegardée côté serveur, elle, n'est jamais touchée :
      le prochain travailleur qui s'identifie retrouve la sienne normalement. */
   clearIdentity = ()=>{
-    clearTimeout(this._progT);
-    clearTimeout(this._progRestoredT);
+    this.invalidateIdentityRequests();
+    clearTimeout(this._rzT);
+    clearTimeout(this._kt);
+    if(PT.page) PT.page.pause();
+    if(PT.quiz) PT.quiz.pause();
+    PT.pid=null; PT.page=null; PT.quiz=null;
+    this.sigStrokes=[];
+    this._attRemindAction=null;
+    this._attRemindShown=false;
     this.clearSuggestionsUI();
-    this.setState({ name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, attDone:false, attError:"", attSending:false, progRestoredMsg:"", suiviHist:null, suiviHistState:"" });
+    this.setState({
+      name:"", attEmpId:"", attSug:[], completed:{}, attempts:{},
+      view:"home", activeId:null, openKey:null, manualDetailKey:null, mpage:null, imgView:null,
+      answers:{}, graded:false, lastScore:0, lastPassed:false,
+      qIdx:0, qSel:null, qChecked:false, qResults:[], qbFb:{}, qbCommentKey:null, qbComment:"",
+      attDone:false, attLinked:false, attError:"", attSending:false, attRemind:false,
+      progRestoredMsg:"", suiviHist:null, suiviHistState:"", showInstallHelp:false,
+      rrcInfoOpen:false, estopped:false, klaxon:false
+    },()=>window.scrollTo(0,0));
     try{
-      localStorage.removeItem("rodbot_formation_v3");
-      localStorage.removeItem("rodbot_prog_dirty");
-      localStorage.removeItem("rodbot_prog_pull_t");
+      const keys=["rodbot_formation_v3","rodbot_prog_dirty","rodbot_prog_pull_t","rodbot_reprise_v1"];
+      for(let i=0;i<localStorage.length;i++){
+        const key=localStorage.key(i);
+        if(/^rodbot_pt_(?:page|quiz)_\d+$/.test(key||"")) keys.push(key);
+      }
+      keys.forEach(key=>localStorage.removeItem(key));
     }catch(e){}
   };
   /* ---------- Suivi de formation du même utilisateur (nouvel appareil / appareil
@@ -1458,6 +1522,7 @@ class Component extends DCLogic {
   }
   progPushSoon = ()=>{ clearTimeout(this._progT); this._progT=setTimeout(this.progPush, 4000); };
   progPush = ()=>{
+    const token=this.identityToken(), request=this._pushRequest=(this._pushRequest||0)+1;
     const name=(this.state.name||"").trim();
     if(name.length<2 || !ATTEST_ENDPOINT) return;
     const data=this.progCollect();
@@ -1465,12 +1530,13 @@ class Component extends DCLogic {
     if(!navigator.onLine){ try{ localStorage.setItem("rodbot_prog_dirty","1"); }catch(e){} return; }
     fetch(ATTEST_ENDPOINT,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ type:"progress", name, data }) })
       .then(r=>r.json())
-      .then(d=>{ if(d && d.ok) try{ localStorage.removeItem("rodbot_prog_dirty"); }catch(e){} })
-      .catch(()=>{ try{ localStorage.setItem("rodbot_prog_dirty","1"); }catch(e){} });
+      .then(d=>{ if(this.identityCurrent(token) && request===this._pushRequest && d && d.ok) try{ localStorage.removeItem("rodbot_prog_dirty"); }catch(e){} })
+      .catch(()=>{ if(this.identityCurrent(token) && request===this._pushRequest) try{ localStorage.setItem("rodbot_prog_dirty","1"); }catch(e){} });
   };
   /* force=true : ignore le délai de 6 h (utilisé au moment où le nom vient
      d'être identifié avec certitude, voir setName). */
   progPullNow = (force)=>{
+    const token=this.identityToken(), request=this._pullRequest=(this._pullRequest||0)+1;
     const name=(this.state.name||"").trim();
     if(name.length<2 || !ATTEST_ENDPOINT || !navigator.onLine) return;
     if(!force){
@@ -1480,6 +1546,7 @@ class Component extends DCLogic {
     fetch(ATTEST_ENDPOINT+"?progress="+encodeURIComponent(name))
       .then(r=>r.json())
       .then(d=>{
+        if(!this.identityCurrent(token) || request!==this._pullRequest) return;
         try{ localStorage.setItem("rodbot_prog_pull_t", String(Date.now())); }catch(e){}
         if(d && d.ok) this.progMerge(d.progress);
       })
@@ -1496,6 +1563,7 @@ class Component extends DCLogic {
     this.setState({ view:"suivi" }, ()=>{ window.scrollTo(0,0); this.fetchSuiviHist(); });
   };
   fetchSuiviHist = ()=>{
+    const token=this.identityToken(), request=this._histRequest=(this._histRequest||0)+1;
     const name=(this.state.name||"").trim();
     if(name.length<2 || !ATTEST_ENDPOINT){ this.setState({ suiviHist:null, suiviHistState:"" }); return; }
     if(!navigator.onLine){ this.setState({ suiviHist:null, suiviHistState:"offline" }); return; }
@@ -1503,11 +1571,12 @@ class Component extends DCLogic {
     fetch(ATTEST_ENDPOINT+"?hist="+encodeURIComponent(name))
       .then(r=>r.json())
       .then(d=>{
+        if(!this.identityCurrent(token) || request!==this._histRequest) return;
         if(!(d && d.ok)){ this.setState({ suiviHistState:"err" }); return; }
         if(d.progress) this.progMerge(d.progress);
         this.setState({ suiviHist:(d.results||[]), suiviHistState:"ok" });
       })
-      .catch(()=>this.setState({ suiviHistState:"err" }));
+      .catch(()=>{ if(this.identityCurrent(token) && request===this._histRequest) this.setState({ suiviHistState:"err" }); });
   };
   /* Envoi commun (module OU formation complète) au Worker → Airtable.
      Le champ « Module » du registre reste en FRANÇAIS quel que soit l'affichage,
@@ -1551,6 +1620,10 @@ class Component extends DCLogic {
 
   postAttestation(extra){
     const S=this.state;
+    const token=this.identityToken(), request=this._attRequest=(this._attRequest||0)+1;
+    const view=S.view, activeId=S.activeId;
+    const current=()=>this.identityCurrent(token) && request===this._attRequest &&
+      this.state.view===view && this.state.activeId===activeId;
     const name=(S.name||"").trim();
     const payload=Object.assign({ name:name, employeeId:S.attEmpId||"",
       date:new Date().toISOString().slice(0,10),
@@ -1560,10 +1633,11 @@ class Component extends DCLogic {
     fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
       .then(r=>r.json())
       .then(d=>{
+        if(!current()) return;
         if(d && d.ok){ this.sigStrokes=[]; this.setState({ attSending:false, attDone:true, attLinked:!!d.linked }); }
         else this.setState({ attSending:false, attError:(d&&d.error)||this.tr("Envoi refusé.","Submission refused.") });
       })
-      .catch(()=>this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }));
+      .catch(()=>{ if(current()) this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }); });
   }
   /* Attestation FINALE (vue « cert ») : exige les 8 modules validés. */
   submitAttestation = ()=>{
@@ -1734,7 +1808,7 @@ class Component extends DCLogic {
   };
   goToNextModule = ()=>{
     const next=this.state.activeId+1;
-    if(next<this.M().length){ ptEnter(next,'module'); this.setState({ view:"module", activeId:next, openKey:null, graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] }); }
+    if(next<this.M().length){ ptEnter(next,'module'); this.setState({ view:"module", activeId:next, openKey:next+'-0', graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] }); }
     else if(this.allDone()){ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); }
     else this.goHome();
   };
@@ -1746,7 +1820,7 @@ class Component extends DCLogic {
     const totalSections=M.reduce((a,m)=>a+m.sections.length,0);
     const ctaLabel = doneCount===0
       ? this.tr("Commencer", "Start")
-      : (this.allDone() ? this.tr("Revoir les gestes", "Review key moves") : this.tr("Continuer", "Continue"));
+      : (this.allDone() ? this.tr("Revoir", "Review") : this.tr("Continuer", "Continue"));
 
     const activeMod=S.activeId!=null?M[S.activeId]:null;
     const tocHomeMode=S.view==="home";
@@ -1765,6 +1839,9 @@ class Component extends DCLogic {
       progressPct: Math.round(doneCount/total*100), passPct:70,
       manualUrl:this.manualBase(), raUrl:this.RA,
       goHome:this.goHome, startFirst:this.startFirst, scrollToSafety:this.scrollToSafety,
+      openPath:()=>this.scrollHomeSection('path'), openPractice:()=>this.scrollHomeSection('practice'), openDocuments:()=>this.scrollHomeSection('documents'),
+      openSearch:()=>{ if(window.RBInterface) window.RBInterface.openSearch(this); },
+      navHome:this.tr('Accueil','Home'),navModules:this.tr('Modules','Modules'),navPractice:this.tr('Pratique','Practice'),navSearch:this.tr('Rechercher','Search'),
       ctaLabel, tocHomeMode, tocModuleMode, tocNowLabel, tocNowTitle,
       // Accueil : barre de reprise quand la formation est commencée (façon page de cours)
       heroProg:{ show:doneCount>0, pct:Math.round(doneCount/total*100),
@@ -1851,6 +1928,10 @@ class Component extends DCLogic {
           const manualDetailOpen=S.manualDetailKey===key;
           return {
             index:si, ref:modNum+"."+(si+1), title:guide.title, topic:sec.title, page:this.mp(sec.page), pdfHref:this.pdfAt(this.mp(sec.page)), openPage:()=>this.openManual(this.mp(sec.page)),
+            panelId:'rb-lesson-panel-'+key, expanded:open?'true':'false',
+            position:this.tr('Leçon ','Lesson ')+(si+1)+' / '+mod.sections.length,
+            hasPrevious:si>0,hasNext:si+1<mod.sections.length,isLast:si+1===mod.sections.length,
+            previous:()=>this.openLesson(S.activeId,si-1),next:()=>this.openLesson(S.activeId,si+1),
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             manualDetailOpen, manualDetailClass:manualDetailOpen?"is-open":"", manualDetailExpanded:manualDetailOpen?"true":"false",
@@ -2196,7 +2277,7 @@ class Component extends DCLogic {
     base.langFrStyle = (S.lang==="en") ? _inS : _actS;
     base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = this.tr(APP_VERSION_DATE, "JUL 21, 2026");
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 5, 2026");
     base.tourReplay = this.tourReplay;
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
@@ -2681,16 +2762,7 @@ function bootRodbot() {
       }).catch(function () {});
     }
   } catch (e) {}
-  // Tour guidé : à la toute première visite, montre comment le site fonctionne
-  // (comme sur les sites de formation en ligne). Jamais rejoué une fois vu ;
-  // relançable via « Revoir le tour guidé » dans le pied de page.
-  try {
-    if (!localStorage.getItem('rodbot_tour_done')) {
-      setTimeout(function () {
-        try { if (COMP && COMP.state.view === 'home' && COMP._tourStep == null) COMP.tourOpen(0); } catch (e) {}
-      }, 600);
-    }
-  } catch (e) {}
+  // La visite reste disponible sur demande, sans masquer le premier écran.
   // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
   document.addEventListener('keydown', function(e){
     if(!COMP) return;
