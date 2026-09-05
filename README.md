@@ -35,10 +35,30 @@ python3 -m http.server 8000
 |---------------|----------------------------------------------------------------------|
 | `index.html`  | Coquille de page + gabarit déclaratif d'origine (dans un `<script type="text/html">`). |
 | `styles.css`  | Styles de base et polices.                                           |
+| `interface.css` | Accueil, navigation mobile, recherche et contrôles accessibles. |
+| `interface.js` | Recherche locale dans les titres et pages, gestion du focus et des modales. |
 | `app.js`      | Petit moteur de rendu (~150 lignes) qui interprète le gabarit (`{{ }}`, `<sc-if>`, `<sc-for>`, `onClick`, `onInput`, `style-hover`) **+** la logique applicative (données des 8 modules, quiz, simulateurs). |
 
 Le moteur fait un rendu complet à chaque action (clic) et une mise à jour « douce »
 en place pendant la saisie continue (curseurs), pour un glissement fluide.
+
+## Interface v1.60.0
+
+- Accès direct aux modules, à la pratique, au suivi et aux documents.
+- Recherche bilingue dans les titres de leçons et les pages du manuel.
+  Les questions et réponses des quiz ne sont pas indexées.
+- Navigation entre leçons, clavier et fenêtres accessibles.
+- Tour guidé à la demande, sans interruption à la première visite.
+- Cache hors ligne isolé des autres sites du même domaine.
+
+Les images et PDF doivent être consultés en ligne avant utilisation hors ligne.
+L'envoi des résultats et leur récupération nécessitent une connexion.
+Les procédures, les questions et le seuil de réussite sont conservés.
+
+## Tests locaux
+
+Avec Node.js installé, lancer `node --test tests/*.test.cjs`.
+Les tests utilisent des réponses simulées et n'écrivent rien dans le registre des travailleurs.
 
 ## Fichiers à ajouter manuellement
 
@@ -56,7 +76,7 @@ Le site est du HTML statique servi directement depuis la branche. Dans
 **Settings → Pages** :
 
 1. **Source** : « Deploy from a branch ».
-2. **Branch** : `claude/slash-command-iv5yzl`, dossier `/ (root)`.
+2. **Branch** : `main`, dossier `/ (root)`. La branche par défaut historique n'est pas la branche publiée.
 3. **Save**.
 
 Le fichier `.nojekyll` garantit que GitHub sert les fichiers tels quels (sans

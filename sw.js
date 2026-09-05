@@ -4,14 +4,15 @@
    première installation. Après ça, le site fonctionne entièrement sans réseau. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.59.1';
+const CACHE = 'rodbot-formation-v1.60.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
 const ASSETS = 'rodbot-assets-v1';
-
+const CACHE_PREFIX = 'rodbot-formation-';
+const APP_ROOT = new URL('./', self.location.href);
 const CORE = [
-  './', './index.html', './app.js', './styles.css',
+  './', './index.html', './app.js', './styles.css', './interface.css', './interface.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './img/hero-machine-photo.webp?v=1.8.11',
   './3d/index.html', './3d/css/styles.css',
@@ -125,12 +126,10 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => Promise.all(
-      // Ne purger QUE nos propres caches (prefixe rodbot-) : l'origine
-      // frankyray21.github.io est partagee avec les autres sites (Wiki SST,
-      // Procedures MRI, TMS). Leurs caches hors-ligne ne doivent jamais etre touches.
-      keys.filter((k) => k.indexOf('rodbot-') === 0 && k !== CACHE && k !== ASSETS).map((k) => caches.delete(k))
-    )).then(() => self.clients.claim())
+    // Ne purger que les anciennes coquilles RodBot. Conserver le contenu stable
+    // et tous les caches des autres sites hébergés sur la même origine.
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
   // Téléchargement complet du contenu dès la première installation
   e.waitUntil(precacherTout());
@@ -166,61 +165,83 @@ async function reponsePourRange(req, complete) {
   });
 }
 
+// Une panne de stockage ne doit pas transformer une réponse réseau en erreur.
+async function remember(key, response, cacheName = CACHE, allowOpaque = false) {
+  if (response && (response.ok || (allowOpaque && response.type === 'opaque')) && response.status !== 206) {
+    try { await (await caches.open(cacheName)).put(key, response.clone()); } catch (error) {}
+  }
+  return response;
+}
+
+async function offlineResponse(key, isHome) {
+  try {
+    const cache = await caches.open(CACHE);
+    const cached = await cache.match(key);
+    if (cached) return cached;
+    if (isHome) {
+      const root = await cache.match(APP_ROOT.href);
+      if (root) return root;
+    }
+  } catch (error) {}
+  // Ne jamais fournir du HTML à la place d'un script, style ou fichier absent.
+  return Response.error();
+}
+
+async function assetResponse(req, allowOpaque = false) {
+  let cached;
+  try {
+    const cache = await caches.open(ASSETS);
+    cached = await cache.match(req);
+    if (!cached && !allowOpaque) cached = await cache.match(req, { ignoreSearch: true });
+    // Certains petits fichiers font également partie de la coquille précachée.
+    if (!cached && !allowOpaque) {
+      cached = await (await caches.open(CACHE)).match(req, { ignoreSearch: true });
+    }
+  } catch (error) {}
+  if (cached) return reponsePourRange(req, cached);
+  try { return await remember(req, await fetch(req), ASSETS, allowOpaque); }
+  catch (error) { return Response.error(); }
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-
   // Ressources CDN (polices, moteur 3D) : cache d'abord, sinon réseau + mise en cache
   if (url.origin !== self.location.origin) {
-    e.respondWith(
-      caches.match(req).then((cached) =>
-        cached || fetch(req).then((r) => {
-          if (r && (r.ok || r.type === 'opaque')) {
-            const cp = r.clone(); caches.open(ASSETS).then((c) => c.put(req, cp));
-          }
-          return r;
-        }).catch(() => caches.match(req.url))
-      )
-    );
+    // Le registre des employés et les autres API ne sont jamais mis en cache.
+    const cdnOrigins = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net'];
+    if (!cdnOrigins.includes(url.origin)) return;
+    e.respondWith(assetResponse(req, true));
     return;
   }
+  if (!url.pathname.startsWith(APP_ROOT.pathname)) return;
 
   // La COQUILLE DE CODE (page, JS, CSS, manifeste) doit toujours rester synchronisée :
   // réseau d'abord. Sinon un ancien app.js en cache casse la nouvelle page (écran blanc).
   const isShell = req.mode === 'navigate' || /\.(?:js|css|webmanifest)$/.test(url.pathname);
   if (isShell) {
-    // la clé './index.html' est réservée à l'accueil : les navigations vers /3d/
-    // sont mises en cache sous leur propre URL pour ne pas empoisonner la coquille
-    const est3d = url.pathname.includes('/3d');
-    const estAccueil = req.mode === 'navigate' && !est3d;
+    // Seul l'accueil utilise index.html. Les sous-pages gardent leur propre URL.
+    const estAccueil = req.mode === 'navigate' &&
+      (url.pathname === APP_ROOT.pathname || url.pathname === APP_ROOT.pathname + 'index.html');
+    const est3d = req.mode === 'navigate' &&
+      (url.pathname === APP_ROOT.pathname + '3d/' || url.pathname === APP_ROOT.pathname + '3d/index.html');
+    let key = req;
+    if (estAccueil) key = new URL('index.html', APP_ROOT).href;
+    else if (est3d) key = new URL('3d/index.html', APP_ROOT).href;
+    else if (req.mode !== 'navigate') {
+      // app.js?v=... retrouve app.js précaché, uniquement dans cette version.
+      url.search = '';
+      url.hash = '';
+      key = url.href;
+    }
     e.respondWith(
-      fetch(req).then((r) => {
-        const cp = r.clone();
-        caches.open(CACHE).then((c) => c.put(estAccueil ? './index.html' : req, cp));
-        return r;
-      }).catch(() =>
-        // hors-ligne : on ignore le ?v= (simple casse-cache) pour retrouver le fichier
-        caches.match(req, { ignoreSearch: true })
-          .then((c) => c || caches.match(est3d && req.mode === 'navigate' ? './3d/index.html' : './index.html'))
-      )
+      fetch(req).then((r) => remember(key, r)).catch(() => offlineResponse(key, estAccueil))
     );
     return;
   }
 
   // Contenu (images du manuel, PDF, vidéos, modèles 3D) : cache d'abord
   // (lourd et immuable), sinon réseau + mise en cache dans le cache stable
-  e.respondWith(
-    caches.match(req).then((exact) =>
-      exact ? reponsePourRange(req, exact)
-        : caches.match(req, { ignoreSearch: true }).then((cached) =>
-          cached ? reponsePourRange(req, cached)
-            : fetch(req).then((r) => {
-              // jamais de mise en cache d'une réponse partielle 206 (vidéo incomplète)
-              if (r && r.status === 200) { const cp = r.clone(); caches.open(ASSETS).then((c) => c.put(req, cp)); }
-              return r;
-            })
-        )
-    )
-  );
+  e.respondWith(assetResponse(req));
 });
