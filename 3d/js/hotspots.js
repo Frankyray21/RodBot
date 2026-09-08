@@ -82,7 +82,7 @@ export const URGENCES = [
 ];
 
 export const VUES = {
-  home:     { yaw: 305, pitch: 16, dist: 5.6, target: [-0.3, -0.9, -0.8] },
+  home:     { yaw: 305, pitch: 16, dist: 6.5, target: [-0.3, -0.9, -0.8] },
   profil:   { yaw: 255, pitch: 16, dist: 5.4, target: [-0.3, -0.9, -0.8] },
   avant:    { yaw: 155, pitch: 16, dist: 5.4, target: [-0.3, -0.9, -0.8] },
   arriere:  { yaw: 205, pitch: 16, dist: 5.4, target: [-0.3, -0.9, -0.8] },

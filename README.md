@@ -42,6 +42,18 @@ python3 -m http.server 8000
 Le moteur fait un rendu complet à chaque action (clic) et une mise à jour « douce »
 en place pendant la saisie continue (curseurs), pour un glissement fluide.
 
+## Exploration 3D v1.61.0
+
+- Scan réel conservé, cadrage adapté au téléphone et rendu détaillé ou fluide.
+- Zoom progressif, rotation avec inertie et déplacements de caméra adoucis.
+- Visite des composants et arrêts d'urgence avec pause, reprise et navigation.
+- Repères corrigés sur les écrans haute densité, plein écran et commandes clavier.
+- Animation interrompue pendant la manipulation et respect du mouvement réduit.
+- Les animations déplacent la caméra. Le scan ne contient pas de pièces articulées.
+- Modules de la visite disponibles hors ligne après installation.
+
+Validation : `node --test tests/*.test.cjs`.
+
 ## Interface v1.60.0
 
 - Accès direct aux modules, à la pratique, au suivi et aux documents.

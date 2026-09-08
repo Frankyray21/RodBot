@@ -1,0 +1,92 @@
+/* RodBot 3D: the real scan is the focus; controls stay separate from the part details. */
+:root{--bg:#101214;--bg-2:#171a1d;--card:#1c2024;--card-2:#23282d;--border:#32383e;--muted:#b3bbc4;--dim:#969fa9}
+[hidden]{display:none!important}
+body::before{display:none}
+.site-header{background:rgba(16,18,20,.95)}
+.viewer-section{padding-top:3rem}
+.viewer-section .lead{max-width:850px;font-size:1rem;line-height:1.65;margin-bottom:1.5rem}
+.viewer-section .eyebrow{border:0;background:none;padding:0;letter-spacing:.1em}
+.viewer-section .eyebrow::before{box-shadow:none}
+.viewer-section .title{font-size:clamp(1.7rem,3vw,2.5rem)}
+.mode-bar{gap:.65rem;margin-bottom:1rem}
+.mode-btn{border-radius:7px;box-shadow:none;background:var(--card);font-size:.9rem;min-height:46px}
+.mode-btn.is-on{box-shadow:none;background:#b51f26;border-color:#b51f26}
+.quality-choice{margin-left:auto;display:flex;align-items:center;gap:.7rem;font-size:.85rem;color:var(--muted)}
+.quality-choice select{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:7px;min-height:44px;padding:.5rem 1.7rem .5rem .8rem}
+.viewer-wrap{height:clamp(430px,59svh,680px);min-height:0;background:#0f1112;border:1px solid #363a3e;border-radius:12px;box-shadow:none;scroll-margin-top:calc(var(--header-h) + 12px)}
+.viewer-wrap canvas{outline-offset:-5px}
+.viewer-status{position:absolute;top:16px;left:18px;z-index:5;display:flex;align-items:center;gap:8px;font-size:.76rem;color:#b5bdc5;pointer-events:none}
+.viewer-status-dot{width:5px;height:5px;border-radius:50%;background:#d94b50}
+#btnFullscreen{position:absolute;top:10px;right:10px;z-index:5}
+.viewer-controls{right:12px;left:12px;bottom:12px;justify-content:center;gap:6px;flex-wrap:wrap}
+.vbtn{min-height:44px;border-radius:6px;background:rgba(29,33,37,.96);color:#d5dbe1;font-weight:500;font-size:.82rem;backdrop-filter:none;box-shadow:none;white-space:nowrap}
+.vbtn-icon{min-width:44px;font-size:1.35rem;padding:.35rem .65rem;font-weight:400}
+.vbtn:hover{border-color:#7d868f;background:#2c3238}
+.vbtn[aria-pressed="true"]{background:#3b2529;border-color:#9c474c;color:#fff}
+.vbtn:disabled,.quality-choice select:disabled{opacity:.4;cursor:default}
+.viewer-hint{position:static;display:block;margin:14px 0 0;padding:0;border:0;border-radius:0;background:none;font-size:.8rem;line-height:1.6;font-weight:400;color:var(--dim)}
+.viewer-loader{background:rgba(15,17,18,.97);gap:.8rem}
+.loader-title{letter-spacing:.04em;font-weight:600}
+.loader-bar{height:3px;border-radius:2px}
+.loader-bar i{background:#d34048;box-shadow:none}
+.loader-txt{max-width:250px}
+.viewer-fallback{background:#141719}
+.tour-player{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:16px 0;border-bottom:1px solid var(--border)}
+.tour-player>#btnTourUrgences{background:#a7232a;border-color:#a7232a;color:#fff;min-width:144px}
+.tour-info{flex:1;min-width:140px;padding:0 10px}
+.tour-etat{display:block;font-size:.82rem;font-weight:400;color:var(--muted)}
+.tour-track{height:2px;background:#343a40;margin-top:9px;border-radius:2px;overflow:hidden}
+.tour-track span{display:block;height:100%;width:0;background:#d85158;transition:width .3s ease}
+.view-bar{gap:7px;margin-top:12px}
+.hs{left:-22px;top:-22px;width:44px;height:44px}
+.hs-dot{width:30px;height:30px;left:7px;top:7px;background:#b32930;animation:none;filter:none;border-width:2px;box-shadow:0 2px 5px #0006}
+.hs-n{font-size:.8rem}
+.hs-ring{left:-5px;top:-5px}
+.hs-lb{left:44px;top:22px;border-radius:5px;font-weight:500;background:#171b20}
+.hs-urgence .hs-lb{left:56px}
+.hs.is-active .hs-dot{background:#fff;color:#b32930;box-shadow:0 0 0 5px #d8515833}
+.hs.is-occluded{opacity:.45}
+.viewer-section .fiche{display:none;position:relative;inset:auto;transform:none;visibility:visible;width:100%;max-height:none;z-index:auto;background:#191d21;border:1px solid var(--border);border-radius:10px;margin:12px 0 0;box-shadow:none;backdrop-filter:none;transition:none;overflow:hidden}
+.viewer-section .fiche.open{display:grid;grid-template-columns:1fr 1.5fr;transform:none;visibility:visible}
+.viewer-section .fiche-grip{display:none}
+.viewer-section .fiche-head{padding:16px 20px;background:none;border:0}
+.viewer-section .fiche-title{font-size:1.35rem;line-height:1.2;font-weight:600;padding-right:0;text-transform:none}
+.viewer-section .fiche-close{top:7px;right:7px;width:40px;height:40px;border-radius:5px;background:#252a30;z-index:1}
+.viewer-section .fiche-close:hover{transform:none;background:#393f46}
+.viewer-section .fiche-head{position:static;padding-right:32px}
+.viewer-section .fiche-body{padding:16px 50px 16px 20px;overflow:visible}
+.viewer-section .fiche-desc{font-size:.9rem;line-height:1.65;margin-bottom:12px}
+.viewer-section .fiche-nav{grid-column:1/-1;padding:10px 16px;justify-content:flex-end;background:#171a1e;gap:8px}
+.viewer-section .fiche-nav .btn{flex:0 1 auto;font-size:.8rem;min-height:40px;padding:.5rem 1rem;border-radius:5px;box-shadow:none}
+.viewer-section .fiche-manuel{background:none;padding:0;border:0;border-radius:0;margin:0}
+.viewer-section .fm-ic{display:none}
+.viewer-section .fm-titre{font-size:.85rem}
+.viewer-section .fm-ref{font-size:.76rem}
+.viewer-section .fiche-manuel .btn{padding:.5rem .8rem;font-size:.8rem;white-space:nowrap;border-radius:5px;box-shadow:none}
+.viewer-fullscreen .hero,.viewer-fullscreen #equipement,.viewer-fullscreen .foot{display:none}
+.viewer-fullscreen .viewer-section{padding:calc(var(--header-h) + 16px) 0 20px}
+.viewer-fullscreen .viewer-section .eyebrow,.viewer-fullscreen .viewer-section .lead{display:none}
+.viewer-fullscreen .viewer-wrap{height:62svh}
+@media(max-width:700px){
+  .viewer-section .wrap{padding:0 16px}
+  .viewer-section{padding-top:2rem}
+  .quality-choice{width:100%;justify-content:space-between;margin-top:3px}
+  .viewer-wrap{height:clamp(350px,51svh,470px)}
+  .viewer-status{top:12px;left:13px;font-size:.72rem;max-width:90%}
+  .viewer-controls{left:8px;right:8px;bottom:8px;gap:4px}
+  .viewer-controls .vbtn{font-size:.74rem;padding:.35rem .55rem}
+  .viewer-controls .vbtn-icon{font-size:1.2rem;min-width:44px}
+  .tour-player{gap:5px;padding:12px 0}
+  .tour-info{order:4;flex-basis:100%;padding:8px 0 0}
+  .tour-player>#btnTourUrgences{flex:1;min-width:125px}
+  .view-bar{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  .view-bar .vbtn{flex-shrink:0}
+  .viewer-section .fiche.open{display:flex;flex-direction:column}
+  .viewer-section .fiche-head{padding:12px 50px 8px 14px}
+  .viewer-section .fiche-title{font-size:1.2rem;margin-top:4px}
+  .viewer-section .fiche-body{padding:0 14px 12px}
+  .viewer-section .fiche-desc{font-size:.86rem;margin-bottom:9px}
+  .viewer-section .fiche-nav{padding:8px 12px}
+  .viewer-section .fiche-nav .btn{flex:1}
+}
+@media(prefers-reduced-motion:reduce){.tour-track span{transition:none}.hs-ring,.hs-ring-tag,.hs-ring::before{animation:none!important}}
