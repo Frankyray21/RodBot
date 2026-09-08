@@ -116,6 +116,16 @@ test('activation deletes only old RodBot caches', async () => {
   assert.equal(h.stores.size, 5);
 });
 
+test('3d controls and animations load offline immediately after installation', async () => {
+  const h = harness();
+  await h.lifecycle('install');
+  for (const file of ['3d/css/viewer.css', '3d/js/viewer.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots.js']) {
+    assert.ok(h.precached.includes(BASE + file), `${file} must be precached`);
+    const response = await h.request(`${file}?v=1.61.0`);
+    assert.equal(await response.text(), `core:./${file}`);
+  }
+});
+
 test('versioned scripts, styles and manifest use their own precached resource offline', async () => {
   const h = harness();
   for (const file of ['app.js', 'interface.js', 'styles.css', 'interface.css', 'manifest.webmanifest']) {
