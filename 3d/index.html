@@ -20,8 +20,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.61.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.61.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.61.1">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.61.1">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -226,7 +226,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.61.0</span>
+        <span id="rbSiteVer">Version 1.61.1</span>
         <span>Scan 3D réel. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -433,15 +433,236 @@
     function montrerRepli() {
       if (loader) loader.classList.add('hide');
       if (fallback) { fallback.hidden = false; fallback.classList.add('show'); }
+      document.getElementById('viewerStage').setAttribute('aria-busy', 'false');
+      document.getElementById('renderStatus').textContent = 'Scan 3D indisponible. Les photos restent accessibles.';
+      document.querySelectorAll('.viewer-controls button, .mode-bar button, .tour-player button, .eq-3d, #qualitySelect').forEach(control => { control.disabled = true; });
       const ctrl = document.querySelector('.viewer-controls');
       if (ctrl) ctrl.style.display = 'none';
       const hint = document.querySelector('.viewer-hint');
       if (hint) hint.style.display = 'none';
     }
 
+    // Photo controls remain usable when the 3D engine or scan cannot load.
+    let photoPause = null;
+    /* ---------- Photo interactive (zoom/pan + repères annotés) ----------
+       Positions en % de l'image; libellés d'après le manuel BM260024. */
+    const PHOTOS = {
+      remote: {
+        titre: 'La télécommande radio',
+        autoOuvrir: true,
+        vues: [
+          {
+            label: 'Page du manuel',
+            src: '../img/telecommande-annotee.png',
+            alt: 'Schéma annoté de la radio-télécommande tiré du manuel de l\'opérateur',
+            points: [
+              { x: 47, y: 18, n: 1, l: 'Écran d\'état : témoins et batterie' },
+              { x: 24, y: 33, n: 2, l: 'JS1 : manette gauche (inclinaison pince)' },
+              { x: 73, y: 29, n: 3, l: 'JS3 : manette droite (rotation pince)' },
+              { x: 40, y: 41, n: 4, l: 'PTS AUTO : points de trajectoire' },
+              { x: 32, y: 52, n: 5, l: 'Klaxon et gyrophare' },
+              { x: 20, y: 52, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
+              { x: 39, y: 51, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
+              { x: 48, y: 48, n: 8, l: 'Arrêt d\'urgence : arrête les deux machines' },
+              { x: 57, y: 51, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' },
+              { x: 47, y: 33, n: 10, l: 'JS2 : manette centrale' },
+              { x: 86, y: 40, n: 11, l: 'Modes : veille, direct, linéaire' },
+              { x: 13, y: 40, n: 12, l: 'Modes : marche, stabilisateurs, balayage' },
+              { x: 26, y: 52, n: 13, l: 'Rapide (lapin) / Lent (tortue) : vitesses à 50 %' }
+            ]
+          },
+          {
+            label: 'Photo réelle',
+            src: 'assets/photos/manette.jpg',
+            alt: 'Télécommande radio du RodBot avec manettes, interrupteurs et arrêt d\'urgence',
+            points: [
+              { x: 63, y: 12, n: 1, l: 'Écran d\'état (non tactile)' },
+              { x: 29, y: 27, n: 2, l: 'Manette gauche : inclinaison de la pince' },
+              { x: 72, y: 51, n: 3, l: 'Manette droite : rotation de la pince' },
+              { x: 45, y: 37, n: 4, l: 'PTS AUTO : points de trajectoire' },
+              { x: 36, y: 56, n: 5, l: 'Klaxon et gyrophare' },
+              { x: 21, y: 53, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
+              { x: 43, y: 62, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
+              { x: 54, y: 66, n: 8, l: 'Arrêt d\'urgence : arrête les deux machines' },
+              { x: 60, y: 71, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' }
+            ]
+          }
+        ]
+      }
+    };
+    const photobox = document.getElementById('photobox');
+    const pbScene = document.getElementById('pbScene');
+    const pbPlan = document.getElementById('pbPlan');
+    const pbImg = document.getElementById('pbImg');
+    const pbPoints = document.getElementById('pbPoints');
+    const pbTitre = document.getElementById('photoboxTitre');
+    const pbFermer = document.getElementById('pbFermer');
+    const pbBascule = document.getElementById('pbBascule');
+    const fichePhoto = document.getElementById('fichePhoto');
+    const pb = { sc: 1, min: 1, tx: 0, ty: 0, w: 0, h: 0 };
+
+    function pbApplique() {
+      const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
+      const vw = pb.w * pb.sc, vh = pb.h * pb.sc;
+      /* borne le déplacement : l'image reste couvrante ou centrée */
+      pb.tx = vw <= sw ? (sw - vw) / 2 : clampNb(pb.tx, sw - vw, 0);
+      pb.ty = vh <= sh ? (sh - vh) / 2 : clampNb(pb.ty, sh - vh, 0);
+      pbPlan.style.transform = `translate(${pb.tx}px, ${pb.ty}px) scale(${pb.sc})`;
+    }
+    const clampNb = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    const pbVues = document.getElementById('pbVues');
+    function ouvrirPhoto(ph) {
+      if (!ph) return;
+      photoPause?.();
+      /* une photo simple {src,points} ou plusieurs vues commutables {vues:[...]} */
+      const vues = ph.vues || [{ label: null, src: ph.src, alt: ph.alt, points: ph.points }];
+      pbTitre.textContent = ph.titre;
+      pbVues.innerHTML = '';
+      const chargerVue = (ix) => {
+        const vu = vues[ix];
+        pbImg.alt = vu.alt || ph.titre;
+        pbPoints.innerHTML = '';
+        pbImg.onload = () => {
+          pb.w = pbImg.naturalWidth; pb.h = pbImg.naturalHeight;
+          for (const p of vu.points || []) {
+            const el = document.createElement('span');
+            el.className = 'pb-pt';
+            el.style.left = (p.x / 100 * pb.w) + 'px';
+            el.style.top = (p.y / 100 * pb.h) + 'px';
+            el.innerHTML = `<span class="pb-dot">${p.n}</span><span class="pb-lb">${p.l}</span>`;
+            if (p.x > 58) el.classList.add('lb-left'); /* repère à droite : libellé à gauche */
+            const dot = el.querySelector('.pb-dot');
+            /* tap/clic sur un repère : révèle son libellé (un seul ouvert à la fois),
+               sans démarrer un panoramique de la scène */
+            dot.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+            dot.addEventListener('click', (ev) => {
+              ev.stopPropagation();
+              const ouvert = el.classList.contains('is-open');
+              pbPoints.querySelectorAll('.pb-pt.is-open').forEach((x) => x.classList.remove('is-open'));
+              if (!ouvert) el.classList.add('is-open');
+            });
+            pbPoints.appendChild(el);
+          }
+          const sw = pbScene.clientWidth || window.innerWidth, sh = pbScene.clientHeight || window.innerHeight;
+          pb.min = Math.min(sw / pb.w, sh / pb.h) || 1;
+          pb.sc = pb.min;
+          pb.tx = 0; pb.ty = 0;
+          pbApplique();
+        };
+        pbImg.src = vu.src;
+        [...pbVues.children].forEach((b, j) => b.setAttribute('aria-pressed', String(j === ix)));
+        pbBascule.style.display = (vu.points && vu.points.length) ? '' : 'none';
+      };
+      if (vues.length > 1) {
+        vues.forEach((vu, ix) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'vbtn';
+          b.textContent = vu.label || ('Vue ' + (ix + 1));
+          b.addEventListener('click', () => chargerVue(ix));
+          pbVues.appendChild(b);
+        });
+      }
+      photobox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      chargerVue(0);
+      pbFermer.focus({ preventScroll: true });
+    }
+    function fermerPhoto() {
+      photobox.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    pbFermer.addEventListener('click', fermerPhoto);
+    pbBascule.addEventListener('click', () => {
+      const visibles = pbPoints.style.display !== 'none';
+      pbPoints.style.display = visibles ? 'none' : '';
+      pbBascule.setAttribute('aria-pressed', String(!visibles));
+    });
+
+    /* zoom molette centré sur le curseur */
+    pbScene.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const k = e.deltaY > 0 ? 0.88 : 1.14;
+      const ns = clampNb(pb.sc * k, pb.min, pb.min * 8);
+      const r = pbScene.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      pb.tx = mx - (mx - pb.tx) * (ns / pb.sc);
+      pb.ty = my - (my - pb.ty) * (ns / pb.sc);
+      pb.sc = ns;
+      pbApplique();
+    }, { passive: false });
+
+    /* glisser + pince */
+    let pbDrag = null, pbPinch = null;
+    const pbPtrs = new Map();
+    pbScene.addEventListener('pointerdown', (e) => {
+      pbPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pbPtrs.size === 1) pbDrag = { x: e.clientX, y: e.clientY };
+      else if (pbPtrs.size === 2) {
+        const [a, b] = [...pbPtrs.values()];
+        pbPinch = { d: Math.hypot(a.x - b.x, a.y - b.y) };
+        pbDrag = null;
+      }
+      pbScene.classList.add('drag');
+      try { pbScene.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    pbScene.addEventListener('pointermove', (e) => {
+      const p = pbPtrs.get(e.pointerId);
+      if (!p) return;
+      p.x = e.clientX; p.y = e.clientY;
+      if (pbPinch && pbPtrs.size === 2) {
+        const [a, b] = [...pbPtrs.values()];
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        const ns = clampNb(pb.sc * (d / pbPinch.d), pb.min, pb.min * 8);
+        const r = pbScene.getBoundingClientRect();
+        const cx = (a.x + b.x) / 2 - r.left, cy = (a.y + b.y) / 2 - r.top;
+        pb.tx = cx - (cx - pb.tx) * (ns / pb.sc);
+        pb.ty = cy - (cy - pb.ty) * (ns / pb.sc);
+        pb.sc = ns; pbPinch.d = d;
+        pbApplique();
+        return;
+      }
+      if (!pbDrag) return;
+      pb.tx += e.clientX - pbDrag.x;
+      pb.ty += e.clientY - pbDrag.y;
+      pbDrag = { x: e.clientX, y: e.clientY };
+      pbApplique();
+    });
+    const pbFin = (e) => {
+      pbPtrs.delete(e.pointerId);
+      if (pbPtrs.size < 2) pbPinch = null;
+      if (pbPtrs.size === 0) { pbDrag = null; pbScene.classList.remove('drag'); }
+    };
+    pbScene.addEventListener('pointerup', pbFin);
+    pbScene.addEventListener('pointercancel', pbFin);
+    pbScene.addEventListener('dblclick', () => { pb.sc = pb.min; pbApplique(); });
+
+
+
+    /* ---------- Cartes équipement : agrandir + sauter au composant 3D ---------- */
+    const FIGURES = [
+      { src: '../img/eq-machine-real.png', titre: 'La vraie machine' },
+      { src: '../img/telecommande-annotee.png', titre: 'La télécommande : schéma annoté' },
+      { src: '../img/eq-hmi.png', titre: 'L\'IHM embarquée' },
+      { src: '../img/eq-labeled.png', titre: 'Le bac à tiges' },
+      { src: '../img/eq-panel.png', titre: 'Panneau et arrêt d\'urgence' }
+    ];
+    document.querySelectorAll('.eq-frame').forEach((b) => {
+      b.addEventListener('click', () => {
+        const f = FIGURES[+b.dataset.fig];
+        if (f) ouvrirPhoto({ src: f.src, titre: f.titre, alt: f.titre });
+      });
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && photobox.classList.contains('open')) {
+        event.preventDefault(); fermerPhoto();
+      }
+    });
+
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.61.0';
+      const VER = '1.61.1';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }, { createTour }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),
@@ -665,6 +886,7 @@
       document.getElementById('tourPrevious').addEventListener('click', () => tour.previous());
       document.getElementById('tourNext').addEventListener('click', () => tour.next());
       afficherVisite(tour.getState());
+      photoPause = pauserVisite;
       v.on('interaction', pauserVisite);
       v.on('visibility', visible => { if (!visible) pauserVisite(); });
       v.on('select', id => { arreterVisite(); ouvrirFiche(id, true); });
@@ -672,216 +894,8 @@
       document.getElementById('fichePrev').addEventListener('click', () => { arreterVisite(); voisin(-1); });
       document.getElementById('ficheNext').addEventListener('click', () => { arreterVisite(); voisin(1); });
 
-      /* ---------- Photo interactive (zoom/pan + repères annotés) ----------
-         Positions en % de l'image; libellés d'après le manuel BM260024. */
-      const PHOTOS = {
-        remote: {
-          titre: 'La télécommande radio',
-          autoOuvrir: true,
-          vues: [
-            {
-              label: 'Page du manuel',
-              src: '../img/telecommande-annotee.png',
-              alt: 'Schéma annoté de la radio-télécommande tiré du manuel de l\'opérateur',
-              points: [
-                { x: 47, y: 18, n: 1, l: 'Écran d\'état : témoins et batterie' },
-                { x: 24, y: 33, n: 2, l: 'JS1 : manette gauche (inclinaison pince)' },
-                { x: 73, y: 29, n: 3, l: 'JS3 : manette droite (rotation pince)' },
-                { x: 40, y: 41, n: 4, l: 'PTS AUTO : points de trajectoire' },
-                { x: 32, y: 52, n: 5, l: 'Klaxon et gyrophare' },
-                { x: 20, y: 52, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
-                { x: 39, y: 51, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
-                { x: 48, y: 48, n: 8, l: 'Arrêt d\'urgence : arrête les deux machines' },
-                { x: 57, y: 51, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' },
-                { x: 47, y: 33, n: 10, l: 'JS2 : manette centrale' },
-                { x: 86, y: 40, n: 11, l: 'Modes : veille, direct, linéaire' },
-                { x: 13, y: 40, n: 12, l: 'Modes : marche, stabilisateurs, balayage' },
-                { x: 26, y: 52, n: 13, l: 'Rapide (lapin) / Lent (tortue) : vitesses à 50 %' }
-              ]
-            },
-            {
-              label: 'Photo réelle',
-              src: 'assets/photos/manette.jpg',
-              alt: 'Télécommande radio du RodBot avec manettes, interrupteurs et arrêt d\'urgence',
-              points: [
-                { x: 63, y: 12, n: 1, l: 'Écran d\'état (non tactile)' },
-                { x: 29, y: 27, n: 2, l: 'Manette gauche : inclinaison de la pince' },
-                { x: 72, y: 51, n: 3, l: 'Manette droite : rotation de la pince' },
-                { x: 45, y: 37, n: 4, l: 'PTS AUTO : points de trajectoire' },
-                { x: 36, y: 56, n: 5, l: 'Klaxon et gyrophare' },
-                { x: 21, y: 53, n: 6, l: 'Sous tension · arrêt de l\'aimant' },
-                { x: 43, y: 62, n: 7, l: 'Bouton jaune TRAJECTOIRE' },
-                { x: 54, y: 66, n: 8, l: 'Arrêt d\'urgence : arrête les deux machines' },
-                { x: 60, y: 71, n: 9, l: 'Bouton vert PINCE (ouvrir / fermer)' }
-              ]
-            }
-          ]
-        }
-      };
-      const photobox = document.getElementById('photobox');
-      const pbScene = document.getElementById('pbScene');
-      const pbPlan = document.getElementById('pbPlan');
-      const pbImg = document.getElementById('pbImg');
-      const pbPoints = document.getElementById('pbPoints');
-      const pbTitre = document.getElementById('photoboxTitre');
-      const pbFermer = document.getElementById('pbFermer');
-      const pbBascule = document.getElementById('pbBascule');
-      const fichePhoto = document.getElementById('fichePhoto');
-      const pb = { sc: 1, min: 1, tx: 0, ty: 0, w: 0, h: 0 };
-
-      function pbApplique() {
-        const sw = pbScene.clientWidth, sh = pbScene.clientHeight;
-        const vw = pb.w * pb.sc, vh = pb.h * pb.sc;
-        /* borne le déplacement : l'image reste couvrante ou centrée */
-        pb.tx = vw <= sw ? (sw - vw) / 2 : clampNb(pb.tx, sw - vw, 0);
-        pb.ty = vh <= sh ? (sh - vh) / 2 : clampNb(pb.ty, sh - vh, 0);
-        pbPlan.style.transform = `translate(${pb.tx}px, ${pb.ty}px) scale(${pb.sc})`;
-      }
-      const clampNb = (v, a, b) => Math.max(a, Math.min(b, v));
-
-      const pbVues = document.getElementById('pbVues');
-      function ouvrirPhoto(ph) {
-        if (!ph) return;
-        pauserVisite();
-        /* une photo simple {src,points} ou plusieurs vues commutables {vues:[...]} */
-        const vues = ph.vues || [{ label: null, src: ph.src, alt: ph.alt, points: ph.points }];
-        pbTitre.textContent = ph.titre;
-        pbVues.innerHTML = '';
-        const chargerVue = (ix) => {
-          const vu = vues[ix];
-          pbImg.alt = vu.alt || ph.titre;
-          pbPoints.innerHTML = '';
-          pbImg.onload = () => {
-            pb.w = pbImg.naturalWidth; pb.h = pbImg.naturalHeight;
-            for (const p of vu.points || []) {
-              const el = document.createElement('span');
-              el.className = 'pb-pt';
-              el.style.left = (p.x / 100 * pb.w) + 'px';
-              el.style.top = (p.y / 100 * pb.h) + 'px';
-              el.innerHTML = `<span class="pb-dot">${p.n}</span><span class="pb-lb">${p.l}</span>`;
-              if (p.x > 58) el.classList.add('lb-left'); /* repère à droite : libellé à gauche */
-              const dot = el.querySelector('.pb-dot');
-              /* tap/clic sur un repère : révèle son libellé (un seul ouvert à la fois),
-                 sans démarrer un panoramique de la scène */
-              dot.addEventListener('pointerdown', (ev) => ev.stopPropagation());
-              dot.addEventListener('click', (ev) => {
-                ev.stopPropagation();
-                const ouvert = el.classList.contains('is-open');
-                pbPoints.querySelectorAll('.pb-pt.is-open').forEach((x) => x.classList.remove('is-open'));
-                if (!ouvert) el.classList.add('is-open');
-              });
-              pbPoints.appendChild(el);
-            }
-            const sw = pbScene.clientWidth || window.innerWidth, sh = pbScene.clientHeight || window.innerHeight;
-            pb.min = Math.min(sw / pb.w, sh / pb.h) || 1;
-            pb.sc = pb.min;
-            pb.tx = 0; pb.ty = 0;
-            pbApplique();
-          };
-          pbImg.src = vu.src;
-          [...pbVues.children].forEach((b, j) => b.setAttribute('aria-pressed', String(j === ix)));
-          pbBascule.style.display = (vu.points && vu.points.length) ? '' : 'none';
-        };
-        if (vues.length > 1) {
-          vues.forEach((vu, ix) => {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'vbtn';
-            b.textContent = vu.label || ('Vue ' + (ix + 1));
-            b.addEventListener('click', () => chargerVue(ix));
-            pbVues.appendChild(b);
-          });
-        }
-        photobox.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        chargerVue(0);
-        pbFermer.focus({ preventScroll: true });
-      }
-      function fermerPhoto() {
-        photobox.classList.remove('open');
-        document.body.style.overflow = '';
-      }
-      pbFermer.addEventListener('click', fermerPhoto);
-      pbBascule.addEventListener('click', () => {
-        const visibles = pbPoints.style.display !== 'none';
-        pbPoints.style.display = visibles ? 'none' : '';
-        pbBascule.setAttribute('aria-pressed', String(!visibles));
-      });
-
-      /* zoom molette centré sur le curseur */
-      pbScene.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const k = e.deltaY > 0 ? 0.88 : 1.14;
-        const ns = clampNb(pb.sc * k, pb.min, pb.min * 8);
-        const r = pbScene.getBoundingClientRect();
-        const mx = e.clientX - r.left, my = e.clientY - r.top;
-        pb.tx = mx - (mx - pb.tx) * (ns / pb.sc);
-        pb.ty = my - (my - pb.ty) * (ns / pb.sc);
-        pb.sc = ns;
-        pbApplique();
-      }, { passive: false });
-
-      /* glisser + pince */
-      let pbDrag = null, pbPinch = null;
-      const pbPtrs = new Map();
-      pbScene.addEventListener('pointerdown', (e) => {
-        pbPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        if (pbPtrs.size === 1) pbDrag = { x: e.clientX, y: e.clientY };
-        else if (pbPtrs.size === 2) {
-          const [a, b] = [...pbPtrs.values()];
-          pbPinch = { d: Math.hypot(a.x - b.x, a.y - b.y) };
-          pbDrag = null;
-        }
-        pbScene.classList.add('drag');
-        try { pbScene.setPointerCapture(e.pointerId); } catch (_) {}
-      });
-      pbScene.addEventListener('pointermove', (e) => {
-        const p = pbPtrs.get(e.pointerId);
-        if (!p) return;
-        p.x = e.clientX; p.y = e.clientY;
-        if (pbPinch && pbPtrs.size === 2) {
-          const [a, b] = [...pbPtrs.values()];
-          const d = Math.hypot(a.x - b.x, a.y - b.y);
-          const ns = clampNb(pb.sc * (d / pbPinch.d), pb.min, pb.min * 8);
-          const r = pbScene.getBoundingClientRect();
-          const cx = (a.x + b.x) / 2 - r.left, cy = (a.y + b.y) / 2 - r.top;
-          pb.tx = cx - (cx - pb.tx) * (ns / pb.sc);
-          pb.ty = cy - (cy - pb.ty) * (ns / pb.sc);
-          pb.sc = ns; pbPinch.d = d;
-          pbApplique();
-          return;
-        }
-        if (!pbDrag) return;
-        pb.tx += e.clientX - pbDrag.x;
-        pb.ty += e.clientY - pbDrag.y;
-        pbDrag = { x: e.clientX, y: e.clientY };
-        pbApplique();
-      });
-      const pbFin = (e) => {
-        pbPtrs.delete(e.pointerId);
-        if (pbPtrs.size < 2) pbPinch = null;
-        if (pbPtrs.size === 0) { pbDrag = null; pbScene.classList.remove('drag'); }
-      };
-      pbScene.addEventListener('pointerup', pbFin);
-      pbScene.addEventListener('pointercancel', pbFin);
-      pbScene.addEventListener('dblclick', () => { pb.sc = pb.min; pbApplique(); });
-
       fichePhoto.addEventListener('click', () => { if (courant) ouvrirPhoto(PHOTOS[courant]); });
 
-      /* ---------- Cartes équipement : agrandir + sauter au composant 3D ---------- */
-      const FIGURES = [
-        { src: '../img/eq-machine-real.png', titre: 'La vraie machine' },
-        { src: '../img/telecommande-annotee.png', titre: 'La télécommande : schéma annoté' },
-        { src: '../img/eq-hmi.png', titre: 'L\'IHM embarquée' },
-        { src: '../img/eq-labeled.png', titre: 'Le bac à tiges' },
-        { src: '../img/eq-panel.png', titre: 'Panneau et arrêt d\'urgence' }
-      ];
-      document.querySelectorAll('.eq-frame').forEach((b) => {
-        b.addEventListener('click', () => {
-          const f = FIGURES[+b.dataset.fig];
-          if (f) ouvrirPhoto({ src: f.src, titre: f.titre, alt: f.titre });
-        });
-      });
       document.querySelectorAll('.eq-3d').forEach((b) => {
         b.addEventListener('click', () => {
           const cible = b.dataset.cible;
@@ -894,10 +908,7 @@
       });
 
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          if (photobox.classList.contains('open')) fermerPhoto();
-          else { arreterVisite(); fermerFiche(); }
-        }
+        if (e.key === 'Escape' && !e.defaultPrevented) { arreterVisite(); fermerFiche(); }
       });
 
     } catch (err) {

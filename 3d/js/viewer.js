@@ -1,7 +1,7 @@
 /* RodBot: real Gaussian scan, smooth camera and accessible controls.
    flyTo resolves true at arrival, false when interrupted. No mechanical rig is implied. */
 import * as pc from 'https://cdn.jsdelivr.net/npm/playcanvas@2.13.3/build/playcanvas.mjs';
-import { clamp, ease, nearestYaw, inertiaStep, framingScale } from './motion.js?v=1.61.0';
+import { clamp, ease, nearestYaw, inertiaStep, framingScale } from './motion.js?v=1.61.1';
 
 const FILES = {
   mobile: new URL('../assets/rodbot_mobile.sog', import.meta.url).href,

@@ -42,7 +42,7 @@ python3 -m http.server 8000
 Le moteur fait un rendu complet à chaque action (clic) et une mise à jour « douce »
 en place pendant la saisie continue (curseurs), pour un glissement fluide.
 
-## Exploration 3D v1.61.0
+## Exploration 3D v1.61.1
 
 - Scan réel conservé, cadrage adapté au téléphone et rendu détaillé ou fluide.
 - Zoom progressif, rotation avec inertie et déplacements de caméra adoucis.
@@ -51,6 +51,7 @@ en place pendant la saisie continue (curseurs), pour un glissement fluide.
 - Animation interrompue pendant la manipulation et respect du mouvement réduit.
 - Les animations déplacent la caméra. Le scan ne contient pas de pièces articulées.
 - Modules de la visite disponibles hors ligne après installation.
+- Photos agrandissables même lorsque le scan ou le moteur 3D ne charge pas.
 
 Validation : `node --test tests/*.test.cjs`.
 
