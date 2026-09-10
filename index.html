@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
 <link rel="stylesheet" href="styles.css?v=1.8.18">
-<link rel="stylesheet" href="interface.css?v=1.61.2">
+<link rel="stylesheet" href="interface.css?v=1.62.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -551,7 +551,10 @@
         <div aria-live="polite">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
             <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OUVRIR UNE LEÇON</div>
-            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;color: {{ mod.readFg }}">{{ mod.readLabel }}</div>
+            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
+              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span></span>
+              <span style="color: {{ mod.readFg }}">{{ mod.readLabel }}</span>
+            </div>
           </div>
           <div style="height:5px;background:rgba(29,30,27,.08);margin-bottom:18px">
             <div style="height:100%;background: {{ mod.readBarBg }};width: {{ mod.readPct }}%"></div>
@@ -576,6 +579,12 @@
               <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
               <div id="{{ s.panelId }}" role="region" aria-label="{{ s.title }}" style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F4F3EE;border-left:5px solid #B0AEA8">
+                    <span aria-hidden="true" style="font-size:16px;line-height:1;flex:none">⏱</span>
+                    <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#777671">{{ s.readTimeLabel }}</span>
+                    <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:92px;text-align:right;white-space:nowrap;font-weight:800;font-size:15px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
+                  </div>
+                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">Pour information. Marquez la leçon lue quand vous voulez.</div>
 
                                     <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
@@ -1595,7 +1604,10 @@
         <div aria-live="polite">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
             <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OPEN A LESSON</div>
-            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;color: {{ mod.readFg }}">{{ mod.readLabel }}</div>
+            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
+              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span></span>
+              <span style="color: {{ mod.readFg }}">{{ mod.readLabel }}</span>
+            </div>
           </div>
           <div style="height:5px;background:rgba(29,30,27,.08);margin-bottom:18px">
             <div style="height:100%;background: {{ mod.readBarBg }};width: {{ mod.readPct }}%"></div>
@@ -1620,6 +1632,12 @@
               <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
               <div id="{{ s.panelId }}" role="region" aria-label="{{ s.title }}" style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F4F3EE;border-left:5px solid #B0AEA8">
+                    <span aria-hidden="true" style="font-size:16px;line-height:1;flex:none">⏱</span>
+                    <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#777671">{{ s.readTimeLabel }}</span>
+                    <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:92px;text-align:right;white-space:nowrap;font-weight:800;font-size:15px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
+                  </div>
+                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">For information only. Mark the lesson read whenever you want.</div>
 
                                     <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
@@ -2142,7 +2160,7 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.61.2"></script>
-<script src="app.js?v=1.61.2"></script>
+<script src="interface.js?v=1.62.0"></script>
+<script src="app.js?v=1.62.0"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.61.2';
+var APP_VERSION = '1.62.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -124,6 +124,91 @@ function fmtDuration(ms) {
   var h = Math.floor(m / 60); m = m % 60;
   return h + ' h' + (m ? ' ' + ('0' + m).slice(-2) + ' min' : '');
 }
+
+/* ---------- Chronomètre de lecture VISIBLE, par leçon ----------
+   Contrairement aux chronos ci-dessus (suivi gestionnaire), celui-ci est
+   affiché à l'opérateur pendant qu'il lit. Il compte le temps passé sur la
+   leçon OUVERTE, et seulement là : il s'arrête si l'écran est masqué, si la
+   leçon est refermée, ou si on quitte le module.
+   Cumulé par leçon dans rodbot_formation_v3 (champ « lms »), donc effacé
+   avec l'identité sur une tablette partagée, comme les leçons lues.
+   Une seule boucle d'une seconde tient le tout : elle se corrige d'elle-même
+   à chaque tour, sans dépendre d'un appel posé sur chaque bouton. */
+var LT = { key: null, t0: 0, n: 0 };
+/* Dernier geste de l'opérateur. Une tablette posée sur un établi, écran
+   allumé et leçon ouverte, ne doit pas accumuler des heures de « lecture ».
+   Le défilement compte : lire une longue leçon, c'est faire défiler. */
+var LT_ACTE = Date.now();
+var LT_INACTIF_MS = 5 * 60 * 1000;
+try {
+  ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(function (evt) {
+    window.addEventListener(evt, function () { LT_ACTE = Date.now(); }, { passive: true });
+  });
+} catch (e) {}
+/* Clé de la leçon réellement en train d'être lue, ou null. */
+function ltActiveKey() {
+  try {
+    if (document.hidden) return null;
+    if (Date.now() - LT_ACTE > LT_INACTIF_MS) return null;
+    if (!COMP || !COMP.state) return null;
+    if (COMP.state.view !== 'module') return null;
+    var key = COMP.state.openKey;
+    if (!key) return null;
+    // La leçon doit être à l'écran. Descendre au bas de la page, sur la carte
+    // du quiz ou l'attestation, ce n'est pas lire la leçon restée ouverte
+    // plus haut : le module s'ouvre sur sa première leçon déjà dépliée.
+    var el = ROOT && ROOT.querySelector('[data-rb-lesson-index="' + key.split('-')[1] + '"]');
+    if (el && el.getBoundingClientRect) {
+      var r = el.getBoundingClientRect(), h = window.innerHeight || 0;
+      if (r.bottom < 0 || r.top > h) return null;
+    }
+    return key;
+  } catch (e) { return null; }
+}
+function ltAdd(key, ms) {
+  if (!key || !(ms > 0)) return;
+  try {
+    var lms = COMP.state.lms || (COMP.state.lms = {});
+    lms[key] = (lms[key] || 0) + ms;
+  } catch (e) {}
+}
+/* Écrit le temps dans le DOM sans reconstruire la page : même procédé que le
+   suivi de défilement (setupTocSpy). Un rendu complet chaque seconde
+   casserait le défilement et le focus. */
+function ltPaint() {
+  try {
+    if (!ROOT || !COMP || !COMP.state) return;
+    var els = ROOT.querySelectorAll('[data-rb-lesson-timer]');
+    for (var i = 0; i < els.length; i++) {
+      var k = els[i].getAttribute('data-rb-lesson-timer');
+      els[i].textContent = fmtDuration((COMP.state.lms && COMP.state.lms[k]) || 0);
+    }
+    var m = ROOT.querySelector('[data-rb-module-timer]');
+    if (m && COMP.moduleReadMs) m.textContent = fmtDuration(COMP.moduleReadMs(COMP.state.activeId));
+  } catch (e) {}
+}
+function ltTick() {
+  var now = Date.now(), key = ltActiveKey(), d = now - LT.t0;
+  // Plafond : après une mise en veille ou un onglet gelé, on ne compte pas
+  // l'absence comme du temps de lecture.
+  if (LT.key && d > 0) ltAdd(LT.key, Math.min(d, 5000));
+  LT.t0 = now;
+  if (key !== LT.key) { LT.key = key; ltSave(); LT.n = 0; }
+  else if (key && ++LT.n >= 15) { ltSave(); LT.n = 0; }
+  ltPaint();
+}
+function ltSave() { try { if (COMP && COMP.persist) COMP.persist(); } catch (e) {} }
+/* Arrête le compte et enregistre dès que l'app passe en arrière-plan. */
+function ltStop() {
+  var now = Date.now(), d = now - LT.t0;
+  if (LT.key && d > 0) ltAdd(LT.key, Math.min(d, 5000));
+  LT.key = null; LT.t0 = now;
+  ltSave();
+}
+try {
+  document.addEventListener('visibilitychange', function () { if (document.hidden) ltStop(); });
+  window.addEventListener('pagehide', ltStop);
+} catch (e) {}
 
 var SVG_NS = 'http://www.w3.org/2000/svg';
 var ROOT = null;      // conteneur DOM (#app)
@@ -945,6 +1030,8 @@ class Component extends DCLogic {
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
       // Leçons lues, par clé « module-leçon » (ex. "3-0"). Sert à ouvrir le quiz.
       read: saved.read || {},
+      // Temps de lecture cumulé par leçon, en ms, pour le chrono visible.
+      lms: saved.lms || {},
       simTab:"rrc", rrcSel:3, estopped:false, rrcNums:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
       simMode:"VEILLE", klaxon:false
@@ -1073,7 +1160,7 @@ class Component extends DCLogic {
     clearTimeout(this._kt);
     this._kt = setTimeout(()=>this.setState({ klaxon:false }), 1400);
   };
-  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name, attEmpId:this.state.attEmpId, read:this.state.read })); } catch(e){} }
+  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name, attEmpId:this.state.attEmpId, read:this.state.read, lms:this.state.lms })); } catch(e){} }
 
   scrollHomeSection = (key)=>{
     const scroll = ()=>{
@@ -1431,6 +1518,19 @@ class Component extends DCLogic {
   lessonsTotal(i){ const m=this.M()[i]; return m ? m.sections.length : 0; }
   lessonRead(i,si){ return !!(this.state.read && this.state.read[i+"-"+si]); }
   lessonsRead(i){ let c=0; for(let s=0;s<this.lessonsTotal(i);s++) if(this.lessonRead(i,s)) c++; return c; }
+  /* Temps de lecture d'une leçon, et total du module, pour le chrono visible. */
+  /* Y a-t-il quelque chose du travailleur courant sur cet appareil ? Le nom
+     n'est demandé qu'au moment d'attester : sans ce test, un opérateur qui lit
+     ses leçons puis s'en va laisserait ses leçons lues, donc des quiz
+     déverrouillés, au travailleur suivant de la tablette. */
+  hasLocalProgress(){
+    const S=this.state;
+    if((S.name||"").trim()) return true;
+    const plein=o=>!!o && Object.keys(o).length>0;
+    return plein(S.read) || plein(S.lms) || plein(S.completed) || plein(S.attempts);
+  }
+  lessonMs(i,si){ return (this.state.lms && this.state.lms[i+"-"+si]) || 0; }
+  moduleReadMs(i){ if(i==null) return 0; let t=0; for(let s=0;s<this.lessonsTotal(i);s++) t+=this.lessonMs(i,s); return t; }
   quizUnlocked(i){
     const n=this.lessonsTotal(i);
     // n===0 : module sans leçon. Rien à lire, donc rien à verrouiller.
@@ -1604,6 +1704,9 @@ class Component extends DCLogic {
      le prochain travailleur qui s'identifie retrouve la sienne normalement. */
   clearIdentity = ()=>{
     this.invalidateIdentityRequests();
+    // Chrono de lecture : on coupe le compte en cours, sinon le prochain tour
+    // crediterait la leçon du travailleur qui vient de partir.
+    LT.key = null; LT.t0 = Date.now();
     clearTimeout(this._rzT);
     clearTimeout(this._kt);
     if(PT.page) PT.page.pause();
@@ -1614,7 +1717,7 @@ class Component extends DCLogic {
     this._attRemindShown=false;
     this.clearSuggestionsUI();
     this.setState({
-      name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, read:{},
+      name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, read:{}, lms:{},
       view:"home", activeId:null, openKey:null, manualDetailKey:null, mpage:null, imgView:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], qbFb:{}, qbCommentKey:null, qbComment:"",
@@ -2081,6 +2184,8 @@ class Component extends DCLogic {
         pdfHref:this.pdfAt(this.mp(firstPage)), openManual:()=>this.openManual(this.mp(firstPage)), sectionCount:nSec,
         quizLen:mod.quiz.length, done, score:this.moduleScore(S.activeId),
         readCount:nLu, readLeft:reste,
+        readMs: fmtDuration(this.moduleReadMs(S.activeId)),
+        readMsLabel: this.tr("Temps de lecture","Reading time"),
         readLabel: this.tr(nLu+" / "+nSec+" leçons lues", nLu+" / "+nSec+" lessons read"),
         readPct: nSec ? Math.round(nLu/nSec*100) : 0,
         // Barre verte dès que le quiz est ouvert : un module déjà réussi ne
@@ -2128,6 +2233,9 @@ class Component extends DCLogic {
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             // Lecture de la leçon : pastille d'état + bouton « J'ai lu cette leçon ».
             isRead: lu, notRead: !lu,
+            // Chrono visible : clé de la leçon et temps déjà passé dessus.
+            key, readTime: fmtDuration(this.lessonMs(S.activeId,si)),
+            readTimeLabel: this.tr("Temps de lecture","Reading time"),
             readGlyph: lu ? "✓" : "○",
             readBg: lu ? "rgba(62,156,90,.15)" : "#FFFFFF",
             readFg: lu ? "#2F7D48" : "#535252",
@@ -2933,6 +3041,8 @@ function bootRodbot() {
   // L'app est rendue : on retire immédiatement l'écran de démarrage (logo) pour
   // qu'il ne masque jamais la manette interactive. Repli CSS si l'appel manque.
   try { if (window.__rbBootHide) window.__rbBootHide(); } catch (e) {}
+  // Chrono de lecture visible : une seule boucle d'une seconde pour tout le site.
+  try { LT.t0 = Date.now(); setInterval(ltTick, 1000); ltPaint(); } catch (e) {}
   // Suivi de formation du même utilisateur : si un nom est déjà connu sur cet
   // appareil, relit silencieusement sa progression sauvegardée (nouvel appareil
   // / appareil partagé), au plus toutes les 6 h. Renvoie aussi au serveur toute
@@ -2952,10 +3062,10 @@ function bootRodbot() {
     var idleKick = function () {
       clearTimeout(idleTimer);
       idleTimer = setTimeout(function () {
-        try { if (COMP && COMP.state && COMP.state.name) COMP.clearIdentity(); } catch (e) {}
+        try { if (COMP && COMP.hasLocalProgress && COMP.hasLocalProgress()) COMP.clearIdentity(); } catch (e) {}
       }, IDLE_MS);
     };
-    ['pointerdown', 'keydown', 'touchstart'].forEach(function (evt) {
+    ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(function (evt) {
       window.addEventListener(evt, idleKick, { passive: true });
     });
     idleKick();
