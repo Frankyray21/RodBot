@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.61.1';
+var APP_VERSION = '1.61.2';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -26,7 +26,7 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '8 SEPT. 2026';
+var APP_VERSION_DATE = '10 SEPT. 2026';
 
 /* ---------- Tour guidé à la demande ----------
    Depuis l'accueil ou le pied de page, le travailleur peut ouvrir un tour
@@ -943,6 +943,8 @@ class Component extends DCLogic {
       suiviHist:null, suiviHistState:"",
       qbFb:{}, qbCommentKey:null, qbComment:"",   // retours pouce haut/bas sur les questions (bêta)
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
+      // Leçons lues, par clé « module-leçon » (ex. "3-0"). Sert à ouvrir le quiz.
+      read: saved.read || {},
       simTab:"rrc", rrcSel:3, estopped:false, rrcNums:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
       simMode:"VEILLE", klaxon:false
@@ -955,10 +957,13 @@ class Component extends DCLogic {
       if (rz && rz.ts && (Date.now()-rz.ts) < 86400000 &&
           (rz.view==="module" || rz.view==="quiz") &&
           typeof rz.activeId==="number" && this.MODULES[rz.activeId]) {
-        this.state.view = rz.view;
+        // Le quiz reste verrouillé même à la reprise : cet instantané est lu
+        // AVANT le premier rendu, il contournerait sinon toutes les gardes.
+        var rzView = (rz.view==="quiz" && !this.quizUnlocked(rz.activeId)) ? "module" : rz.view;
+        this.state.view = rzView;
         this.state.activeId = rz.activeId;
         this.state.openKey = (rz.openKey!=null) ? rz.openKey : null;
-        if (rz.view==="quiz") {
+        if (rzView==="quiz") {
           var qn = this.quizFor(rz.activeId).length || 1;
           this.state.qIdx = Math.min(Math.max(rz.qIdx|0, 0), qn-1);
           this.state.qSel = (typeof rz.qSel==="number" || Array.isArray(rz.qSel)) ? rz.qSel : null;
@@ -968,11 +973,14 @@ class Component extends DCLogic {
           this.state.lastScore = rz.lastScore|0;
           this.state.lastPassed = !!rz.lastPassed;
         }
+        // Message honnête : si le quiz repris est verrouillé, on le dit,
+        // au lieu de promettre une reprise qui n'a pas eu lieu.
+        const rzDegrade = (rz.view==="quiz" && rzView!=="quiz");
         this.state.progRestoredMsg = (this.state.lang==="en")
-          ? "Resumed where you left off."
-          : "Reprise : vous continuez où vous étiez.";
+          ? (rzDegrade ? "Read the lessons again before the quiz." : "Resumed where you left off.")
+          : (rzDegrade ? "Relisez les leçons avant le quiz." : "Reprise : vous continuez où vous étiez.");
         this._progRestoredT = setTimeout(()=>this.setState({ progRestoredMsg:"" }), 6000);
-        ptEnter(rz.activeId, rz.view==="quiz" ? "quiz" : "module");
+        ptEnter(rz.activeId, rzView==="quiz" ? "quiz" : "module");
       }
     } catch(e){}
     // L'instantané est réécrit à chaque changement d'état (voir setState) et
@@ -1065,7 +1073,7 @@ class Component extends DCLogic {
     clearTimeout(this._kt);
     this._kt = setTimeout(()=>this.setState({ klaxon:false }), 1400);
   };
-  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name, attEmpId:this.state.attEmpId })); } catch(e){} }
+  persist(){ try { localStorage.setItem("rodbot_formation_v3", JSON.stringify({ completed:this.state.completed, attempts:this.state.attempts, name:this.state.name, attEmpId:this.state.attEmpId, read:this.state.read })); } catch(e){} }
 
   scrollHomeSection = (key)=>{
     const scroll = ()=>{
@@ -1414,6 +1422,61 @@ class Component extends DCLogic {
   moduleScore(i){ return this.state.completed[i] ? this.state.completed[i].score : 0; }
   allDone(){ return this.M().every((m,i)=>this.moduleDone(i)); }
 
+  /* ---------- Verrou du quiz : lire les leçons d'abord ----------
+     Une leçon compte comme lue quand l'opérateur touche « J'ai lu cette leçon »
+     au bas de la leçon. Le quiz d'un module reste fermé tant qu'il en manque une.
+     Exception : un module DÉJÀ RÉUSSI reste ouvert. Sa progression peut revenir
+     d'un autre appareil (progMerge), qui ne transporte pas les leçons lues :
+     sans cette exception, un travailleur ne pourrait plus refaire son quiz. */
+  lessonsTotal(i){ const m=this.M()[i]; return m ? m.sections.length : 0; }
+  lessonRead(i,si){ return !!(this.state.read && this.state.read[i+"-"+si]); }
+  lessonsRead(i){ let c=0; for(let s=0;s<this.lessonsTotal(i);s++) if(this.lessonRead(i,s)) c++; return c; }
+  quizUnlocked(i){
+    const n=this.lessonsTotal(i);
+    // n===0 : module sans leçon. Rien à lire, donc rien à verrouiller.
+    return this.moduleDone(i) || n===0 || this.lessonsRead(i)>=n;
+  }
+  /* Index de la première leçon pas encore lue, ou -1 si tout est lu. */
+  firstUnread(i){ for(let s=0;s<this.lessonsTotal(i);s++) if(!this.lessonRead(i,s)) return s; return -1; }
+  /* Amène l'opérateur à la leçon visée et l'ouvre. */
+  gotoLesson = (si)=>{
+    const mi=this.state.activeId;
+    if(mi==null || si<0) return;
+    this.setState({ openKey: mi+"-"+si, manualDetailKey:null }, ()=>{
+      requestAnimationFrame(()=>{
+        try{
+          const el=ROOT&&ROOT.querySelector('[data-rb-lesson-index="'+si+'"]');
+          if(!el) return;
+          const y=el.getBoundingClientRect().top+window.scrollY-70;
+          window.scrollTo({ top:Math.max(0,y), behavior:"smooth" });
+        }catch(e){}
+      });
+    });
+  };
+  /* Bouton « Lire les leçons » de la carte du quiz verrouillée. */
+  goFirstUnread = ()=>{ const nx=this.firstUnread(this.state.activeId); if(nx>=0) this.gotoLesson(nx); };
+  /* « J'ai lu cette leçon » : marque la leçon, puis enchaîne sur la suivante
+     qui reste à lire. Quand tout est lu, on descend jusqu'au quiz déverrouillé. */
+  markLessonRead = (key)=>{
+    const mi=this.state.activeId;
+    const read=Object.assign({}, this.state.read); read[key]=1;
+    this.setState({ read }, ()=>{
+      this.persist();
+      const nx=this.firstUnread(mi);
+      if(nx>=0){ this.gotoLesson(nx); return; }
+      this.setState({ openKey:null }, ()=>{
+        requestAnimationFrame(()=>{
+          try{
+            const el=ROOT&&ROOT.querySelector('[data-rb-quiz-card]');
+            if(!el) return;
+            const y=el.getBoundingClientRect().top+window.scrollY-70;
+            window.scrollTo({ top:Math.max(0,y), behavior:"smooth" });
+          }catch(e){}
+        });
+      });
+    });
+  };
+
   goHome = ()=> { ptEnter(null,null); this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
   openModule = (i)=> { if(!this.M()[i]) return; ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ view:"module", activeId:i, openKey:i+'-0', manualDetailKey:null, graded:false, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
   openLesson = (mi,si)=>{
@@ -1433,9 +1496,17 @@ class Component extends DCLogic {
     }
     this.setState({ manualDetailKey:key, mpage:page });
   };
-  startQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0); };
+  startQuiz = ()=> {
+    // Verrou : pas de quiz tant que les leçons du module ne sont pas lues.
+    // On ne laisse pas l'opérateur devant un bouton mort : on l'amène à lire.
+    if(!this.quizUnlocked(this.state.activeId)){ this.goFirstUnread(); return; }
+    ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0);
+  };
   backToModule = ()=> { ptEnter(this.state.activeId,'module'); this.setState({ view:"module", graded:false }); };
-  retryQuiz = ()=> { ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0); };
+  retryQuiz = ()=> {
+    if(!this.quizUnlocked(this.state.activeId)){ this.backToModule(); this.goFirstUnread(); return; }
+    ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0);
+  };
   /* « Choisir, pas taper » : TAPER ne confirme plus jamais l'identité, même si
      le texte correspond mot pour mot à un employé. Seul un TOUCHER sur une
      suggestion (pickSuggestion) confirme, pour éviter une liaison accidentelle
@@ -1543,7 +1614,7 @@ class Component extends DCLogic {
     this._attRemindShown=false;
     this.clearSuggestionsUI();
     this.setState({
-      name:"", attEmpId:"", attSug:[], completed:{}, attempts:{},
+      name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, read:{},
       view:"home", activeId:null, openKey:null, manualDetailKey:null, mpage:null, imgView:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], qbFb:{}, qbCommentKey:null, qbComment:"",
@@ -1814,6 +1885,7 @@ class Component extends DCLogic {
   // affiche la rétroaction IMMÉDIATEMENT : aucun bouton « Valider » à toucher.
   quizPickOne = (oi)=>{
     if(this.state.qChecked) return;
+    if(!this.quizUnlocked(this.state.activeId)){ this.backToModule(); this.goFirstUnread(); return; }
     const q=this.quizFor(this.state.activeId)[this.state.qIdx];
     const ok=this.quizCorrect(q,oi);
     this.setState(s=>({ qSel:oi, qChecked:true, qResults:s.qResults.concat([ok]) }));
@@ -1828,6 +1900,7 @@ class Component extends DCLogic {
   }
   quizCheck = ()=>{
     if(this.state.qChecked) return;
+    if(!this.quizUnlocked(this.state.activeId)){ this.backToModule(); this.goFirstUnread(); return; }
     const q=this.quizFor(this.state.activeId)[this.state.qIdx];
     if(!this.quizHasAnswer(q,this.state.qSel)) return;
     const ok=this.quizCorrect(q,this.state.qSel);
@@ -1876,6 +1949,10 @@ class Component extends DCLogic {
     fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) }).catch(()=>{});
   }
   quizNext = ()=>{
+    // Dernier verrou, celui qui compte : aucun résultat ne peut être écrit
+    // pour un module dont les leçons ne sont pas lues. Protège le cas où
+    // l'état change en plein quiz (identité effacée sur tablette partagée).
+    if(!this.quizUnlocked(this.state.activeId)){ this.backToModule(); this.goFirstUnread(); return; }
     // Avis « à revoir » choisi mais non envoyé : on le capte quand même (sans commentaire).
     const fkey=this.qbKey(), f=this.state.qbFb[fkey];
     if(f && f.vote==="down" && !f.sent){
@@ -1958,6 +2035,11 @@ class Component extends DCLogic {
       const active=(S.activeId===i && (S.view==="module" || S.view==="quiz"));
       return {
         index:i, num:m.num, title:m.title, short:m.short, subtitle:m.subtitle, sectionCount:m.sections.length, pages:m.pages,
+        // Accueil : « 5 leçons » tant qu'on n'a rien lu, puis « 3 / 5 leçons lues ».
+        lessonsLabel: this.lessonsRead(i)
+          ? this.tr(this.lessonsRead(i)+" / "+m.sections.length+" leçons lues", this.lessonsRead(i)+" / "+m.sections.length+" lessons read")
+          : this.tr(m.sections.length+" leçons", m.sections.length+" lessons"),
+        lessonsFg: (this.lessonsRead(i)>=m.sections.length) ? "#2F7D48" : "#989898",
         bar: done ? "#3E9C5A" : "#1D1E1B",
         statusLabel: done ? (this.tr("VALIDÉ ","PASSED ")+this.moduleScore(i)+"%") : this.tr("À FAIRE","TO DO"),
         statusBg: done ? "#3E9C5A" : "#1D1E1B",
@@ -1986,16 +2068,35 @@ class Component extends DCLogic {
       const done=this.moduleDone(S.activeId);
       const modNum=Number(mod.num);
       const firstPage=mod.sections.length?mod.sections[0].page:1;
+      // Verrou du quiz : compteur de lecture, barre et message d'aide.
+      const nSec=mod.sections.length;
+      const nLu=this.lessonsRead(S.activeId);
+      const ouvert=this.quizUnlocked(S.activeId);
+      const reste=Math.max(0, nSec-nLu);
+      const lockMsg = this.tr(
+        "Il reste "+reste+(reste>1?" leçons":" leçon")+" à lire. Touchez « J'ai lu cette leçon » au bas de la leçon.",
+        reste+(reste>1?" lessons":" lesson")+" left to read. Tap \"I have read this lesson\" at the end of the lesson.");
       base.mod={
         num:mod.num, title:mod.title, intro:mod.subtitle, chapters:mod.chapters, pages:mod.pages,
-        pdfHref:this.pdfAt(this.mp(firstPage)), openManual:()=>this.openManual(this.mp(firstPage)), sectionCount:mod.sections.length,
+        pdfHref:this.pdfAt(this.mp(firstPage)), openManual:()=>this.openManual(this.mp(firstPage)), sectionCount:nSec,
         quizLen:mod.quiz.length, done, score:this.moduleScore(S.activeId),
+        readCount:nLu, readLeft:reste,
+        readLabel: this.tr(nLu+" / "+nSec+" leçons lues", nLu+" / "+nSec+" lessons read"),
+        readPct: nSec ? Math.round(nLu/nSec*100) : 0,
+        // Barre verte dès que le quiz est ouvert : un module déjà réussi ne
+        // doit pas afficher une barre rouge, qui se lirait comme un blocage.
+        readBarBg: ouvert ? "#2F7D48" : "#D92624",
+        readFg: (nLu>=nSec && nSec) ? "#2F7D48" : "#989898",
+        quizOpen: ouvert, quizLocked: !ouvert, lockMsg,
+        lockCta: this.tr("Lire les leçons","Read the lessons"),
+        goRead: this.goFirstUnread,
         quizCta: done ? this.tr("Refaire le petit quiz","Retake the short quiz") : this.tr("Faire le petit quiz","Take the short quiz"),
         manualPages: this.manualPagesFor(S.activeId),
         manualCount: this.manualPagesFor(S.activeId).length,
         sections: mod.sections.map((sec,si)=>{
           const key=S.activeId+"-"+si;
           const open=S.openKey===key;
+          const lu=this.lessonRead(S.activeId,si);
           const ENR_SRC = (this.state.lang==="en" && typeof ENRICH_EN!=="undefined") ? ENRICH_EN : (typeof ENRICH!=="undefined"?ENRICH:null);
           const enr = (ENR_SRC && ENR_SRC[key]) ? ENR_SRC[key] : {};
           const figDir = (this.state.lang==="en") ? "img/fig-en/" : "img/fig/";
@@ -2025,6 +2126,14 @@ class Component extends DCLogic {
             hasPrevious:si>0,hasNext:si+1<mod.sections.length,isLast:si+1===mod.sections.length,
             previous:()=>this.openLesson(S.activeId,si-1),next:()=>this.openLesson(S.activeId,si+1),
             accent: hasDanger ? "#D92624" : "#1D1E1B",
+            // Lecture de la leçon : pastille d'état + bouton « J'ai lu cette leçon ».
+            isRead: lu, notRead: !lu,
+            readGlyph: lu ? "✓" : "○",
+            readBg: lu ? "rgba(62,156,90,.15)" : "#FFFFFF",
+            readFg: lu ? "#2F7D48" : "#535252",
+            readBorder: lu ? "1px solid rgba(62,156,90,.45)" : "1px solid rgba(29,30,27,.3)",
+            readSr: lu ? this.tr("Leçon lue","Lesson read") : this.tr("Leçon à lire","Lesson to read"),
+            markRead: ()=>this.markLessonRead(key),
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             manualDetailOpen, manualDetailClass:manualDetailOpen?"is-open":"", manualDetailExpanded:manualDetailOpen?"true":"false",
             toggleManualDetails:()=>this.toggleManualDetails(key,this.mp(sec.page)),

@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
 <link rel="stylesheet" href="styles.css?v=1.8.18">
-<link rel="stylesheet" href="interface.css?v=1.61.1">
+<link rel="stylesheet" href="interface.css?v=1.61.2">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -212,7 +212,7 @@
                 <h3 style="font-weight:800;font-size:16.5px;line-height:1.2;text-transform:uppercase;margin:0 0 8px;color:#1D1E1B">{{ m.title }}</h3>
                 <p style="font-size:13px;line-height:1.5;color:#535252;margin:0 0 16px;flex:1">{{ m.subtitle }}</p>
                 <div style="display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid rgba(29,30,27,.12)">
-                  <span style="font-weight:700;font-size:11px;letter-spacing:.04em;color:#989898">{{ m.sectionCount }} leçons</span>
+                  <span style="font-weight:700;font-size:11px;letter-spacing:.04em;color: {{ m.lessonsFg }}">{{ m.lessonsLabel }}</span>
                   <span style="font-weight:700;font-size:11px;letter-spacing:.04em;color:#D92624">p. {{ m.pages }}</span>
                 </div>
               </div>
@@ -548,9 +548,14 @@
       </div>
 
       <section style="max-width:1240px;margin:0 auto;padding:32px 28px 20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-          <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OUVRIR UNE LEÇON</div>
-          <div style="font-weight:700;font-size:11px;letter-spacing:.04em;color:#989898">{{ mod.sectionCount }} leçons</div>
+        <div aria-live="polite">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+            <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OUVRIR UNE LEÇON</div>
+            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;color: {{ mod.readFg }}">{{ mod.readLabel }}</div>
+          </div>
+          <div style="height:5px;background:rgba(29,30,27,.08);margin-bottom:18px">
+            <div style="height:100%;background: {{ mod.readBarBg }};width: {{ mod.readPct }}%"></div>
+          </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:12px">
@@ -562,6 +567,8 @@
                   <span style="display:block;font-weight:800;font-size:16px;line-height:1.25;color:#1D1E1B">{{ s.title }}</span>
                   <span style="display:block;font-size:11.5px;line-height:1.35;color:#777671;margin-top:3px">{{ s.topic }}</span>
                 </span>
+                <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;background: {{ s.readBg }};color: {{ s.readFg }};border: {{ s.readBorder }};font-weight:900;font-size:12px">{{ s.readGlyph }}</span>
+                <span class="sr-only">{{ s.readSr }}</span>
                 <span style="font-weight:700;font-size:10.5px;letter-spacing:.04em;color:#D92624;white-space:nowrap">p. {{ s.page }}</span>
                 <span style="font-size:18px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
               </button>
@@ -638,6 +645,12 @@
                       </sc-if>
                     </div>
                   </sc-for>
+                    <sc-if value="{{ s.notRead }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ s.markRead }}" style="width:100%;min-height:52px;margin-top:2px;background:#2F7D48;color:#FFFFFF;border:none;padding:14px 18px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s" style-hover="background:#276A3D">✓ J'ai lu cette leçon</button>
+                    </sc-if>
+                    <sc-if value="{{ s.isRead }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:2px;display:flex;align-items:center;gap:10px;background:rgba(62,156,90,.12);border-left:5px solid #2F7D48;padding:13px 16px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#2F7D48">✓ Leçon lue</div>
+                    </sc-if>
                     </div>
                   </div>
                 </div>
@@ -663,15 +676,26 @@
           <span style="flex:none;font-weight:800;font-size:13px;letter-spacing:.06em;color:#E8534F">OUVRIR ↗</span>
         </a>
 
-        <div style="margin-top:30px;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);box-shadow:0 20px 44px -30px rgba(20,20,19,.5);padding:28px 26px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;color:#1D1E1B">
+        <div data-rb-quiz-card style="margin-top:30px;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);box-shadow:0 20px 44px -30px rgba(20,20,19,.5);padding:28px 26px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;color:#1D1E1B">
           <div style="flex:1;min-width:220px">
             <div style="font-weight:800;font-size:19px;letter-spacing:.02em;text-transform:uppercase;margin-bottom:4px;color:#1D1E1B">Petit quiz</div>
             <div style="font-size:14px;color:#535252">{{ mod.quizLen }} questions. Il faut {{ passPct }}%.</div>
+            <sc-if value="{{ mod.quizLocked }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:11px;display:flex;align-items:flex-start;gap:11px;background:rgba(217,38,36,.07);border-left:5px solid #D92624;padding:12px 15px">
+                <span aria-hidden="true" style="font-size:18px;line-height:1.15;flex:none">🔒</span>
+                <span style="font-size:13.5px;line-height:1.5;color:#1D1E1B">{{ mod.lockMsg }}</span>
+              </div>
+            </sc-if>
           </div>
           <sc-if value="{{ mod.done }}" hint-placeholder-val="{{ false }}">
             <span style="display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:14px;color:#2F7D48;background:rgba(62,156,90,.12);padding:12px 18px">✓ Module validé : {{ mod.score }}%</span>
           </sc-if>
-          <button onClick="{{ startQuiz }}" style="background:#D92624;color:#FFFFFF;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ mod.quizCta }} →</button>
+          <sc-if value="{{ mod.quizOpen }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ startQuiz }}" style="background:#D92624;color:#FFFFFF;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ mod.quizCta }} →</button>
+          </sc-if>
+          <sc-if value="{{ mod.quizLocked }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ mod.goRead }}" style="background:#1D1E1B;color:#FAF9F5;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-height:52px;transition:background .15s,transform .15s" style-hover="background:#000000;transform:translateY(-2px)">🔒 {{ mod.lockCta }} →</button>
+          </sc-if>
         </div>
 
         <!-- ===== ATTESTATION DU MODULE : accessible ici aussi, pas seulement après le quiz ===== -->
@@ -1232,7 +1256,7 @@
                 <h3 style="font-weight:800;font-size:16.5px;line-height:1.2;text-transform:uppercase;margin:0 0 8px;color:#1D1E1B">{{ m.title }}</h3>
                 <p style="font-size:13px;line-height:1.5;color:#535252;margin:0 0 16px;flex:1">{{ m.subtitle }}</p>
                 <div style="display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid rgba(29,30,27,.12)">
-                  <span style="font-weight:700;font-size:11px;letter-spacing:.04em;color:#989898">{{ m.sectionCount }} lessons</span>
+                  <span style="font-weight:700;font-size:11px;letter-spacing:.04em;color: {{ m.lessonsFg }}">{{ m.lessonsLabel }}</span>
                   <span style="font-weight:700;font-size:11px;letter-spacing:.04em;color:#D92624">p. {{ m.pages }}</span>
                 </div>
               </div>
@@ -1568,9 +1592,14 @@
       </div>
 
       <section style="max-width:1240px;margin:0 auto;padding:32px 28px 20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-          <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OPEN A LESSON</div>
-          <div style="font-weight:700;font-size:11px;letter-spacing:.04em;color:#989898">{{ mod.sectionCount }} lessons</div>
+        <div aria-live="polite">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+            <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OPEN A LESSON</div>
+            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;color: {{ mod.readFg }}">{{ mod.readLabel }}</div>
+          </div>
+          <div style="height:5px;background:rgba(29,30,27,.08);margin-bottom:18px">
+            <div style="height:100%;background: {{ mod.readBarBg }};width: {{ mod.readPct }}%"></div>
+          </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:12px">
@@ -1582,6 +1611,8 @@
                   <span style="display:block;font-weight:800;font-size:16px;line-height:1.25;color:#1D1E1B">{{ s.title }}</span>
                   <span style="display:block;font-size:11.5px;line-height:1.35;color:#777671;margin-top:3px">{{ s.topic }}</span>
                 </span>
+                <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;background: {{ s.readBg }};color: {{ s.readFg }};border: {{ s.readBorder }};font-weight:900;font-size:12px">{{ s.readGlyph }}</span>
+                <span class="sr-only">{{ s.readSr }}</span>
                 <span style="font-weight:700;font-size:10.5px;letter-spacing:.04em;color:#D92624;white-space:nowrap">p. {{ s.page }}</span>
                 <span style="font-size:18px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
               </button>
@@ -1658,6 +1689,12 @@
                       </sc-if>
                     </div>
                   </sc-for>
+                    <sc-if value="{{ s.notRead }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ s.markRead }}" style="width:100%;min-height:52px;margin-top:2px;background:#2F7D48;color:#FFFFFF;border:none;padding:14px 18px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s" style-hover="background:#276A3D">✓ I have read this lesson</button>
+                    </sc-if>
+                    <sc-if value="{{ s.isRead }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:2px;display:flex;align-items:center;gap:10px;background:rgba(62,156,90,.12);border-left:5px solid #2F7D48;padding:13px 16px;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#2F7D48">✓ Lesson read</div>
+                    </sc-if>
                     </div>
                   </div>
                 </div>
@@ -1683,15 +1720,26 @@
           <span style="flex:none;font-weight:800;font-size:13px;letter-spacing:.06em;color:#E8534F">OPEN ↗</span>
         </a>
 
-        <div style="margin-top:30px;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);box-shadow:0 20px 44px -30px rgba(20,20,19,.5);padding:28px 26px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;color:#1D1E1B">
+        <div data-rb-quiz-card style="margin-top:30px;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);box-shadow:0 20px 44px -30px rgba(20,20,19,.5);padding:28px 26px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;color:#1D1E1B">
           <div style="flex:1;min-width:220px">
             <div style="font-weight:800;font-size:19px;letter-spacing:.02em;text-transform:uppercase;margin-bottom:4px;color:#1D1E1B">Short quiz</div>
             <div style="font-size:14px;color:#535252">{{ mod.quizLen }} questions. You need {{ passPct }}%.</div>
+            <sc-if value="{{ mod.quizLocked }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:11px;display:flex;align-items:flex-start;gap:11px;background:rgba(217,38,36,.07);border-left:5px solid #D92624;padding:12px 15px">
+                <span aria-hidden="true" style="font-size:18px;line-height:1.15;flex:none">🔒</span>
+                <span style="font-size:13.5px;line-height:1.5;color:#1D1E1B">{{ mod.lockMsg }}</span>
+              </div>
+            </sc-if>
           </div>
           <sc-if value="{{ mod.done }}" hint-placeholder-val="{{ false }}">
             <span style="display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:14px;color:#2F7D48;background:rgba(62,156,90,.12);padding:12px 18px">✓ Module passed, {{ mod.score }}%</span>
           </sc-if>
-          <button onClick="{{ startQuiz }}" style="background:#D92624;color:#FFFFFF;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ mod.quizCta }} →</button>
+          <sc-if value="{{ mod.quizOpen }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ startQuiz }}" style="background:#D92624;color:#FFFFFF;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .15s" style-hover="background:#B71F1D;transform:translateY(-2px)">{{ mod.quizCta }} →</button>
+          </sc-if>
+          <sc-if value="{{ mod.quizLocked }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ mod.goRead }}" style="background:#1D1E1B;color:#FAF9F5;border:none;padding:14px 26px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;min-height:52px;transition:background .15s,transform .15s" style-hover="background:#000000;transform:translateY(-2px)">🔒 {{ mod.lockCta }} →</button>
+          </sc-if>
         </div>
 
         <!-- ===== MODULE CERTIFICATE: also available here, not only after the quiz ===== -->
@@ -2094,7 +2142,7 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.61.1"></script>
-<script src="app.js?v=1.61.1"></script>
+<script src="interface.js?v=1.61.2"></script>
+<script src="app.js?v=1.61.2"></script>
 </body>
 </html>
