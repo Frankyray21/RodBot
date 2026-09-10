@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.63.0';
+var APP_VERSION = '1.64.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -177,7 +177,13 @@ var LT = { key: null, t0: 0, n: 0 };
 var LT_ACTE = Date.now();
 var LT_INACTIF_MS = 5 * 60 * 1000;
 try {
-  ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(function (evt) {
+  // PAS de 'scroll' ici : c'est le seul événement de la liste qu'un navigateur
+  // peut émettre SANS geste humain. Le chrono réécrit le temps chaque seconde,
+  // l'ancrage de défilement de Chromium compense la moindre variation de
+  // hauteur en déplaçant la page, et cela suffisait à faire croire à une
+  // activité : le chrono se réarmait lui-même sans fin. Un vrai défilement
+  // déclenche toujours touchstart, wheel ou pointerdown avant.
+  ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (evt) {
     window.addEventListener(evt, function () { LT_ACTE = Date.now(); }, { passive: true });
   });
 } catch (e) {}
@@ -2660,29 +2666,46 @@ class Component extends DCLogic {
     base.imgView = S.imgView;
     // Fenêtre de confirmation avant le quiz : temps de lecture du module,
     // comparé au temps estimé, et geste explicite de l'opérateur.
+    // Fenêtre de confirmation avant le quiz : ce que l'opérateur a fait, et
+    // un geste explicite pour attester qu'il a lu avant de répondre.
     base.preQuiz = null;
     if(S.preQuiz && S.activeId!=null && M[S.activeId]){
-      const pm=M[S.activeId];
+      const pm=M[S.activeId], en=S.lang==="en";
       const lu=this.moduleReadMs(S.activeId), est=this.moduleEstMs(S.activeId);
       const pct=est>0 ? Math.min(100, Math.round(lu/est*100)) : 100;
+      const nLu=this.lessonsRead(S.activeId), nTot=this.lessonsTotal(S.activeId);
+      const toutLu=nTot>0 && nLu>=nTot;
       const court=est>0 && lu < est*0.5;
+      // Trois états possibles, exclusifs : lecture expédiée, prêt, ou module
+      // déjà réussi dont les leçons ne sont pas marquées sur cet appareil.
+      const pret=toutLu && !court, deja=!toutLu;
       base.preQuiz={
         num:pm.num, titre:pm.title,
         heading:this.tr("Avant le quiz","Before the quiz"),
+        fermer:this.tr("Fermer","Close"),
         readLabel:this.tr("Votre temps de lecture","Your reading time"),
         readMs:fmtDuration(lu),
-        estLabel:this.tr("Temps estimé :","Estimated time:"),
-        estMs:fmtEnviron(est, S.lang==="en"),
-        pct, barBg: pct>=100 ? "#2F7D48" : (court ? "#D92624" : "#E8A33D"),
-        lessons:this.tr(this.lessonsRead(S.activeId)+" / "+this.lessonsTotal(S.activeId)+" leçons marquées lues",
-                        this.lessonsRead(S.activeId)+" / "+this.lessonsTotal(S.activeId)+" lessons marked read"),
-        court, notCourt:!court,
+        estSuffix:this.tr("sur "+fmtEnviron(est,false), "of "+fmtEnviron(est,true)),
+        pct, pctTxt: pct + (en ? "%" : " %"),
+        barBg: pct>=100 ? "#2F7D48" : (court ? "#D92624" : "#E8A33D"),
+        lessonsCount: nLu+" / "+nTot,
+        lessonsLabel:this.tr("leçons lues","lessons read"),
+        estLabel:this.tr("Temps estimé","Estimated time"),
+        estMs:fmtEnviron(est, en),
+        statutLabel:this.tr("Lecture","Reading"),
+        statutVal: toutLu ? this.tr("complétée","complete") : this.tr("à compléter","to complete"),
+        statutFg: toutLu ? "#2F7D48" : "#B8860B",
+        court, pret, deja,
         courtMsg:this.tr("Temps de lecture court. Reprenez les leçons si vous avez un doute.",
                          "Short reading time. Go back to the lessons if you are unsure."),
+        pretTitre:this.tr("Toutes les leçons de ce module ont été lues","All lessons in this module have been read"),
+        pretSous:this.tr("Vous êtes prêt à commencer le quiz.","You are ready to start the quiz."),
+        dejaTitre:this.tr("Module déjà réussi","Module already passed"),
+        dejaSous:this.tr("Vous pouvez refaire le quiz quand vous voulez.","You can retake the quiz whenever you want."),
         confirmMsg:this.tr("En continuant, vous confirmez avoir lu les leçons de ce module.",
                            "By continuing, you confirm you have read the lessons of this module."),
         relire:this.tr("Relire les leçons","Read the lessons again"),
-        commencer:this.tr("J'ai lu, commencer le quiz","I have read, start the quiz"),
+        commencer:this.tr("J'ai lu toutes les leçons, commencer le quiz","I have read all lessons, start the quiz"),
         close:this.closePreQuiz, goRelire:this.preQuizRelire, go:this.confirmQuiz
       };
     }
@@ -3186,7 +3209,10 @@ function bootRodbot() {
         try { if (COMP && COMP.hasLocalProgress && COMP.hasLocalProgress()) COMP.clearIdentity(); } catch (e) {}
       }, IDLE_MS);
     };
-    ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(function (evt) {
+    // Même règle que pour le chrono : 'scroll' est exclu, car un défilement
+    // provoqué par le navigateur lui-même relancerait ce minuteur sans fin
+    // et la tablette partagée ne s'effacerait plus jamais.
+    ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (evt) {
       window.addEventListener(evt, idleKick, { passive: true });
     });
     idleKick();
