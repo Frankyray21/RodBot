@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
 <link rel="stylesheet" href="styles.css?v=1.8.18">
-<link rel="stylesheet" href="interface.css?v=1.62.0">
+<link rel="stylesheet" href="interface.css?v=1.63.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -552,7 +552,7 @@
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
             <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OUVRIR UNE LEÇON</div>
             <div style="font-weight:700;font-size:11px;letter-spacing:.04em;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
-              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span></span>
+              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span> / {{ mod.estMs }}</span>
               <span style="color: {{ mod.readFg }}">{{ mod.readLabel }}</span>
             </div>
           </div>
@@ -579,12 +579,18 @@
               <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
               <div id="{{ s.panelId }}" role="region" aria-label="{{ s.title }}" style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
-                  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F4F3EE;border-left:5px solid #B0AEA8">
-                    <span aria-hidden="true" style="font-size:16px;line-height:1;flex:none">⏱</span>
-                    <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#777671">{{ s.readTimeLabel }}</span>
-                    <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:92px;text-align:right;white-space:nowrap;font-weight:800;font-size:15px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
+                  <div style="padding:12px 15px;background:#F4F3EE;border-left:5px solid #1D1E1B">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+                      <span aria-hidden="true" style="font-size:17px;line-height:1;flex:none">⏱</span>
+                      <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#535252">{{ s.readTimeLabel }}</span>
+                      <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:80px;text-align:right;white-space:nowrap;font-weight:800;font-size:19px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
+                      <span style="white-space:nowrap;font-weight:700;font-size:12.5px;color:#777671">/ {{ s.estTime }}</span>
+                    </div>
+                    <div style="height:8px;background:rgba(29,30,27,.12)">
+                      <div data-rb-lesson-bar="{{ s.key }}" style="height:100%;width: {{ s.readPct }}%;background: {{ s.readBarBg }};transition:width .4s linear"></div>
+                    </div>
                   </div>
-                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">Pour information. Marquez la leçon lue quand vous voulez.</div>
+                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">{{ s.readHint }}</div>
 
                                     <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
@@ -1053,6 +1059,49 @@
       </div>
       <div class="rb-rrc-lines"><sc-for list="{{ rrcSelLines }}" as="ln" hint-placeholder-count="2"><div sc-html="{{ ln }}"></div></sc-for></div>
       <button type="button" onClick="{{ rrcSelOpen }}" class="rb-rrc-page">📖 Voir la page {{ rrcSelPage }} du manuel</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ preQuiz }}" hint-placeholder-val="{{ false }}">
+    <div data-rb-dialog="prequiz" role="dialog" aria-modal="true" aria-label="{{ preQuiz.heading }}" onClick="{{ preQuiz.close }}" style="position:fixed;inset:0;z-index:230;background:rgba(20,20,19,.82);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
+      <div onClick="{{ stopEvt }}" style="width:min(520px,100%);max-height:94vh;overflow:auto;background:#FFFFFF;border-top:4px solid #D92624;box-shadow:0 46px 100px -28px rgba(0,0,0,.9);animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both">
+        <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(29,30,27,.14)">
+          <span aria-hidden="true" style="font-size:20px;flex:none">📖</span>
+          <span style="font-weight:900;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#1D1E1B">{{ preQuiz.heading }}</span>
+          <div style="flex:1"></div>
+          <button onClick="{{ preQuiz.close }}" title="Fermer" style="flex:none;background:rgba(29,30,27,.08);color:#1D1E1B;border:none;width:38px;height:38px;font-size:17px;font-weight:800;cursor:pointer" style-hover="background:rgba(29,30,27,.16)">✕</button>
+        </div>
+        <div style="padding:20px">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.14em;color:#989898;margin-bottom:3px">MODULE {{ preQuiz.num }}</div>
+          <div style="font-weight:800;font-size:19px;line-height:1.2;color:#1D1E1B;margin-bottom:18px">{{ preQuiz.titre }}</div>
+
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px">
+            <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#535252">{{ preQuiz.readLabel }}</span>
+            <span style="white-space:nowrap;font-weight:900;font-size:26px;line-height:1;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ preQuiz.readMs }}</span>
+          </div>
+          <div style="height:10px;background:rgba(29,30,27,.12);margin-bottom:7px">
+            <div style="height:100%;width: {{ preQuiz.pct }}%;background: {{ preQuiz.barBg }}"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:4px 14px;font-size:12.5px;line-height:1.45;color:#777671;margin-bottom:16px">
+            <span>{{ preQuiz.estLabel }} {{ preQuiz.estMs }}</span>
+            <span>{{ preQuiz.lessons }}</span>
+          </div>
+
+          <sc-if value="{{ preQuiz.court }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:11px;align-items:flex-start;background:rgba(217,38,36,.07);border-left:5px solid #D92624;padding:12px 15px;margin-bottom:16px">
+              <span aria-hidden="true" style="font-size:18px;line-height:1.15;flex:none">⚠️</span>
+              <span style="font-size:13.5px;line-height:1.5;color:#1D1E1B">{{ preQuiz.courtMsg }}</span>
+            </div>
+          </sc-if>
+
+          <p style="font-size:13.5px;line-height:1.55;color:#535252;margin:0 0 18px">{{ preQuiz.confirmMsg }}</p>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button onClick="{{ preQuiz.go }}" style="width:100%;min-height:56px;background:#D92624;color:#FFFFFF;border:none;padding:14px 18px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">✓ {{ preQuiz.commencer }}</button>
+            <button onClick="{{ preQuiz.goRelire }}" style="width:100%;min-height:52px;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.3);padding:12px 18px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#F4F3EE">{{ preQuiz.relire }}</button>
+          </div>
+        </div>
+      </div>
     </div>
     </sc-if>
 
@@ -1605,7 +1654,7 @@
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
             <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OPEN A LESSON</div>
             <div style="font-weight:700;font-size:11px;letter-spacing:.04em;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
-              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span></span>
+              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span> / {{ mod.estMs }}</span>
               <span style="color: {{ mod.readFg }}">{{ mod.readLabel }}</span>
             </div>
           </div>
@@ -1632,12 +1681,18 @@
               <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
               <div id="{{ s.panelId }}" role="region" aria-label="{{ s.title }}" style="padding:2px 20px 20px 20px;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
-                  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F4F3EE;border-left:5px solid #B0AEA8">
-                    <span aria-hidden="true" style="font-size:16px;line-height:1;flex:none">⏱</span>
-                    <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#777671">{{ s.readTimeLabel }}</span>
-                    <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:92px;text-align:right;white-space:nowrap;font-weight:800;font-size:15px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
+                  <div style="padding:12px 15px;background:#F4F3EE;border-left:5px solid #1D1E1B">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+                      <span aria-hidden="true" style="font-size:17px;line-height:1;flex:none">⏱</span>
+                      <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#535252">{{ s.readTimeLabel }}</span>
+                      <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:80px;text-align:right;white-space:nowrap;font-weight:800;font-size:19px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
+                      <span style="white-space:nowrap;font-weight:700;font-size:12.5px;color:#777671">/ {{ s.estTime }}</span>
+                    </div>
+                    <div style="height:8px;background:rgba(29,30,27,.12)">
+                      <div data-rb-lesson-bar="{{ s.key }}" style="height:100%;width: {{ s.readPct }}%;background: {{ s.readBarBg }};transition:width .4s linear"></div>
+                    </div>
                   </div>
-                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">For information only. Mark the lesson read whenever you want.</div>
+                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">{{ s.readHint }}</div>
 
                                     <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
@@ -2109,6 +2164,49 @@
     </div>
     </sc-if>
 
+    <sc-if value="{{ preQuiz }}" hint-placeholder-val="{{ false }}">
+    <div data-rb-dialog="prequiz" role="dialog" aria-modal="true" aria-label="{{ preQuiz.heading }}" onClick="{{ preQuiz.close }}" style="position:fixed;inset:0;z-index:230;background:rgba(20,20,19,.82);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
+      <div onClick="{{ stopEvt }}" style="width:min(520px,100%);max-height:94vh;overflow:auto;background:#FFFFFF;border-top:4px solid #D92624;box-shadow:0 46px 100px -28px rgba(0,0,0,.9);animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both">
+        <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(29,30,27,.14)">
+          <span aria-hidden="true" style="font-size:20px;flex:none">📖</span>
+          <span style="font-weight:900;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#1D1E1B">{{ preQuiz.heading }}</span>
+          <div style="flex:1"></div>
+          <button onClick="{{ preQuiz.close }}" title="Fermer" style="flex:none;background:rgba(29,30,27,.08);color:#1D1E1B;border:none;width:38px;height:38px;font-size:17px;font-weight:800;cursor:pointer" style-hover="background:rgba(29,30,27,.16)">✕</button>
+        </div>
+        <div style="padding:20px">
+          <div style="font-weight:800;font-size:11px;letter-spacing:.14em;color:#989898;margin-bottom:3px">MODULE {{ preQuiz.num }}</div>
+          <div style="font-weight:800;font-size:19px;line-height:1.2;color:#1D1E1B;margin-bottom:18px">{{ preQuiz.titre }}</div>
+
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px">
+            <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#535252">{{ preQuiz.readLabel }}</span>
+            <span style="white-space:nowrap;font-weight:900;font-size:26px;line-height:1;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ preQuiz.readMs }}</span>
+          </div>
+          <div style="height:10px;background:rgba(29,30,27,.12);margin-bottom:7px">
+            <div style="height:100%;width: {{ preQuiz.pct }}%;background: {{ preQuiz.barBg }}"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:4px 14px;font-size:12.5px;line-height:1.45;color:#777671;margin-bottom:16px">
+            <span>{{ preQuiz.estLabel }} {{ preQuiz.estMs }}</span>
+            <span>{{ preQuiz.lessons }}</span>
+          </div>
+
+          <sc-if value="{{ preQuiz.court }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:11px;align-items:flex-start;background:rgba(217,38,36,.07);border-left:5px solid #D92624;padding:12px 15px;margin-bottom:16px">
+              <span aria-hidden="true" style="font-size:18px;line-height:1.15;flex:none">⚠️</span>
+              <span style="font-size:13.5px;line-height:1.5;color:#1D1E1B">{{ preQuiz.courtMsg }}</span>
+            </div>
+          </sc-if>
+
+          <p style="font-size:13.5px;line-height:1.55;color:#535252;margin:0 0 18px">{{ preQuiz.confirmMsg }}</p>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button onClick="{{ preQuiz.go }}" style="width:100%;min-height:56px;background:#D92624;color:#FFFFFF;border:none;padding:14px 18px;font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">✓ {{ preQuiz.commencer }}</button>
+            <button onClick="{{ preQuiz.goRelire }}" style="width:100%;min-height:52px;background:#FFFFFF;color:#1D1E1B;border:1px solid rgba(29,30,27,.3);padding:12px 18px;font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#F4F3EE">{{ preQuiz.relire }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
     <sc-if value="{{ imgView }}" hint-placeholder-val="{{ false }}">
     <div data-rb-dialog="image" onClick="{{ closeImg }}" style="position:fixed;inset:0;z-index:220;background:rgba(20,20,19,.82);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:16px;animation:rbFade .18s ease both">
       <div onClick="{{ stopEvt }}" style="width:min(1120px,100%);max-height:94vh;display:flex;flex-direction:column;background:#141413;border:1px solid rgba(255,255,255,.14);box-shadow:0 46px 100px -28px rgba(0,0,0,.9);animation:rbPop .22s cubic-bezier(.2,.9,.3,1.15) both">
@@ -2160,7 +2258,7 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.62.0"></script>
-<script src="app.js?v=1.62.0"></script>
+<script src="interface.js?v=1.63.0"></script>
+<script src="app.js?v=1.63.0"></script>
 </body>
 </html>

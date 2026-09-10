@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.62.0';
+var APP_VERSION = '1.63.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -134,6 +134,42 @@ function fmtDuration(ms) {
    avec l'identité sur une tablette partagée, comme les leçons lues.
    Une seule boucle d'une seconde tient le tout : elle se corrige d'elle-même
    à chaque tour, sans dépendre d'un appel posé sur chaque bouton. */
+/* ---------- Estimation du temps de lecture d'une leçon ----------
+   Calculée sur le contenu réellement affiché : texte, listes, tableaux,
+   avertissements, figures. Vitesse volontairement prudente : matière
+   technique de sécurité, lue sur tablette, par des opérateurs qui ne lisent
+   pas tous avec la même aisance. L'estimation sert de repère, jamais de
+   condition : on peut marquer une leçon lue avant ou après. */
+var LECT_MOTS_MIN = 140;        // mots par minute
+var LECT_FIGURE_MS = 12000;     // regarder une figure du manuel
+var LECT_LIGNE_SPEC_MS = 3000;  // lire une ligne de tableau
+function estMots(t) { return String(t == null ? '' : t).replace(/[#*]/g, ' ').split(/\s+/).filter(Boolean).length; }
+function estBlocsMs(blocks) {
+  var mots = 0, extra = 0;
+  (blocks || []).forEach(function (b) {
+    if (b.t === 'p' || b.t === 'sub' || b.t === 'warn') mots += estMots(b.text);
+    else if (b.t === 'ul') (b.items || []).forEach(function (it) {
+      if (typeof it === 'string') mots += estMots(it);
+      else { mots += estMots(it.text); (it.sub || []).forEach(function (x) { mots += estMots(x); }); }
+    });
+    else if (b.t === 'steps') (b.items || []).forEach(function (it) { mots += estMots(it); });
+    else if (b.t === 'specs') {
+      (b.rows || []).forEach(function (r) { mots += estMots(r[0]) + estMots(r[1]); });
+      extra += (b.rows || []).length * LECT_LIGNE_SPEC_MS;
+    }
+    else if (b.t === 'img') { extra += LECT_FIGURE_MS; mots += estMots(b.cap); }
+    else if (b.t === 'links') (b.items || []).forEach(function (it) { mots += estMots(it.label); });
+  });
+  return Math.round(mots / LECT_MOTS_MIN * 60000) + extra;
+}
+/* Chiffre rond : par pas de 15 s sous une minute et demie, de 30 s au-delà. */
+function estArrondi(ms) {
+  var s = Math.max(30, Math.round((ms || 0) / 1000));
+  return (s < 90 ? Math.round(s / 15) * 15 : Math.round(s / 30) * 30) * 1000;
+}
+/* « environ 2 min », « environ 45 s ». */
+function fmtEnviron(ms, en) { return (en ? 'about ' : 'environ ') + fmtDuration(ms); }
+
 var LT = { key: null, t0: 0, n: 0 };
 /* Dernier geste de l'opérateur. Une tablette posée sur un établi, écran
    allumé et leçon ouverte, ne doit pas accumuler des heures de « lecture ».
@@ -182,6 +218,16 @@ function ltPaint() {
     for (var i = 0; i < els.length; i++) {
       var k = els[i].getAttribute('data-rb-lesson-timer');
       els[i].textContent = fmtDuration((COMP.state.lms && COMP.state.lms[k]) || 0);
+    }
+    // Barre de temps : se remplit vers le temps estimé, puis passe au vert.
+    var bars = ROOT.querySelectorAll('[data-rb-lesson-bar]');
+    for (var j = 0; j < bars.length; j++) {
+      var bk = (bars[j].getAttribute('data-rb-lesson-bar') || '').split('-');
+      var mi = parseInt(bk[0], 10), si = parseInt(bk[1], 10);
+      if (!isFinite(mi) || !isFinite(si)) continue;
+      var pct = COMP.lessonPct(mi, si);
+      bars[j].style.width = pct + '%';
+      bars[j].style.background = pct >= 100 ? '#2F7D48' : '#D92624';
     }
     var m = ROOT.querySelector('[data-rb-module-timer]');
     if (m && COMP.moduleReadMs) m.textContent = fmtDuration(COMP.moduleReadMs(COMP.state.activeId));
@@ -1032,6 +1078,8 @@ class Component extends DCLogic {
       read: saved.read || {},
       // Temps de lecture cumulé par leçon, en ms, pour le chrono visible.
       lms: saved.lms || {},
+      // Fenêtre de confirmation affichée juste avant le quiz.
+      preQuiz: false,
       simTab:"rrc", rrcSel:3, estopped:false, rrcNums:false, rrcInfoOpen:false,
       slew:0, hoist:52, ext:40, tilt:0, jawOpen:false,
       simMode:"VEILLE", klaxon:false
@@ -1531,6 +1579,34 @@ class Component extends DCLogic {
   }
   lessonMs(i,si){ return (this.state.lms && this.state.lms[i+"-"+si]) || 0; }
   moduleReadMs(i){ if(i==null) return 0; let t=0; for(let s=0;s<this.lessonsTotal(i);s++) t+=this.lessonMs(i,s); return t; }
+  /* Temps de lecture ESTIMÉ d'une leçon. Reprend les mêmes règles de fusion
+     des blocs que le rendu (voir la construction de allBlocks dans
+     renderVals) : si celles-ci changent, mettre les deux à jour.
+     Calculé une seule fois par leçon et par langue. */
+  lessonEstMs(i,si){
+    const ck=this.state.lang+"-"+i+"-"+si;
+    this._est = this._est || {};
+    if(this._est[ck]!=null) return this._est[ck];
+    const mod=this.M()[i], sec=mod&&mod.sections[si];
+    if(!sec) return 0;
+    const key=i+"-"+si;
+    const SRC=(this.state.lang==="en" && typeof ENRICH_EN!=="undefined") ? ENRICH_EN : (typeof ENRICH!=="undefined"?ENRICH:null);
+    const enr=(SRC && SRC[key]) ? SRC[key] : {};
+    const enrBlocks=enr.blocks||[];
+    const enrHasProse=enrBlocks.some(b=>b.t==="p"||b.t==="ul"||b.t==="steps");
+    const baseHasSpecs=sec.blocks.some(b=>b.t==="specs");
+    const baseKept=sec.blocks.filter(b=>(b.t==="p"||b.t==="ul"||b.t==="steps") ? !enrHasProse : true);
+    const enrKept=enrBlocks.filter(b=> b.t==="specs" ? !baseHasSpecs : true);
+    const figs=(enr.figures||[]).map(f=>({ t:"img", cap:f.cap||"" }));
+    let blocks=baseKept.concat(enrKept).concat(figs);
+    if(!blocks.some(b=>b.t==="img")) blocks=blocks.concat([{ t:"img", cap:"" }]);
+    const ms=estArrondi(estBlocsMs(blocks));
+    this._est[ck]=ms;
+    return ms;
+  }
+  moduleEstMs(i){ if(i==null) return 0; let t=0; for(let s=0;s<this.lessonsTotal(i);s++) t+=this.lessonEstMs(i,s); return t; }
+  /* Part du temps estimé déjà passée sur la leçon, plafonnée à 100. */
+  lessonPct(i,si){ const e=this.lessonEstMs(i,si); return e>0 ? Math.min(100, Math.round(this.lessonMs(i,si)/e*100)) : 100; }
   quizUnlocked(i){
     const n=this.lessonsTotal(i);
     // n===0 : module sans leçon. Rien à lire, donc rien à verrouiller.
@@ -1577,8 +1653,8 @@ class Component extends DCLogic {
     });
   };
 
-  goHome = ()=> { ptEnter(null,null); this.setState({ view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
-  openModule = (i)=> { if(!this.M()[i]) return; ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ view:"module", activeId:i, openKey:i+'-0', manualDetailKey:null, graded:false, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
+  goHome = ()=> { ptEnter(null,null); this.setState({ preQuiz:false, view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
+  openModule = (i)=> { if(!this.M()[i]) return; ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ preQuiz:false, view:"module", activeId:i, openKey:i+'-0', manualDetailKey:null, graded:false, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
   openLesson = (mi,si)=>{
     if(!this.M()[mi] || !this.M()[mi].sections[si]) return;
     ptEnter(mi,'module');
@@ -1596,11 +1672,22 @@ class Component extends DCLogic {
     }
     this.setState({ manualDetailKey:key, mpage:page });
   };
+  /* Le bouton du quiz n'entre plus directement : il ouvre d'abord la fenêtre
+     de confirmation, qui montre le temps de lecture et demande à l'opérateur
+     de confirmer qu'il a lu. Le quiz ne démarre qu'après ce geste. */
   startQuiz = ()=> {
     // Verrou : pas de quiz tant que les leçons du module ne sont pas lues.
     // On ne laisse pas l'opérateur devant un bouton mort : on l'amène à lire.
     if(!this.quizUnlocked(this.state.activeId)){ this.goFirstUnread(); return; }
-    ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0);
+    this.setState({ preQuiz:true });
+  };
+  closePreQuiz = ()=> this.setState({ preQuiz:false });
+  /* « Relire les leçons » : on referme et on remonte à la première leçon. */
+  preQuizRelire = ()=> this.setState({ preQuiz:false }, ()=>this.gotoLesson(0));
+  /* « J'ai lu, commencer le quiz » : le verrou est revérifié ici aussi. */
+  confirmQuiz = ()=> {
+    if(!this.quizUnlocked(this.state.activeId)){ this.setState({ preQuiz:false }); this.goFirstUnread(); return; }
+    ptEnter(this.state.activeId,'quiz'); this._attRemindShown=false; this.setState({ preQuiz:false, view:"quiz", qIdx:0, qSel:null, qChecked:false, qResults:[], graded:false, qbCommentKey:null, qbComment:"", attRemind:false }); window.scrollTo(0,0);
   };
   backToModule = ()=> { ptEnter(this.state.activeId,'module'); this.setState({ view:"module", graded:false }); };
   retryQuiz = ()=> {
@@ -2186,6 +2273,7 @@ class Component extends DCLogic {
         readCount:nLu, readLeft:reste,
         readMs: fmtDuration(this.moduleReadMs(S.activeId)),
         readMsLabel: this.tr("Temps de lecture","Reading time"),
+        estMs: fmtEnviron(this.moduleEstMs(S.activeId), S.lang==="en"),
         readLabel: this.tr(nLu+" / "+nSec+" leçons lues", nLu+" / "+nSec+" lessons read"),
         readPct: nSec ? Math.round(nLu/nSec*100) : 0,
         // Barre verte dès que le quiz est ouvert : un module déjà réussi ne
@@ -2233,9 +2321,14 @@ class Component extends DCLogic {
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             // Lecture de la leçon : pastille d'état + bouton « J'ai lu cette leçon ».
             isRead: lu, notRead: !lu,
-            // Chrono visible : clé de la leçon et temps déjà passé dessus.
+            // Chrono visible : clé de la leçon, temps passé, temps estimé.
             key, readTime: fmtDuration(this.lessonMs(S.activeId,si)),
             readTimeLabel: this.tr("Temps de lecture","Reading time"),
+            estTime: fmtEnviron(this.lessonEstMs(S.activeId,si), S.lang==="en"),
+            readPct: this.lessonPct(S.activeId,si),
+            readBarBg: this.lessonPct(S.activeId,si)>=100 ? "#2F7D48" : "#D92624",
+            readHint: this.tr("Pour information. Marquez la leçon lue quand vous voulez.",
+                              "For information only. Mark the lesson read whenever you want."),
             readGlyph: lu ? "✓" : "○",
             readBg: lu ? "rgba(62,156,90,.15)" : "#FFFFFF",
             readFg: lu ? "#2F7D48" : "#535252",
@@ -2565,6 +2658,34 @@ class Component extends DCLogic {
     base.raPages=RA_SRC.map(function(src,ix){ var n=ix+1; return { n:n, src:src, open:(function(sr,nn){ return function(){ self.openImg(sr,raCap+" : page "+nn+" / 4"); }; })(src,n) }; });
 
     base.imgView = S.imgView;
+    // Fenêtre de confirmation avant le quiz : temps de lecture du module,
+    // comparé au temps estimé, et geste explicite de l'opérateur.
+    base.preQuiz = null;
+    if(S.preQuiz && S.activeId!=null && M[S.activeId]){
+      const pm=M[S.activeId];
+      const lu=this.moduleReadMs(S.activeId), est=this.moduleEstMs(S.activeId);
+      const pct=est>0 ? Math.min(100, Math.round(lu/est*100)) : 100;
+      const court=est>0 && lu < est*0.5;
+      base.preQuiz={
+        num:pm.num, titre:pm.title,
+        heading:this.tr("Avant le quiz","Before the quiz"),
+        readLabel:this.tr("Votre temps de lecture","Your reading time"),
+        readMs:fmtDuration(lu),
+        estLabel:this.tr("Temps estimé :","Estimated time:"),
+        estMs:fmtEnviron(est, S.lang==="en"),
+        pct, barBg: pct>=100 ? "#2F7D48" : (court ? "#D92624" : "#E8A33D"),
+        lessons:this.tr(this.lessonsRead(S.activeId)+" / "+this.lessonsTotal(S.activeId)+" leçons marquées lues",
+                        this.lessonsRead(S.activeId)+" / "+this.lessonsTotal(S.activeId)+" lessons marked read"),
+        court, notCourt:!court,
+        courtMsg:this.tr("Temps de lecture court. Reprenez les leçons si vous avez un doute.",
+                         "Short reading time. Go back to the lessons if you are unsure."),
+        confirmMsg:this.tr("En continuant, vous confirmez avoir lu les leçons de ce module.",
+                           "By continuing, you confirm you have read the lessons of this module."),
+        relire:this.tr("Relire les leçons","Read the lessons again"),
+        commencer:this.tr("J'ai lu, commencer le quiz","I have read, start the quiz"),
+        close:this.closePreQuiz, goRelire:this.preQuizRelire, go:this.confirmQuiz
+      };
+    }
     base.closeImg = this.closeImg;
     base.stopEvt = function(e){ if(e&&e.stopPropagation) e.stopPropagation(); };
     base.rrcAnnotOpen = function(){ self.openImg("img/telecommande-annotee.png", self.tr("Télécommande radio, schéma annoté complet","Radio remote, full annotated diagram")); };
@@ -3109,6 +3230,7 @@ function bootRodbot() {
   document.addEventListener('keydown', function(e){
     if(!COMP) return;
     if(COMP._tourStep!=null){ if(e.key==='Escape') COMP.tourClose(true); return; }
+    if(COMP.state.preQuiz){ if(e.key==='Escape') COMP.closePreQuiz(); return; }
     if(COMP.state.imgView){ if(e.key==='Escape') COMP.closeImg(); return; }
     if(COMP.state.mpage==null) return;
     if(e.key==='Escape') COMP.closeManual();
