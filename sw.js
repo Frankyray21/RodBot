@@ -4,7 +4,7 @@
    première installation. Après ça, le site fonctionne entièrement sans réseau. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.67.0';
+const CACHE = 'rodbot-formation-v1.68.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -12,7 +12,7 @@ const ASSETS = 'rodbot-assets-v1';
 const CACHE_PREFIX = 'rodbot-formation-';
 const APP_ROOT = new URL('./', self.location.href);
 const CORE = [
-  './', './index.html', './app.js', './styles.css', './interface.css', './interface.js',
+  './', './index.html', './app.js', './pdf.js', './styles.css', './interface.css', './interface.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './img/hero-machine-photo.webp?v=1.8.11',
   './3d/index.html', './3d/css/styles.css', './3d/css/viewer.css',

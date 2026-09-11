@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.67.0">
+<link rel="stylesheet" href="interface.css?v=1.68.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1043,6 +1043,19 @@
         </sc-if>
         <sc-if value="{{ attest.hasError }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:10px;font-weight:700;font-size:12.5px;color:#E8534F">{{ attest.error }}</div>
+        </sc-if>
+      </div>
+
+      <!-- ===== COPIE PDF DE L'ATTESTATION (fabriquee sur l'appareil, sans reseau) ===== -->
+      <div style="margin-top:14px;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);border-left:5px solid #2F7D48;padding:20px 22px">
+        <div style="font-weight:900;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:#1D1E1B;margin-bottom:5px">{{ certPdf.heading }}</div>
+        <div style="font-size:13px;line-height:1.5;color:#535252;margin-bottom:14px">{{ certPdf.help }}</div>
+        <button onClick="{{ certPdf.download }}" style="background:#2F7D48;color:#FFFFFF;border:none;min-height:48px;padding:13px 24px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#276A3D">⬇ {{ certPdf.btnLabel }}</button>
+        <sc-if value="{{ certPdf.ok }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:11px;font-weight:800;font-size:13px;color:#2F7D48">✓ {{ certPdf.okMsg }}</div>
+        </sc-if>
+        <sc-if value="{{ certPdf.hasError }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:11px;font-weight:700;font-size:12.5px;color:#D92624">{{ certPdf.error }}</div>
         </sc-if>
       </div>
 
@@ -2240,6 +2253,19 @@
         </sc-if>
       </div>
 
+      <!-- ===== COPIE PDF DE L'ATTESTATION (fabriquee sur l'appareil, sans reseau) ===== -->
+      <div style="margin-top:14px;background:#FFFFFF;border:1px solid rgba(29,30,27,.16);border-left:5px solid #2F7D48;padding:20px 22px">
+        <div style="font-weight:900;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:#1D1E1B;margin-bottom:5px">{{ certPdf.heading }}</div>
+        <div style="font-size:13px;line-height:1.5;color:#535252;margin-bottom:14px">{{ certPdf.help }}</div>
+        <button onClick="{{ certPdf.download }}" style="background:#2F7D48;color:#FFFFFF;border:none;min-height:48px;padding:13px 24px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#276A3D">⬇ {{ certPdf.btnLabel }}</button>
+        <sc-if value="{{ certPdf.ok }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:11px;font-weight:800;font-size:13px;color:#2F7D48">✓ {{ certPdf.okMsg }}</div>
+        </sc-if>
+        <sc-if value="{{ certPdf.hasError }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:11px;font-weight:700;font-size:12.5px;color:#D92624">{{ certPdf.error }}</div>
+        </sc-if>
+      </div>
+
       <div style="text-align:center;margin-top:24px">
         <button onClick="{{ goHome }}" style="background:#141413;color:#FAF9F5;border:none;padding:13px 26px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#D92624">Back to home</button>
       </div>
@@ -2442,7 +2468,8 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.67.0"></script>
-<script src="app.js?v=1.67.0"></script>
+<script src="interface.js?v=1.68.0"></script>
+<script src="pdf.js?v=1.68.0"></script>
+<script src="app.js?v=1.68.0"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.67.0';
+var APP_VERSION = '1.68.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1098,6 +1098,7 @@ class Component extends DCLogic {
       imgView:null,
       canInstall:false, showInstallHelp:false,
       attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
+      pdfError:"", pdfOk:false,
       suiviHist:null, suiviHistState:"",
       qbFb:{}, qbCommentKey:null, qbComment:"",   // retours pouce haut/bas sur les questions (bêta)
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
@@ -1844,6 +1845,7 @@ class Component extends DCLogic {
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], qbFb:{}, qbCommentKey:null, qbComment:"",
       attDone:false, attLinked:false, attError:"", attSending:false, attRemind:false,
+      pdfError:"", pdfOk:false,
       progRestoredMsg:"", suiviHist:null, suiviHistState:"", showInstallHelp:false,
       rrcInfoOpen:false, estopped:false, klaxon:false
     },()=>window.scrollTo(0,0));
@@ -2006,6 +2008,113 @@ class Component extends DCLogic {
   sigClear = ()=>{ this.sigStrokes=[]; this.sigRefresh(); };
   sigDataUrl(){ const c=document.createElement('canvas'); c.width=600; c.height=200; this.sigPaint(c); return c.toDataURL('image/png'); }
 
+  /* ---------- Attestation en PDF ----------
+     L'operateur travaille sous terre, sans reseau. Le fichier est donc
+     fabrique sur l'appareil, a partir de ce qui est deja a l'ecran. Aucune
+     bibliotheque : voir pdf.js. */
+  sigForPdf(){
+    if(!this.sigEmpty()) return this.sigStrokes;
+    return (this._sigSent && this._sigSent.length) ? this._sigSent : [];
+  }
+  sigPdfEmpty(){ const t=this.sigForPdf(); let n=0; for(const s of t) n+=s.length; return n<8; }
+  /* Nom de fichier lisible partout : accents retires, espaces en tirets. */
+  pdfFileName(name, date){
+    let base="";
+    try{ base=String(name||"").normalize("NFD").replace(/[\u0300-\u036f]/g,""); }catch(e){ base=String(name||""); }
+    base=base.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
+    return "Attestation-RodBot-"+(base||"operateur")+"-"+date+".pdf";
+  }
+  certPdfPayload(){
+    const S=this.state, M=this.M(), en=(S.lang==="en");
+    const scores=M.map((m,i)=>this.moduleScore(i));
+    const overall=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
+    let msLect=0, msQuiz=0, nLues=0, nSec=0;
+    const mods=M.map((m,i)=>{
+      const t=ptSnapshot(i), lect=this.moduleReadMs(i);
+      const lu=this.lessonsRead(i), tot=this.lessonsTotal(i);
+      msLect+=lect; msQuiz+=t.quizMs; nLues+=lu; nSec+=tot;
+      return { num:m.num, title:m.title, score:this.moduleScore(i)+" %", passed:this.moduleDone(i),
+               lues:lu+"/"+tot, allRead:lu>=tot,
+               lecture:fmtDuration(lect), quiz:fmtDuration(t.quizMs) };
+    });
+    const now=new Date();
+    const loc=en?"en-CA":"fr-CA";
+    const dateLongue=now.toLocaleDateString(en?"en-CA":"fr-FR",{day:"numeric",month:"long",year:"numeric"});
+    const heure=now.toLocaleTimeString(loc,{hour:"2-digit",minute:"2-digit"});
+    const iso=now.getFullYear()+"-"+("0"+(now.getMonth()+1)).slice(-2)+"-"+("0"+now.getDate()).slice(-2);
+    const nMod=M.length;
+    return {
+      name:(S.name||"").trim(), employeeId:S.attEmpId||"",
+      date:dateLongue, heure:heure,
+      phrase: en
+        ? "has completed and passed the field training for the Borterra RodBot LP robotic system: "+nMod+" modules and "+nSec+" lessons from operator manual OM 10667. The pass mark is 70 % per module."
+        : "a suivi et validé la formation terrain du système robotisé Borterra RodBot LP : "+nMod+" modules et "+nSec+" leçons tirés du manuel de l'opérateur OM 10667. Le seuil de réussite est de 70 % par module.",
+      cles:[
+        { k:this.tr("SCORE GLOBAL","OVERALL SCORE"), v:overall+" %", rouge:true },
+        { k:this.tr("MODULES VALIDÉS","MODULES PASSED"), v:M.filter((m,i)=>this.moduleDone(i)).length+" / "+nMod },
+        { k:this.tr("LEÇONS LUES","LESSONS READ"), v:nLues+" / "+nSec },
+        { k:this.tr("TEMPS TOTAL","TOTAL TIME"), v:fmtDuration(msLect+msQuiz) }
+      ],
+      modules:mods,
+      totaux:{ score:overall+" %", lues:nLues+"/"+nSec, lecture:fmtDuration(msLect), quiz:fmtDuration(msQuiz) },
+      strokes:this.sigForPdf(), sigW:600, sigH:200,
+      notes:[
+        this.tr("Seuil de réussite : 70 % par module. Un module sous 70 % doit être refait.",
+                "Pass mark: 70 % per module. A module below 70 % must be retaken."),
+        this.tr("Le quiz d'un module reste fermé tant que ses leçons ne sont pas marquées lues.",
+                "A module quiz stays locked until its lessons are marked as read."),
+        this.tr("Le temps de lecture est compté seulement quand la leçon est ouverte et à l'écran.",
+                "Reading time is counted only while the lesson is open and on screen."),
+        this.tr("Document produit sur l'appareil de l'opérateur. Le registre de formation fait foi.",
+                "Document produced on the operator's device. The training registry is the record of truth.")
+      ],
+      pied:this.tr("Copie locale · RodBot LP "+APP_VERSION+" · Français · "+(S.attDone?"Envoyée au registre de formation.":"Pas encore envoyée au registre."),
+                   "Local copy · RodBot LP "+APP_VERSION+" · English · "+(S.attDone?"Sent to the training registry.":"Not yet sent to the registry.")),
+      fileName:this.pdfFileName(S.name, iso),
+      labels:{
+        marque:"BORTERRA RODBOT LP", ref:"OM 10667 · R0 · BM260024",
+        titre:this.tr("ATTESTATION DE FORMATION","TRAINING CERTIFICATE"),
+        atteste:this.tr("Ce document atteste que","This document certifies that"),
+        matricule:this.tr("Matricule","Employee ID"),
+        detail:this.tr("DÉTAIL PAR MODULE","MODULE BY MODULE"),
+        colModule:this.tr("MODULE","MODULE"), colScore:this.tr("SCORE","SCORE"),
+        colLues:this.tr("LEÇONS LUES","LESSONS READ"), colLecture:this.tr("LECTURE","READING"),
+        colQuiz:this.tr("QUIZ","QUIZ"), total:this.tr("TOTAL","TOTAL"),
+        signature:this.tr("SIGNATURE DE L'OPÉRATEUR","OPERATOR SIGNATURE"),
+        dateLabel:this.tr("DATE DE DÉLIVRANCE","DATE OF ISSUE"),
+        registre:this.tr("Registre de formation MRI","MRI training registry"),
+        remarques:this.tr("REMARQUES","NOTES"), page:this.tr("Page","Page")
+      }
+    };
+  }
+  /* Remet le fichier a l'operateur. Un lien avec download : rien d'autre ne
+     marche de facon fiable sur tablette comme sur telephone. */
+  pdfSave(bytes, nom){
+    const blob=new Blob([bytes], { type:"application/pdf" });
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=nom; a.rel="noopener";
+    a.style.position="fixed"; a.style.left="-9999px";
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ try{ document.body.removeChild(a); URL.revokeObjectURL(url); }catch(e){} }, 5000);
+  }
+  downloadCertPdf = ()=>{
+    const S=this.state, name=(S.name||"").trim();
+    if(name.length<2){ this.setState({ pdfOk:false, pdfError:this.tr("Écrivez d'abord votre nom sur l'attestation.","Write your name on the certificate first.") }); return; }
+    if(this.sigPdfEmpty()){ this.setState({ pdfOk:false, pdfError:this.tr("Signature obligatoire : signez dans le cadre.","Signature required: sign in the box.") }); return; }
+    if(!this.allDone()){ this.setState({ pdfOk:false, pdfError:this.tr("Terminez d'abord les 8 modules.","Finish all 8 modules first.") }); return; }
+    if(typeof RodbotPdf==="undefined" || !RodbotPdf.attestation){
+      this.setState({ pdfOk:false, pdfError:this.tr("Générateur PDF absent. Rechargez la page.","PDF generator missing. Reload the page.") }); return;
+    }
+    try{
+      const p=this.certPdfPayload();
+      this.pdfSave(RodbotPdf.attestation(p), p.fileName);
+      this.setState({ pdfError:"", pdfOk:true });
+    }catch(e){
+      this.setState({ pdfOk:false, pdfError:this.tr("Le PDF n'a pas pu être créé.","The PDF could not be created.") });
+    }
+  };
+
   postAttestation(extra){
     const S=this.state;
     const token=this.identityToken(), request=this._attRequest=(this._attRequest||0)+1;
@@ -2022,7 +2131,7 @@ class Component extends DCLogic {
       .then(r=>r.json())
       .then(d=>{
         if(!current()) return;
-        if(d && d.ok){ this.sigStrokes=[]; this.setState({ attSending:false, attDone:true, attLinked:!!d.linked }); }
+        if(d && d.ok){ this._sigSent=this.sigStrokes; this.sigStrokes=[]; this.setState({ attSending:false, attDone:true, attLinked:!!d.linked }); }
         else this.setState({ attSending:false, attError:(d&&d.error)||this.tr("Envoi refusé.","Submission refused.") });
       })
       .catch(()=>{ if(current()) this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }); });
@@ -2206,7 +2315,7 @@ class Component extends DCLogic {
   goToNextModule = ()=>{
     const next=this.state.activeId+1;
     if(next<this.M().length){ ptEnter(next,'module'); this.setState({ view:"module", activeId:next, openKey:next+'-0', graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] }); }
-    else if(this.allDone()){ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); }
+    else if(this.allDone()){ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"", pdfError:"", pdfOk:false }); }
     else this.goHome();
   };
 
@@ -2483,7 +2592,7 @@ class Component extends DCLogic {
         "Attestation finale : disponible quand les 8 modules sont validés ("+doneN+"/8).",
         "Final certificate: available once all 8 modules are passed ("+doneN+"/8).");
       base.certHintShow = !this.allDone();
-      base.openCert = ()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); window.scrollTo(0,0); };
+      base.openCert = ()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"", pdfError:"", pdfOk:false }); window.scrollTo(0,0); };
       base.showCertCta = this.allDone();
       // Attestation PAR MODULE : offerte après CHAQUE quiz, réussi ou non (base.modAtt est construit plus bas).
       base.showModAtt = true;
@@ -2682,9 +2791,19 @@ class Component extends DCLogic {
         hist:(S.suiviHist||[]).map(h=>({ module:h.module, date:h.date, score:h.score })),
         refresh:this.fetchSuiviHist,
         showCert:this.allDone(),
-        goCert:()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"" }); window.scrollTo(0,0); }
+        goCert:()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"", pdfError:"", pdfOk:false }); window.scrollTo(0,0); }
       };
     } else base.suivi=null;
+    /* Bouton « Telecharger l'attestation (PDF) » de la vue attestation. */
+    base.certPdf={
+      heading:this.tr("📄 Emporter votre attestation","📄 Take your certificate with you"),
+      help:this.tr("Le fichier PDF est créé sur votre appareil. Il marche sans réseau.",
+                   "The PDF is built on your device. It works with no network."),
+      btnLabel:this.tr("Télécharger l'attestation (PDF)","Download the certificate (PDF)"),
+      download:this.downloadCertPdf,
+      ok:!!S.pdfOk, hasError:!!S.pdfError, error:S.pdfError||"",
+      okMsg:this.tr("PDF créé. Cherchez-le dans vos téléchargements.","PDF created. Look for it in your downloads.")
+    };
     base.attest={
       sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
       idle:!S.attSending && !S.attDone,
