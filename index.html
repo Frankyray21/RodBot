@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
-<link rel="stylesheet" href="styles.css?v=1.8.20">
-<link rel="stylesheet" href="interface.css?v=1.66.0">
+<link rel="stylesheet" href="styles.css?v=1.8.21">
+<link rel="stylesheet" href="interface.css?v=1.67.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -588,7 +588,7 @@
                 </span>
                 <span style="font-size:17px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
               </button>
-              <button class="rb-lesson-mark" onClick="{{ s.markRead }}" aria-pressed="{{ s.expandedRead }}" title="{{ s.markTitle }}" style="flex:none;display:flex;align-items:center;gap:7px;max-width:112px;background:none;border:none;border-left:1px solid rgba(29,30,27,.1);cursor:pointer;padding:15px 11px;text-align:left">
+              <button class="rb-lesson-mark" onClick="{{ s.toggleRead }}" aria-pressed="{{ s.expandedRead }}" title="{{ s.markTitle }}" style="flex:none;display:flex;align-items:center;gap:7px;max-width:112px;background:none;border:none;border-left:1px solid rgba(29,30,27,.1);cursor:pointer;padding:15px 11px;text-align:left">
                 <span aria-hidden="true" style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background: {{ s.readBg }};border: {{ s.readBorder }}">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ s.readFg }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: {{ s.checkDisplay }}"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
                 </span>
@@ -1782,7 +1782,7 @@
                 </span>
                 <span style="font-size:17px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
               </button>
-              <button class="rb-lesson-mark" onClick="{{ s.markRead }}" aria-pressed="{{ s.expandedRead }}" title="{{ s.markTitle }}" style="flex:none;display:flex;align-items:center;gap:7px;max-width:112px;background:none;border:none;border-left:1px solid rgba(29,30,27,.1);cursor:pointer;padding:15px 11px;text-align:left">
+              <button class="rb-lesson-mark" onClick="{{ s.toggleRead }}" aria-pressed="{{ s.expandedRead }}" title="{{ s.markTitle }}" style="flex:none;display:flex;align-items:center;gap:7px;max-width:112px;background:none;border:none;border-left:1px solid rgba(29,30,27,.1);cursor:pointer;padding:15px 11px;text-align:left">
                 <span aria-hidden="true" style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background: {{ s.readBg }};border: {{ s.readBorder }}">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ s.readFg }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: {{ s.checkDisplay }}"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
                 </span>
@@ -2442,7 +2442,7 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.66.0"></script>
-<script src="app.js?v=1.66.0"></script>
+<script src="interface.js?v=1.67.0"></script>
+<script src="app.js?v=1.67.0"></script>
 </body>
 </html>

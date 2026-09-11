@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.66.0';
+var APP_VERSION = '1.67.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1658,6 +1658,14 @@ class Component extends DCLogic {
   };
   /* Bouton « Lire les leçons » de la carte du quiz verrouillée. */
   goFirstUnread = ()=>{ const nx=this.firstUnread(this.state.activeId); if(nx>=0) this.gotoLesson(nx); };
+  /* La case de l'en-tête : coche ET décoche. C'est un contrôle de suivi, donc
+     il doit pouvoir être corrigé. Il ne déplace pas l'opérateur : on reste
+     exactement où on est, contrairement au bouton de fin de leçon. */
+  toggleLessonRead = (key)=>{
+    const read=Object.assign({}, this.state.read);
+    if(read[key]) delete read[key]; else read[key]=1;
+    this.setState({ read }, ()=>this.persist());
+  };
   /* « J'ai lu cette leçon » : marque la leçon, puis enchaîne sur la suivante
      qui reste à lire. Quand tout est lu, on descend jusqu'au quiz déverrouillé. */
   markLessonRead = (key)=>{
@@ -2028,7 +2036,9 @@ class Component extends DCLogic {
     if(this.sigEmpty()){ this.setState({ attError:this.tr("Signature obligatoire : signez dans le cadre.","Signature required: sign in the box.") }); return; }
     if(!this.allDone()){ this.setState({ attError:this.tr("Terminez d'abord les 8 modules.","Finish all 8 modules first.") }); return; }
     const M=this.M();
-    const detail=M.map((m,i)=>m.num+" : "+this.moduleScore(i)+" %").join("\n");
+    const detail=M.map((m,i)=>m.num+" : "+this.moduleScore(i)+" % · "
+      +this.lessonsRead(i)+"/"+this.lessonsTotal(i)+" leçons lues · lecture "
+      +fmtDuration(this.moduleReadMs(i))).join("\n");
     const scores=M.map((m,i)=>this.moduleScore(i));
     const overall=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
     // Temps total : somme du temps de lecture + quiz des 8 modules.
@@ -2052,7 +2062,8 @@ class Component extends DCLogic {
     const mFr=this.MODULES[S.activeId];
     const pct=Math.max(this.bestAttempt(S.activeId), (S.view==="quiz"&&S.graded)?(S.lastScore||0):0);
     const t=ptSnapshot(S.activeId);
-    this.postAttestation({ module:mFr.num+" · "+mFr.title, score:pct+" %", modules:mFr.num+" : "+pct+" %",
+    this.postAttestation({ module:mFr.num+" · "+mFr.title, score:pct+" %", modules:mFr.num+" : "+pct+" % · "+this.lessonsRead(S.activeId)+"/"+this.lessonsTotal(S.activeId)
+        +" leçons lues · lecture "+fmtDuration(this.moduleReadMs(S.activeId)),
       moduleTime:fmtDuration(t.pageMs), quizTime:fmtDuration(t.quizMs),
       moduleSeconds:Math.round(t.pageMs/1000), quizSeconds:Math.round(t.quizMs/1000) });
   };
@@ -2384,11 +2395,12 @@ class Component extends DCLogic {
             checkDisplay: lu ? "block" : "none",
             markText: lu ? this.tr("Leçon lue","Lesson read") : this.tr("Marquer comme lue","Mark as read"),
             markFg: lu ? "#2F7D48" : "#D92624",
-            markTitle: lu ? this.tr("Leçon marquée comme lue","Lesson marked as read")
-                          : this.tr("Marquer cette leçon comme lue","Mark this lesson as read"),
+            markTitle: lu ? this.tr("Touchez pour retirer la marque de lecture","Tap to remove the read mark")
+                          : this.tr("Touchez pour marquer cette leçon comme lue","Tap to mark this lesson as read"),
             expandedRead: lu ? "true" : "false",
             readSr: lu ? this.tr("Leçon lue","Lesson read") : this.tr("Leçon à lire","Lesson to read"),
             markRead: ()=>this.markLessonRead(key),
+            toggleRead: ()=>this.toggleLessonRead(key),
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),
             manualDetailOpen, manualDetailClass:manualDetailOpen?"is-open":"", manualDetailExpanded:manualDetailOpen?"true":"false",
             toggleManualDetails:()=>this.toggleManualDetails(key,this.mp(sec.page)),
