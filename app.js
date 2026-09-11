@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.64.0';
+var APP_VERSION = '1.65.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -2202,6 +2202,13 @@ class Component extends DCLogic {
       isHome:S.view==="home", isModule:S.view==="module", isQuiz:S.view==="quiz", isCert:S.view==="cert", isSuivi:S.view==="suivi",
       totalModules:total, doneCount, totalSections,
       progressPct: Math.round(doneCount/total*100), passPct:70,
+      // Barre de progression du parcours : verte une fois les 8 modules validés.
+      progressBarBg: doneCount>=total ? "#2F7D48" : "#D92624",
+      progressFg: doneCount>=total ? "#2F7D48" : "#989898",
+      progressLabel: this.tr("Progression du parcours","Training progress"),
+      progressDone: this.tr(doneCount+" / "+total+" modules validés", doneCount+" / "+total+" modules passed"),
+      progressHint: this.tr("La progression augmente quand vous réussissez un quiz.",
+                            "Progress increases when you pass a quiz."),
       manualUrl:this.manualBase(), raUrl:this.RA,
       goHome:this.goHome, startFirst:this.startFirst, scrollToSafety:this.scrollToSafety,
       openPath:()=>this.scrollHomeSection('path'), openPractice:()=>this.scrollHomeSection('practice'), openDocuments:()=>this.scrollHomeSection('documents'),

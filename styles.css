@@ -312,7 +312,8 @@ html,body{overflow-x:hidden;max-width:100%}
 /* Téléphones : typographie réduite + en-tête compact */
 @media (max-width:640px){
   .rb-topbar-inner{height:56px !important;padding:0 12px !important;gap:8px !important}
-  .rb-brand{flex:0 0 96px !important;min-width:96px !important;max-width:96px !important}
+  .rb-brand{flex:0 0 auto !important;min-width:0 !important;max-width:150px !important;gap:8px !important}
+  .rb-brand-mark{width:30px !important;height:30px !important}
   .rb-brand-title{font-size:13px !important;letter-spacing:.045em !important;white-space:nowrap !important}
   .rb-brand-subtitle{font-size:7px !important;letter-spacing:.12em !important;white-space:nowrap !important;margin-top:2px !important}
   .rb-lang-switch{margin-left:auto !important}
@@ -355,7 +356,9 @@ html,body{overflow-x:hidden;max-width:100%}
 }
 
 @media (max-width:340px){
-  .rb-brand{flex-basis:92px !important;min-width:92px !important;max-width:92px !important}
+  .rb-brand{flex-basis:auto !important;min-width:0 !important;max-width:34px !important;gap:0 !important}
+  .rb-brand-mark{width:28px !important;height:28px !important}
+  .rb-brand>span{display:none !important}
   .rb-manual-link{font-size:0 !important;gap:0 !important;padding:8px 7px !important}
   .rb-manual-link span{font-size:9px !important}
 }
