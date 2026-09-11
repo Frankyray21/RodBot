@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.65.0';
+var APP_VERSION = '1.66.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -167,6 +167,12 @@ function estArrondi(ms) {
   var s = Math.max(30, Math.round((ms || 0) / 1000));
   return (s < 90 ? Math.round(s / 15) * 15 : Math.round(s / 30) * 30) * 1000;
 }
+/* « 00:53 », « 12:07 » : format court pour un chrono qui avance. */
+function fmtMmSs(ms) {
+  var s = Math.max(0, Math.round((ms || 0) / 1000));
+  var m = Math.floor(s / 60);
+  return ('0' + m).slice(-2) + ':' + ('0' + (s % 60)).slice(-2);
+}
 /* « environ 2 min », « environ 45 s ». */
 function fmtEnviron(ms, en) { return (en ? 'about ' : 'environ ') + fmtDuration(ms); }
 
@@ -223,7 +229,22 @@ function ltPaint() {
     var els = ROOT.querySelectorAll('[data-rb-lesson-timer]');
     for (var i = 0; i < els.length; i++) {
       var k = els[i].getAttribute('data-rb-lesson-timer');
-      els[i].textContent = fmtDuration((COMP.state.lms && COMP.state.lms[k]) || 0);
+      els[i].textContent = fmtMmSs((COMP.state.lms && COMP.state.lms[k]) || 0);
+    }
+    // Temps restant et pourcentage, recalculés au même rythme que la barre.
+    var rest = ROOT.querySelectorAll('[data-rb-lesson-rest]');
+    for (var r0 = 0; r0 < rest.length; r0++) {
+      var rk = (rest[r0].getAttribute('data-rb-lesson-rest') || '').split('-');
+      var rm = parseInt(rk[0], 10), rs = parseInt(rk[1], 10);
+      if (!isFinite(rm) || !isFinite(rs)) continue;
+      rest[r0].textContent = fmtMmSs(Math.max(0, COMP.lessonEstMs(rm, rs) - COMP.lessonMs(rm, rs)));
+    }
+    var pcts = ROOT.querySelectorAll('[data-rb-lesson-pct]');
+    for (var p0 = 0; p0 < pcts.length; p0++) {
+      var pk = (pcts[p0].getAttribute('data-rb-lesson-pct') || '').split('-');
+      var pm = parseInt(pk[0], 10), ps = parseInt(pk[1], 10);
+      if (!isFinite(pm) || !isFinite(ps)) continue;
+      pcts[p0].textContent = COMP.lessonPct(pm, ps) + (COMP.state.lang === 'en' ? '%' : ' %');
     }
     // Barre de temps : se remplit vers le temps estimé, puis passe au vert.
     var bars = ROOT.querySelectorAll('[data-rb-lesson-bar]');
@@ -2288,6 +2309,12 @@ class Component extends DCLogic {
         readMsLabel: this.tr("Temps de lecture","Reading time"),
         estMs: fmtEnviron(this.moduleEstMs(S.activeId), S.lang==="en"),
         readLabel: this.tr(nLu+" / "+nSec+" leçons lues", nLu+" / "+nSec+" lessons read"),
+        // Bloc « progression du module » de l'en-tête de la liste des leçons.
+        progLabel: this.tr("Progression du module","Module progress"),
+        doneLabel: this.tr(nLu+" / "+nSec+" leçons terminées", nLu+" / "+nSec+" lessons completed"),
+        pctTxt: (nSec ? Math.round(nLu/nSec*100) : 0)+(S.lang==="en"?"%":" %"),
+        parcouruLabel: this.tr("Temps parcouru :","Time spent:"),
+        dureeLabel: this.tr("Durée estimée :","Estimated duration:"),
         readPct: nSec ? Math.round(nLu/nSec*100) : 0,
         // Barre verte dès que le quiz est ouvert : un module déjà réussi ne
         // doit pas afficher une barre rouge, qui se lirait comme un blocage.
@@ -2334,18 +2361,32 @@ class Component extends DCLogic {
             accent: hasDanger ? "#D92624" : "#1D1E1B",
             // Lecture de la leçon : pastille d'état + bouton « J'ai lu cette leçon ».
             isRead: lu, notRead: !lu,
-            // Chrono visible : clé de la leçon, temps passé, temps estimé.
-            key, readTime: fmtDuration(this.lessonMs(S.activeId,si)),
-            readTimeLabel: this.tr("Temps de lecture","Reading time"),
-            estTime: fmtEnviron(this.lessonEstMs(S.activeId,si), S.lang==="en"),
+            // Bloc « progression de la leçon » : temps écoulé, part faite, reste.
+            key,
+            readTime: fmtMmSs(this.lessonMs(S.activeId,si)),
+            restTime: fmtMmSs(Math.max(0, this.lessonEstMs(S.activeId,si)-this.lessonMs(S.activeId,si))),
+            estTime: fmtDuration(this.lessonEstMs(S.activeId,si)),
             readPct: this.lessonPct(S.activeId,si),
+            readPctTxt: this.lessonPct(S.activeId,si)+(S.lang==="en"?"%":" %"),
             readBarBg: this.lessonPct(S.activeId,si)>=100 ? "#2F7D48" : "#D92624",
+            progLabel: this.tr("Progression de la leçon","Lesson progress"),
+            ecouleLabel: this.tr("écoulé","elapsed"),
+            restLabel: this.tr("restantes","left"),
+            estLabel: this.tr("Temps estimé :","Estimated time:"),
+            markLabel: this.tr("Marquer comme lue","Mark as read"),
+            markedLabel: this.tr("Leçon lue","Lesson read"),
             readHint: this.tr("Pour information. Marquez la leçon lue quand vous voulez.",
                               "For information only. Mark the lesson read whenever you want."),
-            readGlyph: lu ? "✓" : "○",
+            // Case « Marquer comme lue » : cochée en vert, sinon carré vide.
             readBg: lu ? "rgba(62,156,90,.15)" : "#FFFFFF",
             readFg: lu ? "#2F7D48" : "#535252",
-            readBorder: lu ? "1px solid rgba(62,156,90,.45)" : "1px solid rgba(29,30,27,.3)",
+            readBorder: lu ? "2px solid #2F7D48" : "2px solid rgba(29,30,27,.35)",
+            checkDisplay: lu ? "block" : "none",
+            markText: lu ? this.tr("Leçon lue","Lesson read") : this.tr("Marquer comme lue","Mark as read"),
+            markFg: lu ? "#2F7D48" : "#D92624",
+            markTitle: lu ? this.tr("Leçon marquée comme lue","Lesson marked as read")
+                          : this.tr("Marquer cette leçon comme lue","Mark this lesson as read"),
+            expandedRead: lu ? "true" : "false",
             readSr: lu ? this.tr("Leçon lue","Lesson read") : this.tr("Leçon à lire","Lesson to read"),
             markRead: ()=>this.markLessonRead(key),
             open, chevron: open?"rotate(180deg)":"rotate(0deg)", toggle:()=>this.toggleSection(key),

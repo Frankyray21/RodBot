@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
-<link rel="stylesheet" href="styles.css?v=1.8.19">
-<link rel="stylesheet" href="interface.css?v=1.65.0">
+<link rel="stylesheet" href="styles.css?v=1.8.20">
+<link rel="stylesheet" href="interface.css?v=1.66.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -557,49 +557,69 @@
       </div>
 
       <section style="max-width:1240px;margin:0 auto;padding:32px 28px 20px">
-        <div aria-live="polite">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
-            <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OUVRIR UNE LEÇON</div>
-            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
-              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span> / {{ mod.estMs }}</span>
-              <span style="color: {{ mod.readFg }}">{{ mod.readLabel }}</span>
-            </div>
+        <div aria-live="polite" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.16);padding:14px 16px;margin-bottom:16px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-weight:900;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:#1D1E1B">{{ mod.progLabel }}</span>
+            <span style="white-space:nowrap;font-weight:700;font-size:13px;color: {{ mod.readFg }};font-variant-numeric:tabular-nums">{{ mod.doneLabel }}</span>
           </div>
-          <div style="height:5px;background:rgba(29,30,27,.08);margin-bottom:18px">
-            <div style="height:100%;background: {{ mod.readBarBg }};width: {{ mod.readPct }}%"></div>
+          <div style="display:flex;align-items:center;gap:11px">
+            <span style="flex:1;min-width:0;display:block;height:9px;background:rgba(29,30,27,.1)">
+              <span style="display:block;height:100%;width: {{ mod.readPct }}%;background: {{ mod.readBarBg }};transition:width .4s ease"></span>
+            </span>
+            <span style="flex:none;min-width:44px;text-align:right;white-space:nowrap;font-weight:800;font-size:13.5px;color:#535252;font-variant-numeric:tabular-nums">{{ mod.pctTxt }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid rgba(29,30,27,.09);font-size:12.5px;color:#777671">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#777671" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><circle cx="12" cy="13" r="8"/><path d="M12 9.2V13l2.6 1.7M9.4 2.8h5.2"/></svg>
+            <span style="white-space:nowrap">{{ mod.parcouruLabel }} <strong data-rb-module-timer style="color:#1D1E1B;font-variant-numeric:tabular-nums">{{ mod.readMs }}</strong></span>
+            <span style="flex:1;min-width:0"></span>
+            <span style="white-space:nowrap">{{ mod.dureeLabel }} <strong style="color:#1D1E1B">{{ mod.estMs }}</strong></span>
           </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:12px">
           <sc-for list="{{ mod.sections }}" as="s" hint-placeholder-count="6">
             <div class="rb-lesson-item" data-rb-lesson-index="{{ s.index }}" data-rb-lesson-title="{{ s.title }}" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.14);overflow:hidden;border-left:5px solid {{ s.accent }}">
-              <button class="rb-lesson-head" aria-expanded="{{ s.expanded }}" aria-controls="{{ s.panelId }}" onClick="{{ s.toggle }}" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:17px 20px;display:flex;align-items:center;gap:16px">
-                <span style="font-weight:700;font-size:12px;color:#989898;min-width:34px">{{ s.ref }}</span>
+              <div class="rb-lesson-row" style="display:flex;align-items:stretch;flex-wrap:wrap;gap:0">
+              <button class="rb-lesson-head" aria-expanded="{{ s.expanded }}" aria-controls="{{ s.panelId }}" onClick="{{ s.toggle }}" style="flex:1;min-width:0;text-align:left;background:none;border:none;cursor:pointer;padding:15px 6px 15px 18px;display:flex;align-items:center;gap:13px">
+                <span style="font-weight:700;font-size:12px;color:#989898;min-width:30px">{{ s.ref }}</span>
                 <span style="flex:1;min-width:0">
-                  <span style="display:block;font-weight:800;font-size:16px;line-height:1.25;color:#1D1E1B">{{ s.title }}</span>
-                  <span style="display:block;font-size:11.5px;line-height:1.35;color:#777671;margin-top:3px">{{ s.topic }}</span>
+                  <span style="display:block;font-weight:800;font-size:15.5px;line-height:1.25;color:#1D1E1B">{{ s.title }}</span>
+                  <span style="display:block;font-size:11.5px;line-height:1.35;color:#777671;margin-top:2px">{{ s.topic }} &middot; <span style="font-weight:700;color:#D92624">p. {{ s.page }}</span></span>
                 </span>
-                <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;background: {{ s.readBg }};color: {{ s.readFg }};border: {{ s.readBorder }};font-weight:900;font-size:12px">{{ s.readGlyph }}</span>
-                <span class="sr-only">{{ s.readSr }}</span>
-                <span style="font-weight:700;font-size:10.5px;letter-spacing:.04em;color:#D92624;white-space:nowrap">p. {{ s.page }}</span>
-                <span style="font-size:18px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
+                <span style="font-size:17px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
               </button>
+              <button class="rb-lesson-mark" onClick="{{ s.markRead }}" aria-pressed="{{ s.expandedRead }}" title="{{ s.markTitle }}" style="flex:none;display:flex;align-items:center;gap:7px;max-width:112px;background:none;border:none;border-left:1px solid rgba(29,30,27,.1);cursor:pointer;padding:15px 11px;text-align:left">
+                <span aria-hidden="true" style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background: {{ s.readBg }};border: {{ s.readBorder }}">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ s.readFg }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: {{ s.checkDisplay }}"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+                </span>
+                <span style="font-weight:700;font-size:11px;line-height:1.2;color: {{ s.markFg }}">{{ s.markText }}</span>
+              </button>
+              </div>
 
               <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
               <div id="{{ s.panelId }}" role="region" aria-label="{{ s.title }}" style="padding:2px 20px 20px 20px;overflow-anchor:none;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
-                  <div style="padding:12px 15px;background:#F4F3EE;border-left:5px solid #1D1E1B">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
-                      <span aria-hidden="true" style="font-size:17px;line-height:1;flex:none">⏱</span>
-                      <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#535252">{{ s.readTimeLabel }}</span>
-                      <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:80px;text-align:right;white-space:nowrap;font-weight:800;font-size:19px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
-                      <span style="white-space:nowrap;font-weight:700;font-size:12.5px;color:#777671">/ {{ s.estTime }}</span>
+                  <div style="padding:12px 11px;background:#F4F3EE;border:1px solid rgba(29,30,27,.1)">
+                    <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D1E1B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><circle cx="12" cy="13" r="8"/><path d="M12 9.2V13l2.6 1.7M9.4 2.8h5.2"/></svg>
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-weight:800;font-size:9px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;color:#777671">{{ s.progLabel }}</span>
+                        <span style="display:block;white-space:nowrap;margin-top:1px"><strong data-rb-lesson-timer="{{ s.key }}" style="font-weight:900;font-size:20px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</strong> <span style="font-weight:700;font-size:12.5px;color:#777671">{{ s.ecouleLabel }}</span></span>
+                      </span>
+                      <span data-rb-lesson-pct="{{ s.key }}" style="flex:none;white-space:nowrap;font-weight:900;font-size:18px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readPctTxt }}</span>
                     </div>
-                    <div style="height:8px;background:rgba(29,30,27,.12)">
+                    <div style="height:8px;background:rgba(29,30,27,.13)">
                       <div data-rb-lesson-bar="{{ s.key }}" style="height:100%;width: {{ s.readPct }}%;background: {{ s.readBarBg }};transition:width .4s linear"></div>
                     </div>
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#777671">
+                      <span style="white-space:nowrap">&#8776; <strong data-rb-lesson-rest="{{ s.key }}" style="color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.restTime }}</strong> {{ s.restLabel }}</span>
+                      <span style="white-space:nowrap">{{ s.estLabel }} <strong style="color:#1D1E1B">{{ s.estTime }}</strong></span>
+                    </div>
                   </div>
-                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">{{ s.readHint }}</div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.4;color:#989898;margin-top:-6px">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A9A8A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.2M12 7.8h.01"/></svg>
+                    <span>{{ s.readHint }}</span>
+                  </div>
 
                                     <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
@@ -1731,49 +1751,69 @@
       </div>
 
       <section style="max-width:1240px;margin:0 auto;padding:32px 28px 20px">
-        <div aria-live="polite">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
-            <div style="font-weight:800;font-size:11px;letter-spacing:.16em;color:#989898">OPEN A LESSON</div>
-            <div style="font-weight:700;font-size:11px;letter-spacing:.04em;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end">
-              <span style="color:#989898;white-space:nowrap" aria-live="off" title="{{ mod.readMsLabel }}"><span aria-hidden="true">⏱</span><span class="sr-only">{{ mod.readMsLabel }} : </span> <span data-rb-module-timer style="display:inline-block;min-width:74px;text-align:right;font-variant-numeric:tabular-nums">{{ mod.readMs }}</span> / {{ mod.estMs }}</span>
-              <span style="color: {{ mod.readFg }}">{{ mod.readLabel }}</span>
-            </div>
+        <div aria-live="polite" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.16);padding:14px 16px;margin-bottom:16px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-weight:900;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:#1D1E1B">{{ mod.progLabel }}</span>
+            <span style="white-space:nowrap;font-weight:700;font-size:13px;color: {{ mod.readFg }};font-variant-numeric:tabular-nums">{{ mod.doneLabel }}</span>
           </div>
-          <div style="height:5px;background:rgba(29,30,27,.08);margin-bottom:18px">
-            <div style="height:100%;background: {{ mod.readBarBg }};width: {{ mod.readPct }}%"></div>
+          <div style="display:flex;align-items:center;gap:11px">
+            <span style="flex:1;min-width:0;display:block;height:9px;background:rgba(29,30,27,.1)">
+              <span style="display:block;height:100%;width: {{ mod.readPct }}%;background: {{ mod.readBarBg }};transition:width .4s ease"></span>
+            </span>
+            <span style="flex:none;min-width:44px;text-align:right;white-space:nowrap;font-weight:800;font-size:13.5px;color:#535252;font-variant-numeric:tabular-nums">{{ mod.pctTxt }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid rgba(29,30,27,.09);font-size:12.5px;color:#777671">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#777671" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><circle cx="12" cy="13" r="8"/><path d="M12 9.2V13l2.6 1.7M9.4 2.8h5.2"/></svg>
+            <span style="white-space:nowrap">{{ mod.parcouruLabel }} <strong data-rb-module-timer style="color:#1D1E1B;font-variant-numeric:tabular-nums">{{ mod.readMs }}</strong></span>
+            <span style="flex:1;min-width:0"></span>
+            <span style="white-space:nowrap">{{ mod.dureeLabel }} <strong style="color:#1D1E1B">{{ mod.estMs }}</strong></span>
           </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:12px">
           <sc-for list="{{ mod.sections }}" as="s" hint-placeholder-count="6">
             <div class="rb-lesson-item" data-rb-lesson-index="{{ s.index }}" data-rb-lesson-title="{{ s.title }}" style="background:#FFFFFF;border:1px solid rgba(29,30,27,.14);overflow:hidden;border-left:5px solid {{ s.accent }}">
-              <button class="rb-lesson-head" aria-expanded="{{ s.expanded }}" aria-controls="{{ s.panelId }}" onClick="{{ s.toggle }}" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:17px 20px;display:flex;align-items:center;gap:16px">
-                <span style="font-weight:700;font-size:12px;color:#989898;min-width:34px">{{ s.ref }}</span>
+              <div class="rb-lesson-row" style="display:flex;align-items:stretch;flex-wrap:wrap;gap:0">
+              <button class="rb-lesson-head" aria-expanded="{{ s.expanded }}" aria-controls="{{ s.panelId }}" onClick="{{ s.toggle }}" style="flex:1;min-width:0;text-align:left;background:none;border:none;cursor:pointer;padding:15px 6px 15px 18px;display:flex;align-items:center;gap:13px">
+                <span style="font-weight:700;font-size:12px;color:#989898;min-width:30px">{{ s.ref }}</span>
                 <span style="flex:1;min-width:0">
-                  <span style="display:block;font-weight:800;font-size:16px;line-height:1.25;color:#1D1E1B">{{ s.title }}</span>
-                  <span style="display:block;font-size:11.5px;line-height:1.35;color:#777671;margin-top:3px">{{ s.topic }}</span>
+                  <span style="display:block;font-weight:800;font-size:15.5px;line-height:1.25;color:#1D1E1B">{{ s.title }}</span>
+                  <span style="display:block;font-size:11.5px;line-height:1.35;color:#777671;margin-top:2px">{{ s.topic }} &middot; <span style="font-weight:700;color:#D92624">p. {{ s.page }}</span></span>
                 </span>
-                <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;background: {{ s.readBg }};color: {{ s.readFg }};border: {{ s.readBorder }};font-weight:900;font-size:12px">{{ s.readGlyph }}</span>
-                <span class="sr-only">{{ s.readSr }}</span>
-                <span style="font-weight:700;font-size:10.5px;letter-spacing:.04em;color:#D92624;white-space:nowrap">p. {{ s.page }}</span>
-                <span style="font-size:18px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
+                <span style="font-size:17px;color:#989898;transition:transform .2s;transform: {{ s.chevron }}">⌄</span>
               </button>
+              <button class="rb-lesson-mark" onClick="{{ s.markRead }}" aria-pressed="{{ s.expandedRead }}" title="{{ s.markTitle }}" style="flex:none;display:flex;align-items:center;gap:7px;max-width:112px;background:none;border:none;border-left:1px solid rgba(29,30,27,.1);cursor:pointer;padding:15px 11px;text-align:left">
+                <span aria-hidden="true" style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background: {{ s.readBg }};border: {{ s.readBorder }}">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ s.readFg }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: {{ s.checkDisplay }}"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+                </span>
+                <span style="font-weight:700;font-size:11px;line-height:1.2;color: {{ s.markFg }}">{{ s.markText }}</span>
+              </button>
+              </div>
 
               <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
               <div id="{{ s.panelId }}" role="region" aria-label="{{ s.title }}" style="padding:2px 20px 20px 20px;overflow-anchor:none;animation:rbFade .25s ease both">
                 <div style="border-top:1px solid rgba(29,30,27,.12);padding-top:16px;display:flex;flex-direction:column;gap:14px">
-                  <div style="padding:12px 15px;background:#F4F3EE;border-left:5px solid #1D1E1B">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
-                      <span aria-hidden="true" style="font-size:17px;line-height:1;flex:none">⏱</span>
-                      <span style="font-weight:800;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#535252">{{ s.readTimeLabel }}</span>
-                      <span data-rb-lesson-timer="{{ s.key }}" style="margin-left:auto;min-width:80px;text-align:right;white-space:nowrap;font-weight:800;font-size:19px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</span>
-                      <span style="white-space:nowrap;font-weight:700;font-size:12.5px;color:#777671">/ {{ s.estTime }}</span>
+                  <div style="padding:12px 11px;background:#F4F3EE;border:1px solid rgba(29,30,27,.1)">
+                    <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D1E1B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><circle cx="12" cy="13" r="8"/><path d="M12 9.2V13l2.6 1.7M9.4 2.8h5.2"/></svg>
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-weight:800;font-size:9px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;color:#777671">{{ s.progLabel }}</span>
+                        <span style="display:block;white-space:nowrap;margin-top:1px"><strong data-rb-lesson-timer="{{ s.key }}" style="font-weight:900;font-size:20px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readTime }}</strong> <span style="font-weight:700;font-size:12.5px;color:#777671">{{ s.ecouleLabel }}</span></span>
+                      </span>
+                      <span data-rb-lesson-pct="{{ s.key }}" style="flex:none;white-space:nowrap;font-weight:900;font-size:18px;color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.readPctTxt }}</span>
                     </div>
-                    <div style="height:8px;background:rgba(29,30,27,.12)">
+                    <div style="height:8px;background:rgba(29,30,27,.13)">
                       <div data-rb-lesson-bar="{{ s.key }}" style="height:100%;width: {{ s.readPct }}%;background: {{ s.readBarBg }};transition:width .4s linear"></div>
                     </div>
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#777671">
+                      <span style="white-space:nowrap">&#8776; <strong data-rb-lesson-rest="{{ s.key }}" style="color:#1D1E1B;font-variant-numeric:tabular-nums">{{ s.restTime }}</strong> {{ s.restLabel }}</span>
+                      <span style="white-space:nowrap">{{ s.estLabel }} <strong style="color:#1D1E1B">{{ s.estTime }}</strong></span>
+                    </div>
                   </div>
-                  <div style="font-size:12.5px;line-height:1.45;color:#989898;margin-top:-6px">{{ s.readHint }}</div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.4;color:#989898;margin-top:-6px">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A9A8A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.2M12 7.8h.01"/></svg>
+                    <span>{{ s.readHint }}</span>
+                  </div>
 
                                     <div class="rb-manual-details" style="border-top:1px solid rgba(29,30,27,.14);padding-top:2px">
                     <div style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
@@ -2402,7 +2442,7 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.65.0"></script>
-<script src="app.js?v=1.65.0"></script>
+<script src="interface.js?v=1.66.0"></script>
+<script src="app.js?v=1.66.0"></script>
 </body>
 </html>
