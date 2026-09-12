@@ -1,14 +1,15 @@
-/* LP RodBot V5. Camera positions and independent clips match the validated source viewer. */
+/* Camera positions and independent clips match the shared training model. */
+import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js';
 export const VIEWS = [
   { key: 'overview', orbit: '-35deg 70deg 110%' },
   { key: 'profile', orbit: '0deg 80deg 110%' },
   { key: 'basket', orbit: '140deg 64deg 110%' },
-  { key: 'screen', orbit: '210deg 75deg 55%', target: '-1.015m 1.45m -0.61m' },
-  { key: 'frontLevers', orbit: '-100deg 75deg 45%', target: '-1.45m 1.37m 0m' },
-  { key: 'sideLevers', orbit: '0deg 75deg 45%', target: '-1.02m 1.28m 0.66m' },
+  { key: 'screen', orbit: '210deg 75deg 55%', target: '-1.015m 1.217m -0.61m' },
+  { key: 'frontLevers', orbit: '-100deg 75deg 45%', target: '-1.45m 1.137m 0m' },
+  { key: 'sideLevers', orbit: '0deg 75deg 45%', target: '-1.02m 1.047m 0.66m' },
   { key: 'remote', orbit: '-30deg 65deg 1.5m', target: '-2.30m 1.442m 1.464m' },
   { key: 'tripod', orbit: '-30deg 70deg 3.8m', target: '-2.30m 0.822m 1.598m' },
-  { key: 'roger', orbit: '155deg 76deg 2.6m', target: '0.2692m 1.102m -0.727m' }
+  { key: 'roger', orbit: '155deg 76deg 2.6m', target: '0.2692m 0.869m -0.727m' }
 ];
 export const MOTIONS = [
   { id: 'turret', clip: 'Rotation_tourelle', min: -35, max: 35, initial: 0, unit: '°', reverse: false },
@@ -24,7 +25,7 @@ export function motionTime(motion, value) {
 }
 const TEXT = {
   fr: {
-    title: 'LP RodBot | Réplique 3D', skip: 'Aller au modèle 3D', training: 'Formation', scan: 'Scan de référence',
+    title: 'LP RodBot | Réplique 3D', skip: 'Aller au modèle 3D', training: 'Formation', scan: 'Simulations guidées',
     eyebrow: 'EXPLORATION DE L’ÉQUIPEMENT', replica: 'Réplique 3D', intro: 'Explore la télécommande, les marquages et les détails de la machine.',
     viewerLabel: 'Modèle 3D interactif', fullscreen: 'Plein écran', exitFullscreen: 'Quitter le plein écran',
     modelAlt: 'LP RodBot avec bras articulé, chenilles et télécommande noire sur un trépied jaune.',
@@ -42,7 +43,7 @@ const TEXT = {
     footer: 'Visualisation pour la formation. Les trajectoires de travail restent à valider.', lighting: 'Éclairage :', degrees: 'degrés', percent: 'pour cent', fullscreenUnavailable: 'Le plein écran est indisponible dans ce navigateur.'
   },
   en: {
-    title: 'LP RodBot | 3D replica', skip: 'Skip to the 3D model', training: 'Training', scan: 'Reference scan',
+    title: 'LP RodBot | 3D replica', skip: 'Skip to the 3D model', training: 'Training', scan: 'Guided simulations',
     eyebrow: 'EXPLORE THE EQUIPMENT', replica: '3D replica', intro: 'Explore the remote control, markings and machine details.',
     viewerLabel: 'Interactive 3D model', fullscreen: 'Full screen', exitFullscreen: 'Exit full screen',
     modelAlt: 'LP RodBot with an articulated arm, tracks and a black radio remote on a yellow tripod.',
@@ -277,9 +278,9 @@ setLanguage(lang, false);
 try {
   const { ModelViewerElement } = await import('../vendor/model-viewer-4.3.1.min.js');
   // Configure the local decoder before assigning src, so no GLB request races it.
-  ModelViewerElement.dracoDecoderLocation = new URL('../vendor/draco/', import.meta.url).href;
-  model.environmentImage = new URL('../assets/warehouse-v5.hdr', import.meta.url).href;
-  model.src = new URL('../assets/rodbot-v5.glb', import.meta.url).href;
+  ModelViewerElement.dracoDecoderLocation = DRACO_URL;
+  model.environmentImage = ENVIRONMENT_URL;
+  model.src = MODEL_URL;
 } catch (error) {
   console.error('RodBot viewer unavailable:', error);
   fail('errorModule');

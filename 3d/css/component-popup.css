@@ -1,0 +1,78 @@
+/* The component sheet lives in the native modal layer, centered on every screen. */
+#fiche.component-popup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: min(560px, calc(100vw - 32px));
+  height: fit-content;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--text);
+  background: #171d25;
+  border: 1px solid #46505e;
+  border-radius: 16px;
+  box-shadow: 0 24px 90px #0009;
+  transform: none;
+  visibility: visible;
+  transition: none;
+  backdrop-filter: none;
+}
+#fiche.component-popup[open] { display: flex; }
+#fiche::backdrop { background: rgb(4 8 14 / 64%); }
+#fiche .fiche-head { padding: 24px 70px 18px 24px; }
+#fiche .fiche-title {
+  padding-right: 0;
+  margin-top: 10px;
+  font-size: 1.65rem;
+  line-height: 1.15;
+  text-transform: none;
+}
+#fiche .fiche-close {
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #303944;
+}
+#fiche .fiche-close:hover { transform: none; background: #45515f; }
+#fiche .fiche-body {
+  min-height: 0;
+  padding: 20px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#fiche .fiche-desc { margin-bottom: 18px; font-size: 1rem; line-height: 1.6; }
+#fiche .fiche-manuel {
+  gap: 12px;
+  padding: 14px;
+  margin-top: 18px;
+  border-color: #424c59;
+  border-radius: 9px;
+  background: #202934;
+}
+#fiche .fm-info { min-width: 0; }
+#fiche .fm-ref { overflow-wrap: anywhere; }
+#fiche .fiche-nav { gap: 8px; padding: 16px 24px; background: #121820; }
+#fiche .btn, #fiche .vbtn { min-height: 44px; font-size: .95rem; border-radius: 7px; }
+#fiche .fiche-nav .btn { min-width: 0; padding: 10px 12px; }
+#fiche .fiche-tour:empty { display: none; }
+#fiche .tour-player { margin: 0; padding: 16px 24px; background: #202934; border: 0; }
+#fiche .tour-player[hidden] { display: none; }
+#fiche .tour-info { min-width: 100px; }
+#fiche .tour-etat { font-size: .9rem; }
+#fiche :focus-visible { outline: 3px solid #f6c85b; outline-offset: 3px; }
+@media (max-width: 480px) {
+  #fiche.component-popup { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 12px; }
+  #fiche .fiche-head { padding: 20px 62px 16px 18px; }
+  #fiche .fiche-title { font-size: 1.45rem; }
+  #fiche .fiche-body { padding: 16px 18px; }
+  #fiche .fiche-manuel { padding: 12px; }
+  #fiche .fiche-manuel .btn { width: 100%; }
+  #fiche .fiche-nav { padding: 14px 12px; gap: 6px; }
+  #fiche .fiche-nav .btn { padding: 8px; font-size: .9rem; }
+  #fiche .tour-player { padding: 12px; }
+}

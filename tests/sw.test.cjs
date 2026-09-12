@@ -119,7 +119,7 @@ test('activation deletes only old RodBot caches', async () => {
 test('3d controls and animations load offline immediately after installation', async () => {
   const h = harness();
   await h.lifecycle('install');
-  for (const file of ['3d/css/viewer.css', '3d/js/viewer.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots.js']) {
+  for (const file of ['3d/css/viewer.css', '3d/css/training.css', '3d/js/viewer-v5.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots-v6.js', '3d/js/training-ui.js', '3d/js/simulation-state.js', '3d/js/hero-v6.js', '3d/js/model-assets.js', '3d/vendor/model-viewer-4.3.1.min.js', '3d/vendor/draco/draco_wasm_wrapper.js']) {
     assert.ok(h.precached.includes(BASE + file), `${file} must be precached`);
     const response = await h.request(`${file}?v=1.61.0`);
     assert.equal(await response.text(), `core:./${file}`);
@@ -233,7 +233,7 @@ test('3d entry and viewer scripts work offline immediately after core installati
   for (const path of ['3d/', '3d/index.html?embedded=1']) {
     assert.equal(await (await h.request(path, { mode: 'navigate' })).text(), 'core:./3d/index.html');
   }
-  assert.equal(await (await h.request('3d/js/viewer.js?v=1.60.0')).text(), 'core:./3d/js/viewer.js');
+  assert.equal(await (await h.request('3d/js/viewer-v5.js?v=1.70.0')).text(), 'core:./3d/js/viewer-v5.js');
   assert.equal((await h.request('3d/js/missing.js')).type, 'error');
 });
 
@@ -249,9 +249,9 @@ test('replica language URLs share their own visited document offline', async () 
   }
 });
 
-test('V5 assets load on demand and remain in the stable cache after activation', async () => {
+test('the articulated model and HDR load on demand and survive activation', async () => {
   const h = harness();
-  const assets = ['3d/assets/rodbot-v5.glb', '3d/assets/warehouse-v5.hdr', '3d/vendor/draco/draco_decoder.wasm'];
+  const assets = ['3d/assets/rodbot-training-v6.glb', '3d/assets/warehouse-v5.hdr'];
   await h.lifecycle('install');
   await h.lifecycle('activate');
   for (const file of assets) {

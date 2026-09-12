@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="description" content="Dimensions documentées du LP RodBot, références de la réplique et périmètre des exercices de familiarisation.">
+  <title>Références et dimensions | LP RodBot</title>
+  <link rel="icon" href="../icon-192.png">
+  <link rel="stylesheet" href="./css/styles.css">
+  <style>
+    .reference-page{font-size:1rem}
+    .reference-page .site-header{position:relative;height:auto;min-height:64px;padding:1rem clamp(1rem,3vw,2rem);flex-wrap:wrap}
+    .reference-page .brand-logo{font-size:1.5rem;letter-spacing:.025em;text-transform:none}
+    .reference-page .brand-sub{display:block;font:500 .875rem/1.4 var(--font-body);color:var(--muted);margin-top:.25rem}
+    .reference-page .header-nav{flex-wrap:wrap;gap:.35rem}
+    .reference-page .nav-link{min-height:44px;font-size:1rem;padding:.5rem .8rem}
+    .reference-page main{max-width:1060px;margin:auto;padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2rem)}
+    .reference-page h1{font-family:var(--font-display);font-size:clamp(2.2rem,6vw,3.2rem);line-height:1.08;margin:.2rem 0 1rem}
+    .reference-page h2{font-family:var(--font-display);font-size:1.65rem;line-height:1.2;margin-bottom:1rem}
+    .reference-page h3{font-size:1.125rem;line-height:1.4;margin-bottom:.55rem}
+    .reference-page p{max-width:78ch;margin-bottom:1rem}
+    .reference-page .intro{color:#cbd5e1;max-width:76ch}
+    .reference-page .section-label{font-size:.875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ef8687;margin:0}
+    .reference-page section{padding:2rem 0 0;margin-top:1.75rem;border-top:1px solid var(--border)}
+    .reference-page section+section::before{display:none}
+    .reference-page main a:not(.btn){color:#f2a7a8;text-decoration:underline;text-underline-offset:.2em;text-decoration-thickness:1px}
+    .reference-page main a:not(.btn):hover{color:#fff}
+    .reference-page .source-line,.reference-page .note{color:#c2cbd9}
+    .reference-page .source-line{font-size:.9375rem}
+    .reference-page .table-wrap{max-width:100%;overflow-x:auto;border:1px solid #334155;border-radius:10px}
+    .reference-page table{width:100%;border-collapse:collapse;font-size:1rem;line-height:1.45}
+    .reference-page caption{text-align:left;padding:1rem;background:var(--card);font-weight:500;color:#cbd5e1}
+    .reference-page th,.reference-page td{text-align:left;padding:.7rem 1rem;border-top:1px solid #293548;vertical-align:top}
+    .reference-page thead th{background:#1a2332;font-weight:700;color:#fff}
+    .reference-page tbody th{font-weight:500;width:49%}
+    .reference-page tbody td{font-variant-numeric:tabular-nums}
+    .reference-page tbody tr:nth-child(even){background:#111827}
+    .reference-page .unit{white-space:nowrap}
+    .reference-page .interpretation{margin:1.25rem 0 0;padding:1.1rem 1.25rem;border-left:3px solid #e26163;background:#111827}
+    .reference-page .interpretation p:last-child{margin-bottom:0}
+    .reference-page .scope-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+    .reference-page .scope-block{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:1.25rem}
+    .reference-page ul{padding-left:1.25rem;margin:.75rem 0 1rem}
+    .reference-page li+li{margin-top:.5rem}
+    .reference-page .manual-links{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem;margin:1.25rem 0}
+    .reference-page .manual-links a{display:inline-flex;align-items:center;min-height:44px}
+    .reference-page .return{margin-top:1.5rem}
+    .reference-page footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.9375rem;color:var(--muted)}
+    @media(max-width:600px){
+      .reference-page .site-header{align-items:flex-start;gap:.5rem}
+      .reference-page .header-nav{margin-left:0;width:100%}
+      .reference-page .nav-link{padding-left:0;padding-right:1rem}
+      .reference-page .scope-grid{grid-template-columns:1fr}
+      .reference-page th,.reference-page td{padding:.65rem .6rem}
+      .reference-page tbody th{width:43%}
+      .reference-page .unit{white-space:normal}
+      .reference-page .return .btn{width:100%}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body class="reference-page">
+  <a class="skip" href="#references">Aller aux références</a>
+  <header class="site-header">
+    <a href="../index.html" aria-label="RodBot : accueil de la formation">
+      <span class="brand-logo">Rod<span class="u8">Bot</span></span>
+      <span class="brand-sub">Machines Roger International</span>
+    </a>
+    <nav class="header-nav" aria-label="Navigation principale">
+      <a class="nav-link" href="./?exercise=direct">Exercices 3D</a>
+      <a class="nav-link" href="./replique.html">Explorer la réplique</a>
+    </nav>
+  </header>
+
+  <main id="references" tabindex="-1">
+    <p class="section-label">LP RodBot</p>
+    <h1>Références et dimensions</h1>
+    <p class="intro">La réplique s’appuie sur la vidéo, les photos et le manuel fourni. Les tableaux présentent les cotes du manuel. Le contrôle dimensionnel du modèle reste partiel.</p>
+    <p class="source-line">Manuel BM260024 · Machines Roger International · révision R0 du 7 juillet 2026.</p>
+    <p><a href="./assets/inventaire-v6.md" download>Consulter l’inventaire des détails et des écarts restants</a></p>
+
+    <section aria-labelledby="dimensions-title">
+      <h2 id="dimensions-title">Cotes de référence</h2>
+      <div class="table-wrap" role="region" aria-label="Tableau des cotes du manuel" tabindex="0">
+        <table>
+          <caption>Caractéristiques techniques : <a href="../img/manual/p08.jpg">manuel p. 8</a> et <a href="../img/manual/p09.jpg">p. 9</a>. Conversions : 1 po = 25,4 mm ; 1 pi = 304,8 mm.</caption>
+          <thead><tr><th scope="col">Cote</th><th scope="col">Manuel</th><th scope="col">En millimètres</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Longueur machine</th><td><span class="unit">116 po</span></td><td>2 946,4</td></tr>
+            <tr><th scope="row">Largeur machine</th><td><span class="unit">60 po</span></td><td>1 524</td></tr>
+            <tr><th scope="row">Hauteur minimale</th><td><span class="unit">90 po</span></td><td>2 286</td></tr>
+            <tr><th scope="row">Garde au sol</th><td><span class="unit">10 po</span></td><td>254</td></tr>
+            <tr><th scope="row">Longueur des chenilles <a href="#chenilles-note" aria-label="Précision sur la longueur des chenilles">(1)</a></th><td><span class="unit">71 po</span></td><td>1 803,4</td></tr>
+            <tr><th scope="row">Écartement des chenilles <a href="#ecartement-note" aria-label="Précision sur l’écartement des chenilles">(2)</a></th><td><span class="unit">46 po</span></td><td>1 168,4</td></tr>
+            <tr><th scope="row">Largeur d’une chenille</th><td><span class="unit">12 po</span></td><td>304,8</td></tr>
+            <tr><th scope="row">Course des stabilisateurs</th><td><span class="unit">10,5 po</span></td><td>266,7</td></tr>
+            <tr><th scope="row">Diamètre des tiges</th><td><span class="unit">5 po</span></td><td>127</td></tr>
+            <tr><th scope="row">Longueur des tiges</th><td><span class="unit">6 pi</span></td><td>1 828,8</td></tr>
+            <tr><th scope="row">Portée verticale maximale, tige verticale, depuis le sol</th><td><span class="unit">159 po</span></td><td>4 038,6</td></tr>
+            <tr><th scope="row">Portée horizontale maximale depuis l’axe central</th><td><span class="unit">119 po</span></td><td>3 022,6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="interpretation">
+        <h3 id="chenilles-note">1 · Partie droite et longueur extérieure</h3>
+        <p>Le tableau indique « longueur des chenilles : 71 po », sans préciser les extrémités de mesure. Pour le recalage de la réplique, ces 71 po servent de référence à la portion droite, par interprétation de la <a href="../img/manual/p79.jpg">vue latérale p. 79</a>. La longueur extérieure, qui comprend les extrémités arrondies, reste déduite du dessin. Cette interprétation doit être confirmée par une mesure de l’équipement.</p>
+      </div>
+      <div class="interpretation">
+        <h3 id="ecartement-note">2 · Écartement entre chenilles</h3>
+        <p>Les 46 po sont interprétés comme la distance entre les axes des chenilles : avec une bande de 12 po, la largeur extérieure devient 58 po, cohérente avec les 60 po de la machine. Le manuel ne montre pas de cote transversale confirmant ces points de mesure.</p>
+      </div>
+      <p class="note" style="margin-top:1.25rem">La course de 10,5 po correspond au déplacement d’un stabilisateur, pas à la longueur de son corps. La hauteur minimale et les portées doivent être comparées dans les postures correspondantes.</p>
+    </section>
+
+    <section aria-labelledby="precision-title">
+      <h2 id="precision-title">Ce qui reste estimé</h2>
+      <p>La largeur des chenilles, la course des stabilisateurs et les fourreaux ont été recalés. La garde au sol est mesurée sous les traverses basses. Les 71 et 46 po restent des interprétations du manuel, expliquées plus haut.</p>
+      <p>L’encombrement complet, les tiges et les proportions verticales restent à affiner. Les articulations non cotées, les épaisseurs et les parties cachées restent estimées.</p>
+      <p>Les couleurs, logos et matières suivent les références visibles. Les traces d’usure, les minuscules inscriptions illisibles et les faces non filmées ne peuvent pas être reproduites à l’identique. La réplique est un support visuel ; elle n’est pas un plan de fabrication ni un modèle mesuré et certifié.</p>
+    </section>
+
+    <section aria-labelledby="scope-title">
+      <h2 id="scope-title">Périmètre des exercices</h2>
+      <div class="scope-grid">
+        <div class="scope-block">
+          <h3>À essayer dans l’atelier</h3>
+          <ul>
+            <li>Repérer les quatre arrêts d’urgence, la radio et les leviers manuels.</li>
+            <li>Comparer LOCAL et REMOTE ; distinguer déverrouillage et réarmement.</li>
+            <li>En DIRECT, lever et pivoter le bras avec JS1, puis incliner le poignet avec JS3.</li>
+            <li>Associer le bouton vert PINCE à JS2 : maintien d’au moins une seconde pour ouvrir, impulsion pour commander la fermeture.</li>
+            <li>Observer l’arrêt d’un mouvement et le retour des manettes au neutre.</li>
+            <li>Ouvrir le coffret IHM et repérer ses principaux éléments. Puis refermer sa porte.</li>
+          </ul>
+        </div>
+        <div class="scope-block">
+          <h3>À consulter dans le manuel</h3>
+          <p>La conduite des chenilles, la commande opérationnelle des stabilisateurs, le télescope, les modes LINÉAIRE et TRAJECTOIRE, l’électroaimant et la manutention d’une tige chargée ne sont pas simulés dans ces exercices.</p>
+          <p>Les leviers manuels peuvent être observés en mouvement, mais leurs fonctions hydrauliques ne sont pas reproduites. Les amplitudes et vitesses d’animation restent illustratives.</p>
+        </div>
+      </div>
+      <p class="note" style="margin-top:1.25rem">Les alimentations et la liaison radio sont supposées établies. La vérification de zone libre est une étape pédagogique, sans détection de personnes. Cet atelier sert à se familiariser avec les commandes et ne valide pas l’aptitude à conduire la machine.</p>
+      <nav class="manual-links" aria-label="Pages de référence du manuel">
+        <a href="../img/manual/p14.jpg">Intérieur du coffret · p. 14</a>
+        <a href="../img/manual/p22.jpg">Commandes DIRECT · p. 22</a>
+        <a href="../img/manual/p55.jpg">Commande de pince · p. 55</a>
+        <a href="../img/manual/p79.jpg">Vue cotée et fourreaux · p. 79</a>
+      </nav>
+      <div class="return"><a class="btn" href="./?exercise=direct">Revenir aux exercices 3D</a></div>
+    </section>
+    <footer><p>Références : manuel opérateur fourni, photographies et vidéo de l’équipement Machines Roger.</p></footer>
+  </main>
+</body>
+</html>

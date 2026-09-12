@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RodBot 3D : Manipulateur de tiges robotisé | Machines Roger International</title>
-  <meta name="description" content="Explore le RodBot en 3D : le manipulateur de tiges robotisé pour le forage souterrain, scanné en 3D chez Machines Roger International.">
+  <title>RodBot 3D : exploration et simulations | Machines Roger International</title>
+  <meta name="description" content="Explore la réplique du RodBot. Repère les commandes et pratique les gestes dans les simulations.">
   <meta name="theme-color" content="#0a0e17">
   <meta name="color-scheme" content="dark">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="fr_CA">
   <meta property="og:title" content="RodBot 3D : Manipulateur de tiges robotisé | Machines Roger International">
-  <meta property="og:description" content="Explore le RodBot en 3D : le manipulateur de tiges robotisé pour le forage souterrain, scanné en 3D chez Machines Roger International.">
-  <meta property="og:image" content="./assets/previews/og.jpg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:description" content="Explore la réplique du RodBot. Repère les commandes et pratique les gestes dans les simulations.">
+  <meta property="og:image" content="./assets/rodbot-v6-c9499d45-poster.jpg">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="960">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="./assets/previews/og.jpg">
+  <meta name="twitter:image" content="./assets/rodbot-v6-c9499d45-poster.jpg">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0e17'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23d22325' stroke='%23ffffff' stroke-width='4'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.69.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.69.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.70.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.70.0">
+  <link rel="stylesheet" href="./css/training.css?v=1.70.0">
+  <link rel="stylesheet" href="./css/component-popup.css?v=1.70.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -31,7 +33,7 @@
       <span class="brand-sub">Machines Roger International</span></a>
     <span class="header-tag">Exploration 3D</span>
     <nav class="header-nav" aria-label="Navigation principale">
-      <a class="nav-link" href="./replique.html">Réplique détaillée</a>
+      <a class="nav-link" href="./replique.html">Vue libre</a>
       <a class="nav-link" href="../">Formation</a>
     </nav>
   </header>
@@ -41,21 +43,23 @@
     <!-- ============ HÉROS ============ -->
     <section class="hero" id="accueil">
       <div class="hero-video" aria-hidden="true">
-        <video id="heroClip" autoplay muted loop playsinline preload="metadata"
-               poster="./assets/previews/hero_poster.jpg">
-          <source src="./assets/videos/hero_rodbot.mp4" type="video/mp4">
-          <source src="./assets/videos/hero_rodbot.webm" type="video/webm">
-        </video>
+        <model-viewer id="heroClip" class="hero-model" tabindex="-1"
+          poster="./assets/rodbot-v6-c9499d45-poster.jpg" alt="Présentation animée de la réplique du RodBot"
+          camera-orbit="-50deg 70deg 100%" field-of-view="30deg"
+          shadow-intensity="1" shadow-softness="0.8" exposure="1" tone-mapping="agx"
+          animation-name="Presentation_360" interaction-prompt="none" loading="lazy">
+          <span slot="progress-bar"></span>
+        </model-viewer>
         <div class="hero-scrim"></div>
       </div>
       <div class="wrap hero-content">
         <span class="eyebrow">Formation 3D interactive</span>
         <h1>Découvre le <span class="hl">LP RodBot</span></h1>
-        <p>Le manipulateur de tiges robotisé qui garde les mains loin des tiges. Scanné en 3D chez Machines Roger International : tourne autour, clique chaque composant et arrive à ta formation déjà prêt.</p>
+        <p>Repère les commandes. Observe les articulations. Essaie les gestes sur la réplique de formation.</p>
         <div class="hero-actions">
-          <a class="btn lg" href="./replique.html">Voir la réplique détaillée</a>
-          <a class="btn lg" href="#explorer">Explorer le scan</a>
-          <button id="heroPause" class="vbtn" type="button" aria-pressed="false">Pause vidéo</button>
+          <a class="btn lg" id="heroPractice" href="#explorer">Pratiquer en 3D</a>
+          <a class="btn lg ghost" id="heroExplore" href="#explorer">Explorer les composants</a>
+          <button id="heroPause" class="vbtn" type="button" aria-pressed="false">Pause animation</button>
         </div>
       </div>
       <button class="scroll-cue" id="scrollCue" type="button">Défiler<span aria-hidden="true">&darr;</span></button>
@@ -64,25 +68,28 @@
     <!-- ============ VIEWER 3D ============ -->
     <section id="explorer" class="viewer-section" aria-labelledby="explorerTitre">
       <div class="wrap">
-        <span class="eyebrow">Scan 3D réel</span>
-        <h2 class="title" id="explorerTitre">Explore le RodBot sous tous ses angles</h2>
-        <p class="lead">Choisis ton parcours : les <strong>composants</strong> (pastilles numérotées) ou les <strong>arrêts d'urgence</strong> (anneaux orangés qui encerclent chaque bouton). Chaque point : un résumé bref, puis la page du manuel.</p>
+        <span class="eyebrow">Explorer et pratiquer</span>
+        <h2 class="title" id="explorerTitre">Prends les commandes du RodBot virtuel</h2>
+        <p class="lead">Choisis les composants, les arrêts d’urgence ou un exercice. Touche une puce pour découvrir sa commande.</p>
+        <p class="training-title-note"><a href="./fidelite.html">Références, dimensions et fidélité du modèle ↗</a></p>
 
         <div class="mode-bar" role="group" aria-label="Choix du parcours">
           <button class="mode-btn is-on" id="modeComposants" type="button" aria-pressed="true">🔧 Composants <span class="mn">7</span></button>
           <button class="mode-btn mode-btn--urg" id="modeUrgences" type="button" aria-pressed="false">🚨 Arrêts d'urgence <span class="mn">4</span></button>
+          <button class="mode-btn mode-btn--sim" id="modeSimulation" type="button" aria-pressed="false" disabled>🕹️ Simulations</button>
           <label class="quality-choice" for="qualitySelect">Rendu <select id="qualitySelect" disabled><option value="mobile">Fluide</option><option value="hq">Détaillé</option></select></label>
         </div>
 
+        <div class="training-workbench">
         <div class="viewer-wrap" id="viewerStage" aria-busy="true">
-          <canvas id="canvas3d" tabindex="0" aria-label="Vue 3D du RodBot" aria-describedby="viewerInstructions"></canvas>
+          <model-viewer id="canvas3d" tabindex="0" alt="Réplique articulée du LP RodBot" aria-describedby="viewerInstructions" poster="./assets/rodbot-v6-c9499d45-poster.jpg"><span slot="progress-bar"></span></model-viewer>
           <div class="hs-overlay" id="hsOverlay"></div>
-          <div class="viewer-status"><span class="viewer-status-dot"></span><span id="renderStatus" role="status">Préparation du scan</span></div>
+          <div class="viewer-status"><span class="viewer-status-dot"></span><span id="renderStatus" role="status">Préparation du modèle</span></div>
           <div class="viewer-loader" id="viewerLoader">
-            <div class="loader-title">Chargement du scan 3D</div>
+            <div class="loader-title">Chargement de la réplique</div>
             <div class="loader-bar"><i id="loaderFill"></i></div>
             <div class="loader-pct" id="loaderPct">0&nbsp;%</div>
-            <div class="loader-txt">Scan 3D réel du RodBot</div>
+            <div class="loader-txt">Modèle articulé du RodBot</div>
           </div>
           <div class="viewer-fallback" id="viewerFallback" hidden>
             <h3>Affichage 3D indisponible</h3>
@@ -98,6 +105,8 @@
             <button class="vbtn" id="btnHotspots" type="button" aria-pressed="true" disabled>Repères</button>
           </div>
           <button class="vbtn vbtn-icon" id="btnFullscreen" type="button" aria-label="Afficher en plein écran">⛶</button>
+        </div>
+        <section class="training-panel" id="trainingPanel" aria-label="Exercices de familiarisation" hidden></section>
         </div>
         <div class="tour-player" role="group" aria-label="Visite guidée">
           <button class="vbtn" id="btnTourUrgences" type="button" disabled>Démarrer la visite</button>
@@ -116,7 +125,7 @@
       <div class="wrap">
         <span class="eyebrow">L'équipement : en un coup d'œil</span>
         <h2 class="title" id="equipTitre">Trouver les pièces sur la machine</h2>
-        <p class="lead">Figures et écrans du manuel : clique une carte pour l'agrandir (zoome et déplace-toi dedans), ou saute directement au composant sur le scan 3D.</p>
+        <p class="lead">Figures et écrans du manuel : clique une carte pour l'agrandir (zoome et déplace-toi dedans), ou saute directement au composant sur le modèle 3D.</p>
         <div class="eq-grid">
           <article class="eq-card">
             <button class="eq-frame" type="button" data-fig="0" aria-label="Agrandir : la vraie machine">
@@ -126,7 +135,7 @@
             <div class="eq-body">
               <div class="eq-tag">La vraie machine</div>
               <p class="eq-desc">Le RodBot LP en atelier : bras robotisé rouge, bac à tiges et base sur chenilles, l'ensemble que tu piloteras.</p>
-              <button class="vbtn eq-3d" type="button" data-cible="home">Voir sur le scan 3D</button>
+              <button class="vbtn eq-3d" type="button" data-cible="home">Voir sur le modèle 3D</button>
             </div>
           </article>
           <article class="eq-card">
@@ -137,7 +146,7 @@
             <div class="eq-body">
               <div class="eq-tag">La télécommande</div>
               <p class="eq-desc">Schéma complet de la radio-télécommande (RRC) : joysticks JS1-JS3, modes, arrêt d'urgence, klaxon, aimant, grappin.</p>
-              <button class="vbtn eq-3d" type="button" data-cible="remote">Voir sur le scan 3D</button>
+              <button class="vbtn eq-3d" type="button" data-cible="remote">Voir sur le modèle 3D</button>
             </div>
           </article>
           <article class="eq-card">
@@ -148,7 +157,7 @@
             <div class="eq-body">
               <div class="eq-tag">L'IHM embarquée</div>
               <p class="eq-desc">L'écran tactile du panneau : modes, diagnostics, alarmes et calibrage.</p>
-              <button class="vbtn eq-3d" type="button" data-cible="elec">Voir sur le scan 3D</button>
+              <button class="vbtn eq-3d" type="button" data-cible="elec">Voir sur le modèle 3D</button>
             </div>
           </article>
           <article class="eq-card">
@@ -159,7 +168,7 @@
             <div class="eq-body">
               <div class="eq-tag">Le bac à tiges</div>
               <p class="eq-desc">Plateau amovible de 35 tiges, pattes de retenue latérales et fourreaux de fourches pour la manutention.</p>
-              <button class="vbtn eq-3d" type="button" data-cible="panier">Voir sur le scan 3D</button>
+              <button class="vbtn eq-3d" type="button" data-cible="panier">Voir sur le modèle 3D</button>
             </div>
           </article>
         </div>
@@ -169,15 +178,15 @@
   </main>
 
   <!-- ============ FICHE COMPOSANT ============ -->
-  <aside class="fiche" id="fiche" role="region" aria-labelledby="ficheTitle">
-    <div class="fiche-grip" aria-hidden="true"></div>
+  <dialog class="fiche component-popup" id="fiche" aria-labelledby="ficheTitle" aria-describedby="ficheDesc">
     <div class="fiche-head">
       <span class="fiche-kicker"><span class="n" id="ficheNum">1</span> Composant</span>
-      <h2 class="fiche-title" id="ficheTitle">Bras robotisé</h2>
+      <h2 class="fiche-title" id="ficheTitle" aria-live="polite">Bras robotisé</h2>
       <button class="fiche-close" id="ficheClose" type="button" aria-label="Fermer la fiche">&times;</button>
     </div>
     <div class="fiche-body">
       <p class="fiche-desc" id="ficheDesc"></p>
+      <button class="btn ghost sm" id="fichePanel" type="button" hidden>Explorer le coffret</button>
       <div class="fiche-manuel">
         <div class="fm-info">
           <span class="fm-ic" aria-hidden="true">📖</span>
@@ -194,7 +203,8 @@
       <button class="btn ghost sm" id="fichePhoto" type="button" hidden>📷 Photo</button>
       <button class="btn sm" id="ficheNext" type="button" aria-label="Composant suivant">Suivant</button>
     </div>
-  </aside>
+    <div class="fiche-tour" id="ficheTour"></div>
+  </dialog>
 
   <!-- ============ PHOTO INTERACTIVE ============ -->
   <div class="photobox" id="photobox" role="dialog" aria-modal="true" aria-labelledby="photoboxTitre">
@@ -228,8 +238,8 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.69.0</span>
-        <span>Scan 3D réel. © 2026 Machines Roger International.</span>
+        <span id="rbSiteVer">Version 1.70.0</span>
+        <span>Réplique de formation. © 2026 Machines Roger International.</span>
       </div>
     </div>
   </footer>
@@ -369,41 +379,11 @@
     const FLY = REDUIT ? 1 : 1100;
     const FLY_HOME = REDUIT ? 1 : 900;
 
-    /* ---------- Héros : vidéo de fond avec repli affiche ----------
-       Une erreur de décodage transitoire peut survenir au chargement progressif :
-       on retente une fois avant de masquer la vidéo (l'affiche prend le relais). */
-    const heroClip = document.getElementById('heroClip');
-    if (heroClip) {
-      const heroPause = document.getElementById('heroPause');
-      let videoPaused = REDUIT, heroVisible = false;
-      const synchroniserVideo = () => {
-        const jouer = !videoPaused && heroVisible && !document.hidden;
-        if (jouer) heroClip.play().catch(() => {}); else heroClip.pause();
-        heroPause.textContent = videoPaused ? 'Lire la vidéo' : 'Pause vidéo';
-        heroPause.setAttribute('aria-pressed', String(videoPaused));
-      };
-      heroPause.addEventListener('click', () => { videoPaused = !videoPaused; synchroniserVideo(); });
-      const heroObserver = new IntersectionObserver(([entry]) => { heroVisible = entry.isIntersecting; synchroniserVideo(); });
-      heroObserver.observe(heroClip);
-      document.addEventListener('visibilitychange', synchroniserVideo);
-      motionPreference.addEventListener('change', event => { if (event.matches) videoPaused = true; synchroniserVideo(); });
-      const masquerVideo = () => { heroClip.style.display = 'none'; heroPause.hidden = true; heroObserver.disconnect(); };
-      let heroRetente = false;
-      const surErreurVideo = () => {
-        if (!heroRetente) {
-          heroRetente = true;
-          setTimeout(() => { heroClip.load(); synchroniserVideo(); }, 800);
-          return;
-        }
-        masquerVideo();
-      };
-      heroClip.addEventListener('error', surErreurVideo);
-      const sources = heroClip.querySelectorAll('source');
-      if (sources.length) sources[sources.length - 1].addEventListener('error', surErreurVideo);
-      if (heroClip.error) surErreurVideo();
-      heroClip.removeAttribute('autoplay');
-      synchroniserVideo();
-    }
+    // The hero uses the same GLB as the interactive training scene.
+    let heroPresentation = null;
+    import('./js/hero-v6.js?v=1.70.0').then(({createHero}) => {
+      heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'));
+    }).catch(() => { document.getElementById('heroPause').hidden = true; });
     const scrollCue = document.getElementById('scrollCue');
     if (scrollCue) scrollCue.addEventListener('click', () => {
       const cible = document.getElementById('explorer');
@@ -436,7 +416,7 @@
       if (loader) loader.classList.add('hide');
       if (fallback) { fallback.hidden = false; fallback.classList.add('show'); }
       document.getElementById('viewerStage').setAttribute('aria-busy', 'false');
-      document.getElementById('renderStatus').textContent = 'Scan 3D indisponible. Les photos restent accessibles.';
+      document.getElementById('renderStatus').textContent = 'Modèle 3D indisponible. Les photos restent accessibles.';
       document.querySelectorAll('.viewer-controls button, .mode-bar button, .tour-player button, .eq-3d, #qualitySelect').forEach(control => { control.disabled = true; });
       const ctrl = document.querySelector('.viewer-controls');
       if (ctrl) ctrl.style.display = 'none';
@@ -514,9 +494,20 @@
     const clampNb = (v, a, b) => Math.max(a, Math.min(b, v));
 
     const pbVues = document.getElementById('pbVues');
+    let photoReturnFocus = null;
+    const photoBackground = new Map();
     function ouvrirPhoto(ph) {
       if (!ph) return;
       photoPause?.();
+      if (!photobox.classList.contains('open')) {
+        photoReturnFocus = document.activeElement;
+        // A modal photo must also block keyboard access to the training controls.
+        for (const node of document.body.children) {
+          if (node === photobox || node.contains(photobox)) continue;
+          photoBackground.set(node, node.inert);
+          node.inert = true;
+        }
+      }
       /* une photo simple {src,points} ou plusieurs vues commutables {vues:[...]} */
       const vues = ph.vues || [{ label: null, src: ph.src, alt: ph.alt, points: ph.points }];
       pbTitre.textContent = ph.titre;
@@ -574,6 +565,10 @@
     function fermerPhoto() {
       photobox.classList.remove('open');
       document.body.style.overflow = '';
+      for (const [node, inert] of photoBackground) node.inert = inert;
+      photoBackground.clear();
+      if (photoReturnFocus?.isConnected) photoReturnFocus.focus({ preventScroll: true });
+      photoReturnFocus = null;
     }
     pbFermer.addEventListener('click', fermerPhoto);
     pbBascule.addEventListener('click', () => {
@@ -662,13 +657,82 @@
       }
     });
 
+    /* Component popup controller: native modality keeps keyboard focus inside the sheet. */
+    function createComponentPopup({ dialog, closeButton, tourPlayer, tourSlot, fallbackFocus, onDismiss, onClosed }) {
+      const tourHome = document.createComment('Emplacement de la visite guidée');
+      tourPlayer.before(tourHome);
+      let active = false;
+      let returnFocus = null;
+      let previousOverflow = '';
+      let tourActive = false;
+      let backdropPressed = false;
+
+      function finishClose() {
+        if (!active) return;
+        active = false;
+        backdropPressed = false;
+        dialog.classList.remove('open');
+        // Restore the original tour buttons before returning focus to their launcher.
+        tourHome.after(tourPlayer);
+        tourPlayer.hidden = false;
+        document.body.style.overflow = previousOverflow;
+        const target = returnFocus?.isConnected ? returnFocus : fallbackFocus();
+        returnFocus = null;
+        onClosed?.();
+        target?.focus({ preventScroll: true });
+      }
+
+      function close() {
+        if (!active) return;
+        if (dialog.open) dialog.close();
+        // Native close events are queued: finish now before a photo modal takes focus.
+        finishClose();
+      }
+
+      function open() {
+        if (dialog.open) return;
+        const focused = document.activeElement;
+        returnFocus = focused && focused !== document.body ? focused : fallbackFocus();
+        previousOverflow = document.body.style.overflow;
+        active = true;
+        tourSlot.append(tourPlayer);
+        tourPlayer.hidden = !tourActive;
+        document.body.style.overflow = 'hidden';
+        dialog.classList.add('open');
+        dialog.showModal();
+        closeButton.focus({ preventScroll: true });
+      }
+
+      function dismiss() { onDismiss?.(); close(); }
+      function outside(event) {
+        const r = dialog.getBoundingClientRect();
+        return event.target === dialog && (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom);
+      }
+      closeButton.addEventListener('click', dismiss);
+      dialog.addEventListener('cancel', event => { event.preventDefault(); dismiss(); });
+      dialog.addEventListener('close', () => { if (!dialog.open) finishClose(); });
+      dialog.addEventListener('pointerdown', event => { backdropPressed = outside(event); });
+      dialog.addEventListener('pointercancel', () => { backdropPressed = false; });
+      dialog.addEventListener('click', event => {
+        const shouldClose = backdropPressed && outside(event);
+        backdropPressed = false;
+        if (shouldClose) dismiss();
+      });
+
+      return {
+        open, close,
+        setTourActive(value) { tourActive = Boolean(value); tourPlayer.hidden = dialog.open && !tourActive; }
+      };
+    }
+    /* End component popup controller. */
+
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.69.0';
+      const VER = '1.70.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
-      const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }, { createTour }] = await Promise.all([
-        import('./js/viewer.js?v=' + VER),
-        import('./js/hotspots.js?v=' + VER),
+      const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, CONTROLS, VUES, hotspotById }, { createTour }] = await Promise.all([
+        import('./js/viewer-v5.js?v=' + VER),
+        import('./js/hotspots-v6.js?v=' + VER),
         import('./js/tour.js?v=' + VER)
       ]);
       const TOUS_POINTS = HOTSPOTS.concat(URGENCES);
@@ -704,7 +768,7 @@
       modelReady = true;
       afficherChargement(false);
       qualitySelect.value = v.quality;
-      renderStatus.textContent = v.quality === 'hq' ? 'Scan réel · Rendu détaillé' : 'Scan réel · Rendu fluide';
+      renderStatus.textContent = v.quality === 'hq' ? 'Réplique articulée · Détails' : 'Réplique articulée · Fluide';
       document.querySelectorAll('.viewer-controls button, .tour-player button').forEach(button => { button.disabled = false; });
       if (loaderFill) loaderFill.style.width = '100%';
       if (loaderPct) loaderPct.textContent = '100 %';
@@ -734,7 +798,7 @@
       });
       qualitySelect.addEventListener('change', async () => {
         arreterVisite(); reglerRotation(false);
-        try { await v.setQuality(qualitySelect.value); renderStatus.textContent = v.quality === 'hq' ? 'Scan réel · Rendu détaillé' : 'Scan réel · Rendu fluide'; }
+        try { await v.setQuality(qualitySelect.value); renderStatus.textContent = v.quality === 'hq' ? 'Réplique articulée · Détails' : 'Réplique articulée · Fluide'; }
         catch (_) { /* La dernière qualité chargée reste affichée. */ }
         finally { qualitySelect.value = v.quality; afficherChargement(false); }
       });
@@ -745,7 +809,9 @@
         ['Profil', VUES.profil],
         ['Avant', VUES.avant],
         ['Arrière', VUES.arriere],
-        ['Le bras', VUES.pince]
+        ['Le bras', VUES.pince],
+        ['Télécommande', VUES.remote],
+        ['Machines Roger', VUES.roger]
       ];
       const viewBar = document.getElementById('viewBar');
       if (viewBar) for (const [libelle, vue] of RAPIDES) {
@@ -764,7 +830,6 @@
 
       /* ---------- Fiche composant ---------- */
       const fiche = document.getElementById('fiche');
-      document.querySelector('.tour-player').after(fiche);
       const ficheNum = document.getElementById('ficheNum');
       const ficheTitle = document.getElementById('ficheTitle');
       const ficheDesc = document.getElementById('ficheDesc');
@@ -775,10 +840,22 @@
       const overlay = document.getElementById('hsOverlay');
       const ORDRE = HOTSPOTS.map((h) => h.id); /* muté par reglerMode() */
       let courant = null;
-      let declencheur = null;
+      let training = null;
+      const componentPopup = createComponentPopup({
+        dialog: fiche,
+        closeButton: ficheClose,
+        tourPlayer: document.querySelector('.tour-player'),
+        tourSlot: document.getElementById('ficheTour'),
+        fallbackFocus: () => overlay.querySelector('.hs.is-active') || document.getElementById('modeComposants'),
+        onDismiss: () => arreterVisite(),
+        onClosed: () => {
+          overlay.querySelectorAll('.hs.is-active').forEach(el => el.classList.remove('is-active'));
+          courant = null;
+        }
+      });
 
       function ouvrirFiche(id, depuisPastille) {
-        if (depuisPastille && courant === id && fiche.classList.contains('open')) {
+        if (depuisPastille && courant === id && fiche.open) {
           fermerFiche();
           return;
         }
@@ -787,16 +864,14 @@
         if (!h) return;
         reglerRotation(false);
         const vol = v.flyTo(h.view, FLY);
-        /* photo interactive liée : s'ouvre d'elle-même une fois le vol terminé */
-        if (depuisPastille && PHOTOS[id] && PHOTOS[id].autoOuvrir) {
-          vol.then(arrive => { if (arrive && courant === id) ouvrirPhoto(PHOTOS[id]); });
-        }
+        /* Les photos sont ouvertes par leur bouton, après lecture de la fiche. */
         if (!data) return; /* pas de fiche : on vole quand même vers le composant */
         courant = id;
         ficheNum.textContent = h.num;
         if (ficheKicker) ficheKicker.lastChild.textContent = ' ' + (data.kicker || 'Composant');
         ficheTitle.textContent = data.titre;
         ficheDesc.textContent = data.resume;
+        document.getElementById('fichePanel').hidden = id !== 'elec';
         ficheManuelRef.textContent = data.manuel.ref + ' · page ' + data.manuel.page;
         ficheManuelBtn.onclick = () => {
           const _src = 'assets/manuel/p' + data.manuel.page + '.jpg';
@@ -809,21 +884,16 @@
         };
         overlay.querySelectorAll('.hs.is-active').forEach((el) => el.classList.remove('is-active'));
         const pastille = overlay.querySelector('.hs[data-id="' + id + '"]');
-        if (pastille) { pastille.classList.add('is-active'); declencheur = pastille; }
+        if (pastille) pastille.classList.add('is-active');
         const btnPhoto = document.getElementById('fichePhoto');
         if (btnPhoto) btnPhoto.hidden = !PHOTOS[id];
-        fiche.classList.add('open');
         if (depuisPastille) stage.scrollIntoView({ block: 'start', behavior: REDUIT ? 'instant' : 'smooth' });
-        if (depuisPastille && ficheClose) ficheClose.focus({ preventScroll: true });
+        componentPopup.open();
         return vol;
       }
 
       function fermerFiche() {
-        if (!fiche.classList.contains('open')) return;
-        fiche.classList.remove('open');
-        overlay.querySelectorAll('.hs.is-active').forEach((el) => el.classList.remove('is-active'));
-        courant = null;
-        if (declencheur && document.contains(declencheur)) declencheur.focus({ preventScroll: true });
+        componentPopup.close();
       }
 
       function voisin(pas) {
@@ -847,6 +917,7 @@
       function afficherVisite(state) {
         const playing = state.status === 'playing';
         const started = state.status !== 'idle';
+        componentPopup.setTourActive(started);
         btnTour.textContent = playing ? 'Pause' : state.status === 'paused' ? 'Reprendre' : state.status === 'complete' ? 'Revoir la visite' : 'Démarrer la visite';
         btnTour.setAttribute('aria-pressed', String(playing));
         document.getElementById('tourStop').hidden = !started;
@@ -861,6 +932,10 @@
       function arreterVisite() { tour.stop(); v.cancelFlight(); }
       function pauserVisite() { if (tour.getState().status === 'playing') { tour.pause(); v.cancelFlight(); } }
       function reglerMode(m) {
+        training?.deactivate();
+        document.getElementById('explorer').classList.remove('training-active');
+        document.getElementById('modeSimulation').classList.remove('is-on');
+        document.getElementById('modeSimulation').setAttribute('aria-pressed', 'false');
         modeActuel = m;
         arreterVisite();
         fermerFiche();
@@ -888,19 +963,26 @@
       document.getElementById('tourPrevious').addEventListener('click', () => tour.previous());
       document.getElementById('tourNext').addEventListener('click', () => tour.next());
       afficherVisite(tour.getState());
-      photoPause = pauserVisite;
+      photoPause = () => { pauserVisite(); training?.releaseAll(); fermerFiche(); training?.closeInfo?.(); };
       v.on('interaction', pauserVisite);
       v.on('visibility', visible => { if (!visible) pauserVisite(); });
-      v.on('select', id => { arreterVisite(); ouvrirFiche(id, true); });
-      if (ficheClose) ficheClose.addEventListener('click', () => { arreterVisite(); fermerFiche(); });
-      document.getElementById('fichePrev').addEventListener('click', () => { arreterVisite(); voisin(-1); });
-      document.getElementById('ficheNext').addEventListener('click', () => { arreterVisite(); voisin(1); });
+      v.on('select', id => {
+        if (training?.active) { training.select(id); return; }
+        arreterVisite(); ouvrirFiche(id, true);
+      });
+      document.getElementById('fichePrev').addEventListener('click', () => {
+        if (tour.getState().status !== 'idle') tour.previous(); else voisin(-1);
+      });
+      document.getElementById('ficheNext').addEventListener('click', () => {
+        if (tour.getState().status !== 'idle') tour.next(); else voisin(1);
+      });
 
       fichePhoto.addEventListener('click', () => { if (courant) ouvrirPhoto(PHOTOS[courant]); });
 
       document.querySelectorAll('.eq-3d').forEach((b) => {
         b.addEventListener('click', () => {
           const cible = b.dataset.cible;
+          if (training?.active) reglerMode('composants');
           arreterVisite();
           document.getElementById('explorer').scrollIntoView({ block: 'start' });
           reglerRotation(false);
@@ -909,9 +991,40 @@
         });
       });
 
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !e.defaultPrevented) { arreterVisite(); fermerFiche(); }
+      const { mountTraining } = await import('./js/training-ui.js?v=' + VER);
+      const simButton = document.getElementById('modeSimulation');
+      training = mountTraining({
+        container: document.getElementById('trainingPanel'), viewer: v,
+        controls: CONTROLS, emergencies: URGENCES,
+        onActivate() {
+          arreterVisite(); fermerFiche(); reglerRotation(false); heroPresentation?.pause();
+          document.getElementById('explorer').classList.add('training-active');
+          simButton.classList.add('is-on'); simButton.setAttribute('aria-pressed', 'true');
+          for (const b of [btnModeComp, btnModeUrg]) { b.classList.remove('is-on'); b.setAttribute('aria-pressed','false'); }
+          btnHotspots.setAttribute('aria-pressed','true');
+        },
+        onDeactivate() { reglerMode('composants'); },
+        onManual(page) {
+          training?.releaseAll();
+          ouvrirPhoto({titre:'Manuel · page ' + page, src:'../img/manual/p'+String(page).padStart(2,'0')+'.jpg', alt:'Page '+page+' du manuel RodBot'});
+        }
       });
+      simButton.disabled = false;
+      document.getElementById('fichePanel').addEventListener('click', () => {
+        training.activate('panel');
+        document.getElementById('explorer').scrollIntoView({block:'start',behavior:REDUIT?'instant':'smooth'});
+        document.getElementById('simExercise')?.focus?.({preventScroll:true});
+      });
+      simButton.addEventListener('click', () => training.activate());
+      document.getElementById('heroPractice').addEventListener('click', () => training.activate());
+      document.getElementById('heroExplore').addEventListener('click', () => reglerMode('composants'));
+      const requestedExercise = new URLSearchParams(location.search).get('exercise');
+      if (requestedExercise) {
+        training.activate(requestedExercise);
+        document.getElementById('explorer').scrollIntoView({block:'start', behavior:'instant'});
+      }
+      window.rodbotTraining = training;
+
 
     } catch (err) {
       console.error('Viewer 3D indisponible :', err);

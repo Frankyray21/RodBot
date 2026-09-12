@@ -1,10 +1,10 @@
 /* Service worker : permet l'installation et l'usage HORS-LIGNE (terrain, mine).
    Précache la coquille de l'app PUIS télécharge automatiquement TOUT le contenu
-   (images du manuel FR/EN, PDF, page 3D, modèles, vidéos, polices) dès la
-   première installation. Après ça, le site fonctionne entièrement sans réseau. */
+   (images du manuel FR/EN et PDF) en arrière-plan. Le modèle 3D et son
+   éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.69.0';
+const CACHE = 'rodbot-formation-v1.70.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -16,8 +16,11 @@ const CORE = [
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './img/hero-machine-photo.webp?v=1.8.11',
   './3d/index.html', './3d/css/styles.css', './3d/css/viewer.css',
-  './3d/js/viewer.js', './3d/js/motion.js', './3d/js/tour.js',
-  './3d/js/hotspots.js', './3d/js/hero-embed.js'
+  './3d/css/training.css', './3d/css/component-popup.css', './3d/js/viewer-v5.js', './3d/js/motion.js', './3d/js/tour.js',
+  './3d/js/hotspots-v6.js', './3d/js/hero-v6.js', './3d/js/model-assets.js',
+  './3d/js/training-ui.js', './3d/js/simulation-state.js',
+  './3d/replique.html', './3d/fidelite.html', './3d/js/replique.js', './3d/css/replique.css',
+  './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js'
 ];
 
 /* Ressources CDN nécessaires hors-ligne : feuilles de polices + moteur 3D.
@@ -25,19 +28,18 @@ const CORE = [
    visite par le gestionnaire fetch (leurs URL sont dans le CSS de Google). */
 const CDN = [
   'https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap',
-  'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap',
-  'https://cdn.jsdelivr.net/npm/playcanvas@2.13.3/build/playcanvas.mjs'
+  'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap'
 ];
 
 /* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
-   La réplique V5 et son moteur local sont chargés à la demande, puis conservés
+   La réplique articulée et son éclairage sont chargés à la demande, puis conservés
    par fetch. Le GLB n'alourdit pas l'installation initiale de la formation.
    Tout est téléchargé en arrière-plan à l'installation, par petits lots,
    avec reprise automatique (voir precacherTout). */
 const PRECACHE = [
   './3d/assets/manuel/p12.jpg', './3d/assets/manuel/p13.jpg', './3d/assets/manuel/p14.jpg', './3d/assets/manuel/p21.jpg', './3d/assets/manuel/p47.jpg', './3d/assets/manuel/p51.jpg',
   './3d/assets/manuel/p52.jpg', './3d/assets/manuel/p55.jpg', './3d/assets/manuel/p65.jpg', './3d/assets/photos/manette.jpg', './3d/assets/previews/hero_poster.jpg', './3d/assets/previews/og.jpg',
-  './3d/assets/rodbot_hq.sog', './3d/assets/rodbot_mobile.sog', './3d/assets/textures/sol_gravier.jpg', './3d/assets/videos/hero_rodbot.mp4', './3d/assets/videos/hero_rodbot.webm', './evaluation-risques.pdf',
+  './3d/vendor/draco/draco_decoder.wasm', './3d/assets/rodbot-v6-c9499d45-poster.jpg', './evaluation-risques.pdf',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './img/directions-manettes.webp', './img/eq-hmi.png', './img/eq-labeled.png',
   './img/eq-machine-real.png', './img/eq-machine.png', './img/eq-panel.png', './img/eq-track.png', './img/eq-transport.png', './img/fig-en/p07.jpg',
   './img/fig-en/p10.jpg', './img/fig-en/p11.jpg', './img/fig-en/p13.jpg', './img/fig-en/p14.jpg', './img/fig-en/p15.jpg', './img/fig-en/p16.jpg',
