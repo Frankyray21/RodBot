@@ -20,8 +20,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.61.1">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.61.1">
+  <link rel="stylesheet" href="./css/styles.css?v=1.69.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.69.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -31,6 +31,7 @@
       <span class="brand-sub">Machines Roger International</span></a>
     <span class="header-tag">Exploration 3D</span>
     <nav class="header-nav" aria-label="Navigation principale">
+      <a class="nav-link" href="./replique.html">Réplique détaillée</a>
       <a class="nav-link" href="../">Formation</a>
     </nav>
   </header>
@@ -52,7 +53,8 @@
         <h1>Découvre le <span class="hl">LP RodBot</span></h1>
         <p>Le manipulateur de tiges robotisé qui garde les mains loin des tiges. Scanné en 3D chez Machines Roger International : tourne autour, clique chaque composant et arrive à ta formation déjà prêt.</p>
         <div class="hero-actions">
-          <a class="btn lg" href="#explorer">Explorer la machine en 3D</a>
+          <a class="btn lg" href="./replique.html">Voir la réplique détaillée</a>
+          <a class="btn lg" href="#explorer">Explorer le scan</a>
           <button id="heroPause" class="vbtn" type="button" aria-pressed="false">Pause vidéo</button>
         </div>
       </div>
@@ -226,7 +228,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.61.1</span>
+        <span id="rbSiteVer">Version 1.69.0</span>
         <span>Scan 3D réel. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -662,7 +664,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.61.1';
+      const VER = '1.69.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, VUES, hotspotById }, { createTour }] = await Promise.all([
         import('./js/viewer.js?v=' + VER),

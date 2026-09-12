@@ -4,7 +4,7 @@
    première installation. Après ça, le site fonctionne entièrement sans réseau. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.68.0';
+const CACHE = 'rodbot-formation-v1.69.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -29,7 +29,9 @@ const CDN = [
   'https://cdn.jsdelivr.net/npm/playcanvas@2.13.3/build/playcanvas.mjs'
 ];
 
-/* Liste COMPLÈTE du contenu du site (générée depuis l'arborescence du dépôt).
+/* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
+   La réplique V5 et son moteur local sont chargés à la demande, puis conservés
+   par fetch. Le GLB n'alourdit pas l'installation initiale de la formation.
    Tout est téléchargé en arrière-plan à l'installation, par petits lots,
    avec reprise automatique (voir precacherTout). */
 const PRECACHE = [
@@ -227,9 +229,13 @@ self.addEventListener('fetch', (e) => {
       (url.pathname === APP_ROOT.pathname || url.pathname === APP_ROOT.pathname + 'index.html');
     const est3d = req.mode === 'navigate' &&
       (url.pathname === APP_ROOT.pathname + '3d/' || url.pathname === APP_ROOT.pathname + '3d/index.html');
+    const estReplique = req.mode === 'navigate' &&
+      url.pathname === APP_ROOT.pathname + '3d/replique.html';
     let key = req;
     if (estAccueil) key = new URL('index.html', APP_ROOT).href;
     else if (est3d) key = new URL('3d/index.html', APP_ROOT).href;
+    // FR et EN utilisent le même document, y compris après un changement de langue hors ligne.
+    else if (estReplique) key = new URL('3d/replique.html', APP_ROOT).href;
     else if (req.mode !== 'navigate') {
       // app.js?v=... retrouve app.js précaché, uniquement dans cette version.
       url.search = '';

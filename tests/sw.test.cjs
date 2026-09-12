@@ -237,6 +237,38 @@ test('3d entry and viewer scripts work offline immediately after core installati
   assert.equal((await h.request('3d/js/missing.js')).type, 'error');
 });
 
+test('replica language URLs share their own visited document offline', async () => {
+  const h = harness();
+  h.seed(CURRENT, 'index.html', 'training home');
+  assert.equal((await h.request('3d/replique.html?lang=fr', { mode: 'navigate' })).type, 'error');
+  h.network.set(BASE + '3d/replique.html?lang=en', new Response('replica document'));
+  assert.equal(await (await h.request('3d/replique.html?lang=en', { mode: 'navigate' })).text(), 'replica document');
+  h.network.clear();
+  for (const path of ['3d/replique.html', '3d/replique.html?lang=fr', '3d/replique.html?lang=en']) {
+    assert.equal(await (await h.request(path, { mode: 'navigate' })).text(), 'replica document');
+  }
+});
+
+test('V5 assets load on demand and remain in the stable cache after activation', async () => {
+  const h = harness();
+  const assets = ['3d/assets/rodbot-v5.glb', '3d/assets/warehouse-v5.hdr', '3d/vendor/draco/draco_decoder.wasm'];
+  await h.lifecycle('install');
+  await h.lifecycle('activate');
+  for (const file of assets) {
+    assert.equal(h.precached.includes(BASE + file), false);
+    assert.equal(h.networkCalls.includes(BASE + file), false);
+    h.network.set(BASE + file, new Response('asset:' + file));
+    assert.equal(await (await h.request(file)).text(), 'asset:' + file);
+    assert.equal(h.stores.get(ASSETS).has(BASE + file), true);
+  }
+  h.network.clear();
+  await h.lifecycle('activate');
+  for (const file of assets) {
+    assert.equal(await (await h.request(file)).text(), 'asset:' + file);
+    assert.equal(h.networkCalls.filter(url => url === BASE + file).length, 1);
+  }
+});
+
 test('stable assets survive activation and are not downloaded again', async () => {
   const h = harness();
   h.seed(ASSETS, 'manuel-operateur.pdf', 'saved manual');
