@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const source = readFileSync(join(__dirname, '..', 'sw.js'), 'utf8');
 const BASE = 'https://example.github.io/RodBot/';
-const CURRENT = 'rodbot-formation-v1.41.0';
+const CURRENT = 'rodbot-formation-v1.42.0';
 
 function harness() {
   const handlers = {};
@@ -106,7 +106,7 @@ test('versioned scripts, styles and manifest use their own precached resource of
   const h = harness();
   for (const file of ['app.js', 'interface.js', 'styles.css', 'interface.css', 'manifest.webmanifest']) {
     h.seed(CURRENT, file, `content:${file}`);
-    const response = await h.request(`${file}?v=1.41.0`);
+    const response = await h.request(`${file}?v=1.42.0`);
     assert.equal(await response.text(), `content:${file}`);
   }
 });
@@ -115,7 +115,7 @@ test('offline scripts and styles never receive HTML or an older cache', async ()
   const h = harness();
   h.seed(CURRENT, 'index.html', '<html>home</html>');
   h.seed('rodbot-formation-v1.40.0', 'app.js', 'old script');
-  for (const file of ['app.js?v=1.41.0', 'interface.js?v=1.41.0', 'interface.css?v=1.41.0']) {
+  for (const file of ['app.js?v=1.42.0', 'interface.js?v=1.42.0', 'interface.css?v=1.42.0']) {
     const response = await h.request(file);
     assert.equal(response.type, 'error');
     assert.equal(response.status, 0);
@@ -125,7 +125,7 @@ test('offline scripts and styles never receive HTML or an older cache', async ()
 test('both home URLs fall back to their precached home offline', async () => {
   const h = harness();
   h.seed(CURRENT, 'index.html', 'home');
-  for (const file of ['./', 'index.html?release=1.41.0']) {
+  for (const file of ['./', 'index.html?release=1.42.0']) {
     const response = await h.request(file, { mode: 'navigate' });
     assert.equal(await response.text(), 'home');
   }
@@ -148,8 +148,8 @@ test('3d and other pages preserve their own cached document', async () => {
 test('successful versioned network responses update the canonical shell entry', async () => {
   const h = harness();
   h.seed(CURRENT, 'app.js', 'precache');
-  h.network.set(BASE + 'app.js?v=1.41.0', new Response('fresh script'));
-  assert.equal(await (await h.request('app.js?v=1.41.0')).text(), 'fresh script');
+  h.network.set(BASE + 'app.js?v=1.42.0', new Response('fresh script'));
+  assert.equal(await (await h.request('app.js?v=1.42.0')).text(), 'fresh script');
   h.network.clear();
   assert.equal(await (await h.request('app.js?v=other')).text(), 'fresh script');
 });
@@ -157,12 +157,12 @@ test('successful versioned network responses update the canonical shell entry', 
 test('HTTP errors never overwrite good shell entries or cache assets', async () => {
   const h = harness();
   h.seed(CURRENT, 'app.js', 'good script');
-  h.network.set(BASE + 'app.js?v=1.41.0', new Response('failed', { status: 503 }));
+  h.network.set(BASE + 'app.js?v=1.42.0', new Response('failed', { status: 503 }));
   h.network.set(BASE + 'img/missing.jpg', new Response('missing', { status: 404 }));
-  assert.equal((await h.request('app.js?v=1.41.0')).status, 503);
+  assert.equal((await h.request('app.js?v=1.42.0')).status, 503);
   assert.equal((await h.request('img/missing.jpg')).status, 404);
   h.network.clear();
-  assert.equal(await (await h.request('app.js?v=1.41.0')).text(), 'good script');
+  assert.equal(await (await h.request('app.js?v=1.42.0')).text(), 'good script');
   assert.equal((await h.request('img/missing.jpg')).type, 'error');
 });
 
@@ -196,7 +196,7 @@ test('POST, external origins and other GitHub projects are not intercepted', asy
 test('storage failure does not discard a successful network response', async () => {
   const h = harness();
   h.failStorage();
-  for (const file of ['app.js?v=1.41.0', 'img/photo.jpg']) {
+  for (const file of ['app.js?v=1.42.0', 'img/photo.jpg']) {
     h.network.set(BASE + file, new Response(`network:${file}`));
     assert.equal(await (await h.request(file)).text(), `network:${file}`);
   }

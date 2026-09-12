@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="description" content="Explore le modèle articulé du LP RodBot : télécommande, Machines Roger et détails mécaniques.">
+  <title>LP RodBot | Réplique 3D</title>
+  <link rel="icon" href="../icon-192.png">
+  <link rel="stylesheet" href="./css/replique.css?v=5">
+</head>
+<body>
+  <a class="skip" href="#viewer" data-i18n="skip">Aller au modèle 3D</a>
+  <header class="site-header">
+    <a class="brand" href="../index.html"><strong>Rod<span>Bot</span></strong><small>Machines Roger International</small></a>
+    <nav aria-label="Navigation" class="header-nav">
+      <a href="../index.html" data-i18n="training">Formation</a>
+      <a href="./index.html" data-i18n="scan">Scan de référence</a>
+      <div class="languages" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" aria-pressed="true" lang="fr">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false" lang="en">EN</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-heading">
+      <div><p class="eyebrow" data-i18n="eyebrow">EXPLORATION DE L’ÉQUIPEMENT</p><h1>LP RodBot <span data-i18n="replica">Réplique 3D</span></h1></div>
+      <p data-i18n="intro">Explore la télécommande, les marquages et les détails de la machine.</p>
+    </div>
+
+    <div class="workspace" id="workspace">
+      <section class="viewer-panel" aria-label="Modèle 3D interactif" data-i18n-aria="viewerLabel">
+        <div class="viewer-topline"><span>LP RODBOT <span class="slash">/</span> <strong id="currentView">Vue d’ensemble</strong></span><button id="fullscreen" class="icon-button" type="button" hidden aria-label="Plein écran" data-i18n-aria="fullscreen">⛶</button></div>
+        <model-viewer id="viewer"
+          poster="./assets/rodbot-v5-poster.jpg"
+          alt="LP RodBot avec bras articulé, chenilles et télécommande noire sur un trépied jaune."
+          camera-controls camera-orbit="-35deg 70deg 110%" camera-target="auto auto auto"
+          field-of-view="30deg" min-camera-orbit="auto 5deg 0.35m" max-camera-orbit="auto 90deg 240%"
+          shadow-intensity="1" shadow-softness="0.8" exposure="1" tone-mapping="agx"
+          interaction-prompt="none" touch-action="pan-y" animation-name="Presentation_360"
+          loading="eager" reveal="auto" tabindex="0">
+          <span slot="progress-bar"></span>
+        </model-viewer>
+        <div id="loading" class="loading-card" role="status">
+          <div><strong data-i18n="loading">Chargement du modèle 3D</strong><span id="loadPercent">0 %</span></div>
+          <progress id="loadProgress" max="100" value="0" aria-label="Chargement du modèle" data-i18n-aria="loading"></progress>
+          <p data-i18n="loadingHelp">Le premier chargement peut prendre quelques secondes.</p>
+        </div>
+        <div id="error" class="loading-card error-card" role="alert" hidden>
+          <strong data-i18n="errorTitle">Affichage 3D indisponible</strong><p id="errorText"></p>
+          <button id="retry" class="button primary" type="button" data-i18n="retry">Réessayer</button>
+        </div>
+        <div class="viewer-bottomline"><span id="viewerStatus" aria-live="polite">Préparation de la vue 3D</span><span data-i18n="dimensions">Dimensions estimées</span></div>
+      </section>
+
+      <aside class="control-panel" aria-label="Commandes de visualisation" data-i18n-aria="controlsLabel">
+        <div class="control-heading"><h2 data-i18n="explore">Explore la machine</h2><p data-i18n="gesture">Glisse pour tourner. Pince ou utilise la molette pour zoomer.</p></div>
+        <div class="focus-buttons">
+          <button class="button primary" type="button" data-view="6" disabled aria-pressed="false"><span data-i18n="remote">Télécommande</span><span aria-hidden="true">↗</span></button>
+          <button class="button" type="button" data-view="8" disabled aria-pressed="false"><span>Machines Roger</span><span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="control-section"><h3 data-i18n="views">Angles de vue</h3><div id="viewButtons" class="view-grid"></div></div>
+        <details class="control-section motions">
+          <summary data-i18n="articulate">Articuler le modèle</summary>
+          <p data-i18n="motionHelp">Déplace les curseurs pour observer les articulations.</p>
+          <fieldset id="motionFields" disabled><legend class="sr-only" data-i18n="motionsLabel">Mouvements du modèle</legend><div id="motionSliders"></div><button class="button reset-pose" id="resetPose" type="button" data-i18n="initialPose">Position initiale</button></fieldset>
+          <p class="motion-note" data-i18n="motionNote">Amplitudes estimées pour la visualisation. Les mouvements peuvent être combinés.</p>
+          <p id="motionNotice" class="notice" hidden data-i18n="motionUnavailable">Les mouvements sont indisponibles. Recharge la page pour réessayer.</p>
+        </details>
+        <div class="control-section presentation"><h3 data-i18n="presentation">Présentation à 360°</h3><button class="button primary" id="play" type="button" disabled aria-pressed="false"><span aria-hidden="true">▶</span><span id="playLabel">Lancer la présentation</span></button><button class="text-button" id="resetView" type="button" disabled data-i18n="resetView">Recentrer la vue</button></div>
+        <p id="notice" class="notice" role="status" hidden></p>
+        <p class="source-note" data-i18n="sourceNote">Reconstruction issue de la vidéo, des photos et du manuel. Certaines proportions et parties cachées restent estimées.</p>
+      </aside>
+    </div>
+
+    <noscript><p class="noscript">Active JavaScript pour explorer la réplique. Enable JavaScript to explore the model.</p></noscript>
+    <footer><p data-i18n="footer">Visualisation pour la formation. Les trajectoires de travail restent à valider.</p><p><span data-i18n="lighting">Éclairage :</span> <a href="https://polyhaven.com/a/empty_warehouse_01" target="_blank" rel="noreferrer">Empty Warehouse 01 · Sergej Majboroda / Poly Haven, CC0</a></p></footer>
+  </main>
+  <script type="module" src="./js/replique.js?v=5"></script>
+</body>
+</html>
