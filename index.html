@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.71.0">
+<link rel="stylesheet" href="interface.css?v=1.72.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -153,6 +153,10 @@
           <p class="rb-home-kicker">FORMATION OPÉRATEUR · BORTERRA</p>
           <h1 class="rb-choix-titre-page"><span>RodBot LP.</span></h1>
           <p class="rb-choix-intro">Deux chemins. Vous apprenez, ou vous cherchez une réponse.</p>
+
+          <!-- La scene 3D vit hors du gabarit (scene3d.js) : elle est redeposee
+               ici apres chaque rendu, sinon le modele se rechargerait a chaque clic. -->
+          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="La machine en 3D, en mouvement"></div>
 
           <div class="rb-choix">
             <button class="rb-choix-carte rb-choix-form" onClick="{{ goFormation }}">
@@ -1400,6 +1404,10 @@
           <h1 class="rb-choix-titre-page"><span>RodBot LP.</span></h1>
           <p class="rb-choix-intro">Two paths. You learn, or you look something up.</p>
 
+          <!-- La scene 3D vit hors du gabarit (scene3d.js) : elle est redeposee
+               ici apres chaque rendu, sinon le modele se rechargerait a chaque clic. -->
+          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="The machine in 3D, moving"></div>
+
           <div class="rb-choix">
             <button class="rb-choix-carte rb-choix-form" onClick="{{ goFormation }}">
               <span class="rb-choix-bandeau" aria-hidden="true"></span>
@@ -2546,8 +2554,9 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.71.0"></script>
-<script src="pdf.js?v=1.71.0"></script>
-<script src="app.js?v=1.71.0"></script>
+<script src="interface.js?v=1.72.0"></script>
+<script src="pdf.js?v=1.72.0"></script>
+<script src="scene3d.js?v=1.72.0"></script>
+<script src="app.js?v=1.72.0"></script>
 </body>
 </html>

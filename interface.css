@@ -243,6 +243,49 @@ html, body { overflow-x: clip; }
 .rb-savoir-visuel { max-width: 1180px; margin: 0 auto; padding: 22px 28px 0; }
 .rb-savoir-visuel .rb-home-visual { border-color: rgba(29,30,27,.18); background: #141413; }
 
+
+/* ===== La machine en 3D sur l'accueil =================================
+   Elle fait le tour, se rapproche, recule. L'affiche fixe tient la place
+   tant que le modele n'est pas la : la page ne saute jamais. */
+.rb-scene3d-slot { margin: 0 0 24px; }
+.rb-scene3d {
+  position: relative; overflow: hidden; background: #101419;
+  border: 1px solid #494940; aspect-ratio: 16 / 7; max-width: 100%;
+}
+.rb-scene3d-affiche {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; transition: opacity .7s ease;
+}
+.rb-scene3d.est-charge .rb-scene3d-affiche { opacity: 0; }
+.rb-scene3d-vue {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  background: transparent; pointer-events: none; opacity: 0; transition: opacity .7s ease;
+  --poster-color: transparent; --progress-bar-height: 0;
+}
+.rb-scene3d.est-charge .rb-scene3d-vue { opacity: 1; }
+.rb-scene3d-barre {
+  position: absolute; right: 0; bottom: 0; z-index: 2; padding: 10px 12px;
+}
+.rb-scene3d-btn {
+  min-height: 42px; padding: 8px 14px; background: rgba(16,20,25,.82); border: 1px solid #6b6b62;
+  color: #faf9f5; font: inherit; font-weight: 800; font-size: 12px; letter-spacing: .06em;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.rb-scene3d-btn:hover { border-color: #faf9f5; background: #2b2c26; }
+.rb-scene3d-pied {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 8px 14px; margin-top: 8px;
+}
+.rb-scene3d-etat { font-weight: 700; font-size: 11.5px; letter-spacing: .06em; color: #c6c4bb; }
+.rb-scene3d-lien {
+  margin-left: auto; min-height: 40px; display: inline-flex; align-items: center;
+  color: #fff; font-weight: 800; font-size: 12.5px; letter-spacing: .05em;
+  text-decoration: underline; text-underline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rb-scene3d-affiche, .rb-scene3d-vue { transition: none; }
+}
+
 @media (min-width: 1240px) {
   #app .rb-side-toc { top: calc(var(--rb-sticky-height) + 18px); max-height: calc(100dvh - var(--rb-sticky-height) - 36px); }
 }
@@ -253,6 +296,12 @@ html, body { overflow-x: clip; }
 }
 @media (max-width: 720px) {
   .rb-choix { grid-template-columns: 1fr; gap: 14px; }
+  .rb-scene3d { aspect-ratio: 16 / 11; }
+  .rb-scene3d-slot { margin-bottom: 18px; }
+  .rb-scene3d-barre { padding: 8px; }
+  .rb-scene3d-btn { font-size: 11.5px; padding: 8px 11px; }
+  .rb-scene3d-pied { margin-top: 7px; }
+  .rb-scene3d-lien { margin-left: 0; font-size: 12px; }
   .rb-choix-wrap { padding: 24px 20px 30px; }
   .rb-choix-titre-page { font-size: 40px; }
   .rb-choix-intro { font-size: 15.5px; margin-bottom: 20px; }

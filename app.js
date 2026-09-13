@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.71.0';
+var APP_VERSION = '1.72.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -343,6 +343,9 @@ function fullRender() {
   try { if (COMP && COMP.setupTocSpy) COMP.setupTocSpy(); } catch (e) {}
   // Le canevas de signature vient d'être recréé : recâble les gestes et redessine les traits
   try { if (COMP && COMP.sigRefresh) COMP.sigRefresh(); } catch (e) {}
+  // Le gabarit vient d'etre reconstruit : la scene 3D de l'accueil doit
+  // retrouver son emplacement, sans etre recreee ni rechargee.
+  try { if (window.RBScene3D) window.RBScene3D.monter(ROOT); } catch (e) {}
   if (window.RBInterface) window.RBInterface.afterRender(ROOT, COMP);
 }
 
