@@ -20,10 +20,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.70.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.70.0">
-  <link rel="stylesheet" href="./css/training.css?v=1.70.0">
-  <link rel="stylesheet" href="./css/component-popup.css?v=1.70.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.73.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.73.0">
+  <link rel="stylesheet" href="./css/training.css?v=1.73.0">
+  <link rel="stylesheet" href="./css/component-popup.css?v=1.73.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -238,7 +238,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.70.0</span>
+        <span id="rbSiteVer">Version 1.73.0</span>
         <span>Réplique de formation. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -263,7 +263,8 @@
   <script type="module">
     /* ============================================================
        Page RodBot : viewer 3D + fiches composants
-       Dépendances : ./js/viewer.js et ./js/hotspots.js
+       Dépendances : ./js/viewer-v5.js, ./js/hotspots-v6.js, ./js/tour.js,
+       ./js/hero-v6.js et ./js/training-ui.js
        ============================================================ */
 
     /* ---------- Données des fiches composants ----------
@@ -379,10 +380,13 @@
     const FLY = REDUIT ? 1 : 1100;
     const FLY_HOME = REDUIT ? 1 : 900;
 
-    // The hero uses the same GLB as the interactive training scene.
+    // Le héros et l'atelier partagent le MÊME GLB de 27 Mo. Le héros attend donc
+    // que l'atelier l'ait chargé : sinon les deux le téléchargent en parallèle.
     let heroPresentation = null;
-    import('./js/hero-v6.js?v=1.70.0').then(({createHero}) => {
-      heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'));
+    let atelierCharge;
+    const atelierPret = new Promise((resoudre) => { atelierCharge = resoudre; });
+    import('./js/hero-v6.js?v=1.73.0').then(({createHero}) => {
+      heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'), atelierPret);
     }).catch(() => { document.getElementById('heroPause').hidden = true; });
     const scrollCue = document.getElementById('scrollCue');
     if (scrollCue) scrollCue.addEventListener('click', () => {
@@ -728,7 +732,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.70.0';
+      const VER = '1.73.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, CONTROLS, VUES, hotspotById }, { createTour }] = await Promise.all([
         import('./js/viewer-v5.js?v=' + VER),
@@ -766,6 +770,8 @@
 
       await v.ready;
       modelReady = true;
+      // Le modèle est en cache : le héros peut le lire sans nouvelle descente.
+      try { atelierCharge(); } catch (e) {}
       afficherChargement(false);
       qualitySelect.value = v.quality;
       renderStatus.textContent = v.quality === 'hq' ? 'Réplique articulée · Détails' : 'Réplique articulée · Fluide';
@@ -1028,6 +1034,8 @@
 
     } catch (err) {
       console.error('Viewer 3D indisponible :', err);
+      // L'atelier a échoué : libérer quand même le héros, il tentera sa chance.
+      try { atelierCharge(); } catch (e) {}
       montrerRepli();
     }
   </script>

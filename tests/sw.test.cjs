@@ -9,6 +9,17 @@ const BASE = 'https://example.github.io/RodBot/';
 const CURRENT = source.match(/const CACHE = '([^']+)'/)[1];
 const ASSETS = 'rodbot-assets-v1';
 
+// Les noms d'assets 3D viennent de 3d/js/model-assets.js et de scene3d.js, pas
+// d'un littéral recopié : un nom inventé a longtemps rendu ce test muet sur le
+// point le plus lourd du dépôt, les 26 Mo du modèle.
+const ASSETS_SRC = readFileSync(join(__dirname, '..', '3d', 'js', 'model-assets.js'), 'utf8');
+const SCENE_SRC = readFileSync(join(__dirname, '..', 'scene3d.js'), 'utf8');
+const assetName = (nom) => {
+  const m = ASSETS_SRC.match(new RegExp(nom + "\\s*=\\s*new URL\\('\\.\\./assets/([^']+)'"));
+  assert.ok(m, nom + ' introuvable dans model-assets.js');
+  return m[1];
+};
+
 function harness() {
   const handlers = {};
   const stores = new Map();
@@ -251,7 +262,10 @@ test('replica language URLs share their own visited document offline', async () 
 
 test('the articulated model and HDR load on demand and survive activation', async () => {
   const h = harness();
-  const assets = ['3d/assets/rodbot-training-v6.glb', '3d/assets/warehouse-v5.hdr'];
+  const assets = ['3d/assets/' + assetName('MODEL_URL'), '3d/assets/' + assetName('ENVIRONMENT_URL')];
+  // L'accueil de l'app doit citer EXACTEMENT le même modèle que la page 3D,
+  // sinon le travailleur télécharge deux fois 26 Mo sans le savoir.
+  for (const f of assets) assert.ok(SCENE_SRC.includes('./' + f), 'scene3d.js doit citer ' + f);
   await h.lifecycle('install');
   await h.lifecycle('activate');
   for (const file of assets) {
@@ -291,25 +305,28 @@ test('complete precache continues after errors and PRECACHE messages retry missi
 
 test('offline video range requests use the complete stable cached resource', async () => {
   const h = harness();
-  h.seed(ASSETS, '3d/assets/videos/hero_rodbot.mp4', '0123456789', { headers: { 'Content-Type': 'video/mp4' } });
-  const response = await h.request('3d/assets/videos/hero_rodbot.mp4', { headers: { Range: 'bytes=2-5' } });
+  h.seed(ASSETS, '3d/assets/' + assetName('MODEL_URL'), '0123456789', { headers: { 'Content-Type': 'model/gltf-binary' } });
+  const response = await h.request('3d/assets/' + assetName('MODEL_URL'), { headers: { Range: 'bytes=2-5' } });
   assert.equal(response.status, 206);
   assert.equal(await response.text(), '2345');
   assert.equal(response.headers.get('Content-Range'), 'bytes 2-5/10');
-  assert.equal(response.headers.get('Content-Type'), 'video/mp4');
+  assert.equal(response.headers.get('Content-Type'), 'model/gltf-binary');
   assert.equal(h.networkCalls.length, 0);
 });
 
-test('fonts and the 3d CDN stay offline-ready without caching employee API responses', async () => {
+test('les polices restent disponibles hors ligne sans mettre en cache le registre des employés', async () => {
   const h = harness();
-  const engine = 'https://cdn.jsdelivr.net/npm/playcanvas@2.13.3/build/playcanvas.mjs';
+  // Le moteur 3D est local depuis model-viewer : plus aucune origine CDN de code.
+  const police = 'https://fonts.gstatic.com/s/heebo/v1/font.woff2';
   const font = 'https://fonts.googleapis.com/css2?family=Heebo&display=swap';
-  h.network.set(engine, new Response('3d engine'));
+  h.network.set(police, new Response('woff2'));
   h.network.set(font, new Response('Heebo CSS'));
-  for (const url of [engine, font]) assert.equal((await h.request(url)).status, 200);
+  for (const url of [police, font]) assert.equal((await h.request(url)).status, 200);
   h.network.clear();
-  assert.equal(await (await h.request(engine)).text(), '3d engine');
+  assert.equal(await (await h.request(police)).text(), 'woff2');
   assert.equal(await (await h.request(font)).text(), 'Heebo CSS');
+  // Aucune origine de code étrangère n'est plus autorisée.
+  assert.equal(await h.request('https://cdn.jsdelivr.net/npm/playcanvas/build/playcanvas.mjs'), undefined);
   assert.equal((await h.request('https://fonts.googleapis.com/css2?family=Other')).type, 'error');
   assert.equal(await h.request('https://attestations-rodbot.frankyray-21.workers.dev?q=Alice'), undefined);
   assert.equal(await h.request('https://example.github.io/TMS/app.js'), undefined);

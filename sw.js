@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.72.0';
+const CACHE = 'rodbot-formation-v1.73.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -23,7 +23,8 @@ const CORE = [
   './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js'
 ];
 
-/* Ressources CDN nécessaires hors-ligne : feuilles de polices + moteur 3D.
+/* Ressources CDN nécessaires hors-ligne : les feuilles de polices.
+   Le moteur 3D est local depuis le passage à model-viewer (3d/vendor/).
    Les fichiers de police (.woff2) eux-mêmes sont capturés au vol à la première
    visite par le gestionnaire fetch (leurs URL sont dans le CSS de Google). */
 const CDN = [
@@ -38,8 +39,8 @@ const CDN = [
    avec reprise automatique (voir precacherTout). */
 const PRECACHE = [
   './3d/assets/manuel/p12.jpg', './3d/assets/manuel/p13.jpg', './3d/assets/manuel/p14.jpg', './3d/assets/manuel/p21.jpg', './3d/assets/manuel/p47.jpg', './3d/assets/manuel/p51.jpg',
-  './3d/assets/manuel/p52.jpg', './3d/assets/manuel/p55.jpg', './3d/assets/manuel/p65.jpg', './3d/assets/photos/manette.jpg', './3d/assets/previews/hero_poster.jpg', './3d/assets/previews/og.jpg',
-  './3d/vendor/draco/draco_decoder.wasm', './3d/assets/rodbot-v6-c9499d45-poster.jpg', './evaluation-risques.pdf',
+  './3d/assets/manuel/p52.jpg', './3d/assets/manuel/p55.jpg', './3d/assets/manuel/p65.jpg', './3d/assets/photos/manette.jpg',
+  './3d/vendor/draco/draco_decoder.wasm', './3d/vendor/draco/draco_decoder.js', './3d/assets/rodbot-v6-c9499d45-poster.jpg', './evaluation-risques.pdf',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './img/directions-manettes.webp', './img/eq-hmi.png', './img/eq-labeled.png',
   './img/eq-machine-real.png', './img/eq-machine.png', './img/eq-panel.png', './img/eq-track.png', './img/eq-transport.png', './img/fig-en/p07.jpg',
   './img/fig-en/p10.jpg', './img/fig-en/p11.jpg', './img/fig-en/p13.jpg', './img/fig-en/p14.jpg', './img/fig-en/p15.jpg', './img/fig-en/p16.jpg',
@@ -192,6 +193,11 @@ async function offlineResponse(key, isHome) {
   return Response.error();
 }
 
+/* Requêtes de contenu déjà en vol, par URL. Deux lecteurs 3D peuvent demander
+   le même modèle de 27 Mo en même temps : sans ça, les deux ratent le cache et
+   la tablette télécharge tout en double. */
+const EN_VOL = new Map();
+
 async function assetResponse(req, allowOpaque = false) {
   let cached;
   try {
@@ -204,18 +210,29 @@ async function assetResponse(req, allowOpaque = false) {
     }
   } catch (error) {}
   if (cached) return reponsePourRange(req, cached);
-  try { return await remember(req, await fetch(req), ASSETS, allowOpaque); }
-  catch (error) { return Response.error(); }
+  // Une seule descente réseau par URL, partagée par tous les demandeurs.
+  const cle = req.url;
+  let vol = EN_VOL.get(cle);
+  if (!vol) {
+    vol = (async () => {
+      try { return await remember(req, await fetch(req), ASSETS, allowOpaque); }
+      catch (error) { return Response.error(); }
+    })().finally(() => EN_VOL.delete(cle));
+    EN_VOL.set(cle, vol);
+  }
+  const reponse = await vol;
+  // Une réponse ne se lit qu'une fois : chaque demandeur reçoit sa copie.
+  return (reponse && typeof reponse.clone === 'function') ? reponse.clone() : reponse;
 }
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // Ressources CDN (polices, moteur 3D) : cache d'abord, sinon réseau + mise en cache
+  // Ressources CDN (polices) : cache d'abord, sinon réseau + mise en cache
   if (url.origin !== self.location.origin) {
     // Le registre des employés et les autres API ne sont jamais mis en cache.
-    const cdnOrigins = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net'];
+    const cdnOrigins = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
     if (!cdnOrigins.includes(url.origin)) return;
     e.respondWith(assetResponse(req, true));
     return;

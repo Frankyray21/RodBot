@@ -4,11 +4,23 @@ const { join } = require('node:path');
 const { test } = require('node:test');
 const vm = require('node:vm');
 
+// Le nom des assets vient de 3d/js/model-assets.js, source de vérité unique :
+// un littéral recopié ici a déjà laissé passer un nom de fichier inexistant.
+const ASSETS_SRC = readFileSync(join(__dirname, '..', '3d', 'js', 'model-assets.js'), 'utf8');
+const assetName = (nom) => {
+  const m = ASSETS_SRC.match(new RegExp(nom + "\\s*=\\s*new URL\\('\\.\\./assets/([^']+)'"));
+  assert.ok(m, nom + ' introuvable dans model-assets.js');
+  return m[1];
+};
+
 // Exercise the adapter against its public browser/model-viewer contract.
 const path = join(__dirname, '..', '3d', 'js', 'viewer-v5.js');
 const source = readFileSync(path, 'utf8')
   .replace(/^import .*from '\.\/motion\.js';\n/m, '')
-  .replace(/^import .*from '\.\/model-assets\.js';\n/m, "const MODEL_URL = 'https://example.github.io/RodBot/3d/assets/rodbot-training-v6.glb';\n")
+  .replace(/^import .*from '\.\/model-assets\.js';\n/m,
+    "const MODEL_URL = 'https://example.github.io/RodBot/3d/assets/" + assetName('MODEL_URL') + "';\n"
+    + "const ENVIRONMENT_URL = 'https://example.github.io/RodBot/3d/assets/" + assetName('ENVIRONMENT_URL') + "';\n"
+    + "const POSTER_URL = 'https://example.github.io/RodBot/3d/assets/" + assetName('POSTER_URL') + "';\n")
   .replaceAll('export default RodbotViewer;', '')
   .replaceAll('export ', '')
   .replaceAll('import.meta.url', "'https://example.github.io/RodBot/3d/js/viewer-v5.js'")
@@ -80,7 +92,10 @@ async function harness(t, { controls = false, buttons = false, access = false, s
 test('V5 uses local assets and evaluates the six validated initial poses', async t => {
   const { viewer, model, module } = await harness(t);
   assert.equal(module.ModelViewerElement.dracoDecoderLocation, 'https://example.github.io/RodBot/3d/vendor/draco/');
-  assert.equal(model.requests[0], 'https://example.github.io/RodBot/3d/assets/rodbot-training-v6.glb');
+  assert.equal(model.requests[0], 'https://example.github.io/RodBot/3d/assets/' + assetName('MODEL_URL'));
+  assert.equal(model.poster, 'https://example.github.io/RodBot/3d/assets/' + assetName('POSTER_URL'),
+    "l'affiche doit être celle du modèle courant, pas celle d'une génération précédente");
+  assert.equal(model.environmentImage, 'https://example.github.io/RodBot/3d/assets/' + assetName('ENVIRONMENT_URL'));
   assert.equal(viewer.canArticulate, true);
   assert.deepEqual(model.appended.slice(-6).map(a => a.time), [.5, 1, .65, .5, 0, 1]);
   assert(model.appended.every(a => a.timeScale === 0 && a.weight === 1 && a.fade === false && a.repetitions === '1'));

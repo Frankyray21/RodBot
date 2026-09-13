@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.72.0';
+var APP_VERSION = '1.73.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -2400,9 +2400,10 @@ class Component extends DCLogic {
     } else if(S.home==="savoir"){
       homeTocData=[
         ["equipment","01",this.tr("La machine","The machine")],
-        ["safety","02",this.tr("Sécurité","Safety")],
-        ["practice","03",this.tr("Pratique","Practice")],
-        ["documents","04",this.tr("Documents","Documents")]
+        ["machine3d","02",this.tr("La machine en 3D","The machine in 3D")],
+        ["safety","03",this.tr("Sécurité","Safety")],
+        ["practice","04",this.tr("Pratique","Practice")],
+        ["documents","05",this.tr("Documents","Documents")]
       ];
     } else {
       homeTocData=[

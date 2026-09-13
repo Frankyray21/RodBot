@@ -6,6 +6,10 @@ const { test } = require('node:test');
 
 // Real page controller and event wiring; native top-layer layout is checked in the browser.
 const html = fs.readFileSync(path.join(__dirname, '../3d/index.html'), 'utf8');
+// La version vient de app.js, source de vérité : un littéral recopié ici fige
+// le dossier 3d/ sur une vieille version dès qu'on oublie de le mettre à jour.
+const APP_VERSION = fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8')
+  .match(/var APP_VERSION = '([^']+)'/)[1];
 const controller = html.slice(html.indexOf('    function createComponentPopup('), html.indexOf('    /* End component popup controller. */'));
 assert(controller.includes('function createComponentPopup('));
 const event = (type, values = {}) => Object.assign(new Event(type, { cancelable: true }), values);
@@ -124,7 +128,7 @@ test('previous and next preserve a running tour and otherwise browse components'
 
 test('component entry preserves explicit photo, manual, cabinet and accessible dialog controls', () => {
   assert.match(html, /<dialog[^>]+id="fiche"[^>]+aria-labelledby="ficheTitle"[^>]+aria-describedby="ficheDesc"/);
-  assert.match(html, /component-popup\.css\?v=1\.70\.0/);
+  assert.match(html, new RegExp('component-popup\\.css\\?v=' + APP_VERSION.replace(/\./g, '\\.')));
   assert(!html.includes('PHOTOS[id].autoOuvrir'), 'photo data must not automatically cover a newly opened component');
   assert.match(html, /fichePhoto\.addEventListener\('click', \(\) => \{ if \(courant\) ouvrirPhoto\(PHOTOS\[courant\]\); \}\)/);
   assert.match(html, /ficheManuelBtn\.onclick = \(\) =>/);

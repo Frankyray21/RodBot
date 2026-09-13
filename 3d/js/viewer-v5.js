@@ -1,7 +1,7 @@
 /* GLB training renderer (V6, derived from V5). Public model-viewer 4.3.1 APIs only.
    Existing page controls, component cards and camera tours keep their contract. */
 import { clamp, ease, nearestYaw, framingScale } from './motion.js';
-import { MODEL_URL } from './model-assets.js';
+import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js';
 
 export const V5_MOTIONS = [
   { id: 'turret', clip: 'Rotation_tourelle', min: -35, max: 35, initial: 0 },
@@ -384,9 +384,9 @@ export const RodbotViewer = {
       model.minCameraOrbit = 'auto 5deg 0.35m'; model.maxCameraOrbit = 'auto 90deg 45m';
       model.fieldOfView = '30deg'; model.cameraTarget = 'auto auto auto';
       model.cameraOrbit = `${HOME.yaw}deg ${90 - HOME.pitch}deg ${HOME.dist * framing}m`;
-      model.environmentImage = new URL('../assets/warehouse-v5.hdr', import.meta.url).href;
+      model.environmentImage = ENVIRONMENT_URL;
       model.setAttribute('tone-mapping', 'agx'); model.exposure = 1;
-      model.poster = new URL('../assets/rodbot-v5-poster.jpg', import.meta.url).href;
+      model.poster = POSTER_URL;
       model.loading = 'eager'; model.reveal = 'auto';
       await setQuality(quality);
       emit('loading', quality); emit('progress', 0);

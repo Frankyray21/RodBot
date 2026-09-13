@@ -5,7 +5,7 @@
    fonds miniers sombres, bande hachurée sécurité.
    ------------------------------------------------------------
    CONTRAT CRITIQUE (viewer 3D) :
-   - .hs ne définit JAMAIS transform (viewer.js le pose en inline).
+   - .hs ne définit JAMAIS transform (viewer-v5.js le pose en inline).
    - .hs-overlay : position:absolute; inset:0; pointer-events:none.
    - .hs : position:absolute; left:0; top:0; pointer-events:auto.
    - La pastille est centrée par décalage négatif sur .hs-dot.
@@ -335,7 +335,7 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 }
 
 /* ============ 9. HOTSPOTS ============ */
-/* RAPPEL : viewer.js positionne .hs via el.style.transform = translate(Xpx,Ypx).
+/* RAPPEL : viewer-v5.js positionne .hs via el.style.transform = translate(Xpx,Ypx).
    AUCUN transform ici. Le bouton est un point 0x0 ancré au composant 3D ;
    tout le visuel est décalé en négatif à l'intérieur. */
 .hs{
@@ -779,7 +779,7 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 @keyframes estopPing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(2.6);opacity:0}}
 .hs-urgence .hs-lb{left:34px}
 
-/* pastille CACHÉE derrière la machine (viewer.js pose .is-occluded) :
+/* pastille CACHÉE derrière la machine (viewer-v5.js pose .is-occluded) :
    anneau grisé en pointillés, sans pulsation, pour montrer qu'elle est de l'autre côté */
 .hs.is-occluded{filter:grayscale(.85)}
 .hs-urgence.is-occluded .hs-ring{border-style:dashed;border-color:#8b93a3;background:transparent;animation:none;box-shadow:none}

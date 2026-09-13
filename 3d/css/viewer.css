@@ -1,4 +1,5 @@
-/* RodBot 3D: the real scan is the focus; controls stay separate from the part details. */
+/* RodBot 3D : la réplique articulée occupe l'écran, les commandes restent
+   à part. Moteur : model-viewer (3d/js/viewer-v5.js). */
 :root{--bg:#101214;--bg-2:#171a1d;--card:#1c2024;--card-2:#23282d;--border:#32383e;--muted:#b3bbc4;--dim:#969fa9}
 [hidden]{display:none!important}
 body::before{display:none}
@@ -14,7 +15,6 @@ body::before{display:none}
 .quality-choice{margin-left:auto;display:flex;align-items:center;gap:.7rem;font-size:.85rem;color:var(--muted)}
 .quality-choice select{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:7px;min-height:44px;padding:.5rem 1.7rem .5rem .8rem}
 .viewer-wrap{height:clamp(430px,59svh,680px);min-height:0;background:#0f1112;border:1px solid #363a3e;border-radius:12px;box-shadow:none;scroll-margin-top:calc(var(--header-h) + 12px)}
-.viewer-wrap canvas{outline-offset:-5px}
 .viewer-status{position:absolute;top:16px;left:18px;z-index:5;display:flex;align-items:center;gap:8px;font-size:.76rem;color:#b5bdc5;pointer-events:none}
 .viewer-status-dot{width:5px;height:5px;border-radius:50%;background:#d94b50}
 #btnFullscreen{position:absolute;top:10px;right:10px;z-index:5}

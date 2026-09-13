@@ -70,3 +70,60 @@ test('la scène est précachée et chargée par la page', () => {
   assert.equal((html.match(/data-rb-scene3d/g) || []).length, 2);
   assert.ok(sw.includes("'./3d/vendor/model-viewer-4.3.1.min.js'"), 'moteur 3D précaché');
 });
+
+/* Contrôle INVERSE du précache. Les tests qui relisent CORE et PRECACHE pour
+   vérifier que chaque entrée existe restent verts quand on RETIRE une entrée.
+   Ils ne voient donc pas le trou dangereux : un fichier que le code charge et
+   que personne n'a listé. Ici on part du CODE et on remonte vers les listes. */
+test('chaque asset cité par le code 3D existe sur disque', () => {
+  const lire = n => fs.readFileSync(path.join(__dirname, '..', n), 'utf8');
+  const racine = path.join(__dirname, '..');
+  // 3d/js/model-assets.js : les URL sont relatives à 3d/js/
+  const assets = lire('3d/js/model-assets.js');
+  const urls = [...assets.matchAll(/new URL\('\.\.\/([^']+)'/g)].map(m => m[1]);
+  assert.ok(urls.length >= 4, 'model-assets.js doit déclarer au moins 4 URL');
+  for (const u of urls) {
+    const abs = path.join(racine, '3d', u);
+    assert.ok(fs.existsSync(abs), '3d/' + u + ' est cité par model-assets.js mais absent du dépôt');
+  }
+  // scene3d.js : les chemins sont relatifs à la racine du site
+  const scene = lire('scene3d.js');
+  const chemins = [...scene.matchAll(/'(\.\/3d\/[^']+)'/g)].map(m => m[1]);
+  assert.ok(chemins.length >= 4, 'scene3d.js doit citer au moins 4 chemins 3D');
+  for (const c of chemins) {
+    const abs = path.join(racine, c.replace(/^\.\//, ''));
+    assert.ok(fs.existsSync(abs), c + ' est cité par scene3d.js mais absent du dépôt');
+  }
+});
+
+test('les listes du service worker ne citent que des fichiers qui existent', () => {
+  const sw = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
+  const racine = path.join(__dirname, '..');
+  const bloc = (nom) => {
+    const m = sw.match(new RegExp('const ' + nom + ' = \\[([\\s\\S]*?)\\];'));
+    assert.ok(m, nom + ' introuvable dans sw.js');
+    return [...m[1].matchAll(/'\.\/([^']+)'/g)].map(x => x[1]);
+  };
+  const manquants = [];
+  for (const nom of ['CORE', 'PRECACHE']) {
+    for (const f of bloc(nom)) {
+      const propre = f.split('?')[0];
+      if (!propre) continue;
+      if (!fs.existsSync(path.join(racine, propre))) manquants.push(nom + ' : ' + f);
+    }
+  }
+  // CORE est installé par cache.addAll, qui est tout ou rien : une seule entrée
+  // absente casse l'installation hors ligne de TOUTE l'application.
+  assert.deepEqual(manquants, [], 'fichiers listés dans sw.js mais absents du dépôt');
+});
+
+test("l'ancien moteur 3D a bien disparu", () => {
+  const racine = path.join(__dirname, '..');
+  for (const mort of ['3d/js/viewer.js', '3d/js/hotspots.js', '3d/js/hero-embed.js',
+                      '3d/assets/rodbot_hq.sog', '3d/assets/rodbot_mobile.sog',
+                      '3d/assets/rodbot-v5.glb', '3d/assets/rodbot-v5-poster.jpg']) {
+    assert.equal(fs.existsSync(path.join(racine, mort)), false, mort + ' devrait être supprimé');
+  }
+  const sw = fs.readFileSync(path.join(racine, 'sw.js'), 'utf8');
+  assert.ok(!sw.includes('cdn.jsdelivr.net'), "plus aucune origine CDN de code : le moteur 3D est local");
+});

@@ -286,6 +286,38 @@ html, body { overflow-x: clip; }
   .rb-scene3d-affiche, .rb-scene3d-vue { transition: none; }
 }
 
+
+/* ===== Les portes vers l'atelier 3D ===================================
+   Chaque carte ouvre directement le bon exercice de la page 3D. Cible
+   tactile franche, gants compris, et le numéro de page du manuel à droite. */
+.rb-3d-note {
+  display: block; background: rgba(232,163,58,.14); border-left: 5px solid #e8a33a;
+  padding: 11px 14px; margin: 0 0 16px; font-weight: 700; font-size: 13px;
+  line-height: 1.45; color: #3d3d3a; max-width: 62ch;
+}
+.rb-3d-passerelle {
+  display: inline-flex; align-items: center; min-height: 46px; margin-top: 10px;
+  padding: 10px 14px; background: #141413; color: #faf9f5; font-weight: 800;
+  font-size: 12.5px; letter-spacing: .04em; text-decoration: none; transition: background .15s;
+}
+.rb-3d-passerelle:hover { background: #d92624; }
+.rb-3d-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.rb-3d-carte {
+  display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 14px 16px;
+  background: #fff; border: 1px solid rgba(29,30,27,.15); color: #1d1e1b; text-decoration: none;
+  transition: transform .16s, box-shadow .16s, border-color .16s;
+}
+.rb-3d-carte:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -24px rgba(20,20,19,.55); border-color: #d92624; }
+.rb-3d-carte:focus-visible { outline: 3px solid #d92624; outline-offset: 2px; }
+.rb-3d-ic { flex: none; font-size: 26px; line-height: 1; width: 34px; text-align: center; }
+.rb-3d-txt { min-width: 0; flex: 1; }
+.rb-3d-txt strong { display: block; font-weight: 800; font-size: 15px; line-height: 1.25; margin-bottom: 3px; }
+.rb-3d-txt small { display: block; font-size: 12.5px; line-height: 1.45; color: #535252; }
+.rb-3d-page {
+  flex: none; align-self: flex-start; font-weight: 800; font-size: 11px; letter-spacing: .05em;
+  color: #d92624; white-space: nowrap; padding-top: 2px;
+}
+
 @media (min-width: 1240px) {
   #app .rb-side-toc { top: calc(var(--rb-sticky-height) + 18px); max-height: calc(100dvh - var(--rb-sticky-height) - 36px); }
 }
@@ -297,6 +329,10 @@ html, body { overflow-x: clip; }
 @media (max-width: 720px) {
   .rb-choix { grid-template-columns: 1fr; gap: 14px; }
   .rb-scene3d { aspect-ratio: 16 / 11; }
+  .rb-3d-grid { grid-template-columns: 1fr; gap: 10px; }
+  .rb-3d-carte { padding: 13px 13px; min-height: 72px; gap: 11px; }
+  .rb-3d-ic { font-size: 23px; width: 28px; }
+  .rb-3d-note { font-size: 12.5px; padding: 10px 12px; }
   .rb-scene3d-slot { margin-bottom: 18px; }
   .rb-scene3d-barre { padding: 8px; }
   .rb-scene3d-btn { font-size: 11.5px; padding: 8px 11px; }

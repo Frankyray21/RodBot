@@ -3,11 +3,14 @@ import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js';
 
 // A live presentation of the same articulated model used in the exercises.
 // Its camera moves; the machine never slides relative to the workshop floor.
-export function createHero(model, button) {
+// `attendre` : promesse tenue quand l'atelier a fini de charger le modèle.
+// Sans elle, le héros et l'atelier demandent les 27 Mo du GLB en même temps,
+// et la tablette les télécharge deux fois.
+export function createHero(model, button, attendre) {
   if (!model) return;
   ModelViewerElement.dracoDecoderLocation = DRACO_URL;
   const media = matchMedia('(prefers-reduced-motion: reduce)');
-  let paused = media.matches, visible = false, loaded = false, frame = 0, last = 0, phase = 0;
+  let paused = media.matches, visible = false, loaded = false, frame = 0, last = 0, phase = 0, demande = false;
   let previousPose = '';
   const clips = [
     ['Rotation_tourelle', .5], ['Elevation_bras', 1], ['Inclinaison_pince', .65],
@@ -52,7 +55,14 @@ export function createHero(model, button) {
   model.addEventListener('error', () => { button.hidden = true; loaded = false; sync(); });
   const observer = new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting;
-    if (visible && !model.src) { model.environmentImage = ENVIRONMENT_URL; model.src = MODEL_URL; }
+    if (visible && !model.src && !demande) {
+      demande = true;
+      Promise.resolve(attendre).catch(() => {}).then(() => {
+        // L'atelier a fini (ou échoué) : le modèle est en cache, une lecture suffit.
+        model.environmentImage = ENVIRONMENT_URL;
+        model.src = MODEL_URL;
+      });
+    }
     sync();
   });
   observer.observe(model);
