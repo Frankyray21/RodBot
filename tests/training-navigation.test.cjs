@@ -8,29 +8,10 @@ const vm = require('node:vm');
 // are checked separately in the browser; these tests protect transition order.
 const html = fs.readFileSync(path.join(__dirname, '../3d/index.html'), 'utf8');
 
-test('a component card leaves the exercise before opening its component view', () => {
-  const start = html.indexOf("      document.querySelectorAll('.eq-3d').forEach");
-  const end = html.indexOf("      const { mountTraining }", start);
-  assert(start >= 0 && end > start);
-  for (const target of ['bras', 'home']) {
-    const calls = [];
-    let click;
-    const card = { dataset: { cible: target }, addEventListener: (_, handler) => { click = handler; } };
-    const training = { active: true };
-    vm.runInNewContext(html.slice(start, end), {
-      document: { querySelectorAll: () => [card], getElementById: () => ({ scrollIntoView() {} }) },
-      training,
-      reglerMode(mode) { calls.push('mode:' + mode); training.active = false; },
-      arreterVisite: () => calls.push('stop-tour'), reglerRotation() {},
-      hotspotById: id => id === 'bras', FLY: 900,
-      ouvrirFiche: id => calls.push('fiche:' + id), v: { home: () => calls.push('home') }
-    });
-    click();
-    assert.equal(training.active, false);
-    assert.equal(calls[0], 'mode:composants');
-    assert.equal(calls.at(-1), target === 'home' ? 'home' : 'fiche:bras');
-  }
-});
+// La section « L'équipement : en un coup d'œil » et ses boutons « Voir sur le
+// modèle 3D » ont été retirés de la page 3D : la même galerie de figures vit
+// déjà dans l'app de formation. Le test qui exécutait leur gestionnaire est
+// parti avec le code qu'il gardait.
 
 test('manual and photo entry points stop training before opening their modal', () => {
   const manual = /onManual\(page\) \{([\s\S]*?)\r?\n\s*\}\r?\n\s*\}\);/.exec(html);

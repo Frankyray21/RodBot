@@ -63,7 +63,7 @@ body::before{display:none}
 .viewer-section .fm-titre{font-size:.85rem}
 .viewer-section .fm-ref{font-size:.76rem}
 .viewer-section .fiche-manuel .btn{padding:.5rem .8rem;font-size:.8rem;white-space:nowrap;border-radius:5px;box-shadow:none}
-.viewer-fullscreen .hero,.viewer-fullscreen #equipement,.viewer-fullscreen .foot{display:none}
+.viewer-fullscreen .hero,.viewer-fullscreen .foot{display:none}
 .viewer-fullscreen .viewer-section{padding:calc(var(--header-h) + 16px) 0 20px}
 .viewer-fullscreen .viewer-section .eyebrow,.viewer-fullscreen .viewer-section .lead{display:none}
 .viewer-fullscreen .viewer-wrap{height:62svh}
