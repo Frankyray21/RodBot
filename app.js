@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.70.0';
+var APP_VERSION = '1.71.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -26,7 +26,7 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:10,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '12 SEPT. 2026';
+var APP_VERSION_DATE = '13 SEPT. 2026';
 
 /* ---------- Tour guidé à la demande ----------
    Depuis l'accueil ou le pied de page, le travailleur peut ouvrir un tour
@@ -40,7 +40,7 @@ var TOUR_STEPS = [
   { icon: '👋',
     fr: { t: 'Bienvenue !', x: "Voici la formation <strong>RodBot LP</strong>.<br>Petit tour rapide du site." },
     en: { t: 'Welcome!', x: 'This is the <strong>RodBot LP</strong> training.<br>A quick tour of the site.' } },
-  { icon: '📚', sel: '[data-rb-scroll-section="path"] .rb-stagger > button',
+  { icon: '📚', sel: '[data-rb-scroll-section="path"] .rb-stagger > button', home: 'formation',
     fr: { t: 'Les modules', x: '8 modules courts.<br>Touchez un module pour l’ouvrir.<br>Faites-les dans l’ordre.' },
     en: { t: 'The modules', x: '8 short modules.<br>Tap a module to open it.<br>Do them in order.' } },
   { icon: '📖',
@@ -52,7 +52,7 @@ var TOUR_STEPS = [
   { icon: '🎓',
     fr: { t: 'L’attestation', x: 'Après le quiz, écrivez votre nom.<br>Puis <strong>touchez votre nom</strong> dans la liste.<br>Votre résultat est enregistré.' },
     en: { t: 'The certificate', x: 'After the quiz, type your name.<br>Then <strong>tap your name</strong> in the list.<br>Your result is saved.' } },
-  { icon: '📋', sel: '#rb-tour-suivi',
+  { icon: '📋', sel: '#rb-tour-suivi', home: 'choix',
     fr: { t: 'Mon suivi', x: 'Touchez ce bouton pour voir vos modules réussis.<br>Même sur un autre appareil.' },
     en: { t: 'My progress', x: 'Tap this button to see your passed modules.<br>Even on another device.' } },
   { icon: '👍',
@@ -1092,7 +1092,7 @@ class Component extends DCLogic {
     try { savedLang = localStorage.getItem("rodbot_lang") || "fr"; } catch(e){}
     this.state = {
       lang: (savedLang==="en" ? "en" : "fr"),
-      view:"home", activeId:null, openKey:null,
+      view:"home", home:"choix", activeId:null, openKey:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
@@ -1246,8 +1246,9 @@ class Component extends DCLogic {
       const y=el.getBoundingClientRect().top+window.scrollY-(header ? header.offsetHeight : 78)-16;
       window.scrollTo({top:Math.max(0,y),behavior:"smooth"});
     };
-    if(this.state.view!=="home"){
-      this.setState({view:"home",graded:false,answers:{}},()=>requestAnimationFrame(scroll));
+    const page=this.homePageOf(key);
+    if(this.state.view!=="home" || this.state.home!==page){
+      this.setState({view:"home",home:page,graded:false,answers:{}},()=>requestAnimationFrame(scroll));
     } else scroll();
   };
 
@@ -1414,6 +1415,13 @@ class Component extends DCLogic {
      la page (technique de l'ombre portée géante), les autres sont centrées. */
   tourOpen(i){
     if(i==null || i<0 || i>=TOUR_STEPS.length) return;
+    var step0 = TOUR_STEPS[i];
+    // Une etape qui montre un vrai element doit d'abord ouvrir le bon chemin.
+    if(step0.home && this.state.view==='home' && this.state.home!==step0.home){
+      this._tourStep = i;
+      this.setState({ home: step0.home }, ()=>{ window.scrollTo(0,0); this.tourOpen(i); });
+      return;
+    }
     this._tourStep = i;
     var step = TOUR_STEPS[i], L = (this.state.lang==='en') ? step.en : step.fr;
     var en = this.state.lang==='en';
@@ -1499,7 +1507,7 @@ class Component extends DCLogic {
   /* Relance le tour depuis le pied de page (revient d'abord à l'accueil). */
   tourReplay = ()=>{
     ptEnter(null,null);
-    this.setState({ view:'home', graded:false, answers:{}, manualDetailKey:null }, ()=>{
+    this.setState({ view:'home', home:'choix', graded:false, answers:{}, manualDetailKey:null }, ()=>{
       window.scrollTo(0,0);
       this.tourOpen(0);
     });
@@ -1689,7 +1697,16 @@ class Component extends DCLogic {
     });
   };
 
-  goHome = ()=> { ptEnter(null,null); this.setState({ preQuiz:false, view:"home", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
+  /* ---------- Les deux chemins de l'accueil ----------
+     L'accueil ne propose que deux choses : apprendre, ou chercher une
+     reponse. Tout le reste vit derriere l'un des deux. Un travailleur qui
+     arrive sur le site ne doit pas avoir a trancher entre huit sections. */
+  goHome = ()=> { ptEnter(null,null); this.setState({ preQuiz:false, view:"home", home:"choix", graded:false, answers:{}, manualDetailKey:null },()=>window.scrollTo(0,0)); };
+  goHomeChoix = ()=> { this.setState({ view:"home", home:"choix" },()=>window.scrollTo(0,0)); };
+  goFormation = ()=> { ptEnter(null,null); this.setState({ view:"home", home:"formation", graded:false, answers:{} },()=>window.scrollTo(0,0)); };
+  goSavoir = ()=> { ptEnter(null,null); this.setState({ view:"home", home:"savoir", graded:false, answers:{} },()=>window.scrollTo(0,0)); };
+  /* Quelle page d'accueil contient telle section ? Sert aux ancres du menu. */
+  homePageOf(key){ return (key==="path") ? "formation" : (key==="overview" ? "choix" : "savoir"); }
   openModule = (i)=> { if(!this.M()[i]) return; ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ preQuiz:false, view:"module", activeId:i, openKey:i+'-0', manualDetailKey:null, graded:false, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
   openLesson = (mi,si)=>{
     if(!this.M()[mi] || !this.M()[mi].sections[si]) return;
@@ -1841,7 +1858,7 @@ class Component extends DCLogic {
     this.clearSuggestionsUI();
     this.setState({
       name:"", attEmpId:"", attSug:[], completed:{}, attempts:{}, read:{}, lms:{},
-      view:"home", activeId:null, openKey:null, manualDetailKey:null, mpage:null, imgView:null,
+      view:"home", home:"choix", activeId:null, openKey:null, manualDetailKey:null, mpage:null, imgView:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], qbFb:{}, qbCommentKey:null, qbComment:"",
       attDone:false, attLinked:false, attError:"", attSending:false, attRemind:false,
@@ -2333,6 +2350,8 @@ class Component extends DCLogic {
     const tocModuleMode=!tocHomeMode;
     let tocNowLabel=this.tr("SECTION EN COURS","CURRENT SECTION");
     let tocNowTitle=this.tr("Accueil","Home");
+    if(S.view==="home" && S.home==="formation"){ tocNowLabel=this.tr("CHEMIN","PATH"); tocNowTitle=this.tr("Parcours de formation","Training path"); }
+    else if(S.view==="home" && S.home==="savoir"){ tocNowLabel=this.tr("CHEMIN","PATH"); tocNowTitle=this.tr("Base de connaissances","Knowledge base"); }
     if(S.view==="module"&&activeMod){ tocNowLabel=this.tr("MODULE ","MODULE ")+activeMod.num+" · "+this.tr("LEÇON 1/","LESSON 1/")+activeMod.sections.length; tocNowTitle=activeMod.sections[0].title; }
     else if(S.view==="quiz"&&activeMod){ tocNowLabel=this.tr("MODULE ","MODULE ")+activeMod.num+" · QUIZ"; tocNowTitle=this.tr("Petit quiz","Short quiz"); }
     else if(S.view==="sim"){ tocNowLabel=this.tr("PRATIQUE","PRACTICE"); tocNowTitle=this.tr("Simulateur interactif","Interactive simulator"); }
@@ -2341,6 +2360,15 @@ class Component extends DCLogic {
 
     const base={
       isHome:S.view==="home", isModule:S.view==="module", isQuiz:S.view==="quiz", isCert:S.view==="cert", isSuivi:S.view==="suivi",
+      // Accueil : trois ecrans possibles, le choix puis l'un des deux chemins.
+      homeChoix:S.view==="home" && S.home!=="formation" && S.home!=="savoir",
+      homeFormation:S.view==="home" && S.home==="formation",
+      homeSavoir:S.view==="home" && S.home==="savoir",
+      goHomeChoix:this.goHomeChoix, goFormation:this.goFormation, goSavoir:this.goSavoir,
+      choixFormEtat:this.tr(doneCount+" / "+total+" modules validés", doneCount+" / "+total+" modules passed"),
+      choixFormCta: doneCount===0 ? this.tr("Commencer la formation","Start the training")
+                  : (this.allDone() ? this.tr("Revoir la formation","Review the training")
+                                    : this.tr("Reprendre la formation","Continue the training")),
       totalModules:total, doneCount, totalSections,
       progressPct: Math.round(doneCount/total*100), passPct:70,
       // Barre de progression du parcours : verte une fois les 8 modules validés.
@@ -2361,14 +2389,24 @@ class Component extends DCLogic {
                  label:doneCount+"/"+total+" "+this.tr("modules validés","modules passed") }
     };
 
-    const homeTocData=[
-      ["overview","01",this.tr("Accueil","Home")],
-      ["path","02",this.tr("Parcours","Training path")],
-      ["equipment","03",this.tr("Équipement","Equipment")],
-      ["safety","04",this.tr("Sécurité","Safety")],
-      ["practice","05",this.tr("Pratique","Practice")],
-      ["documents","06",this.tr("Documents","Documents")]
-    ];
+    /* La table des matieres ne liste que ce qui est reellement a l'ecran :
+       les deux chemins depuis le choix, le detail une fois dedans. */
+    let homeTocData;
+    if(S.home==="formation"){
+      homeTocData=[ ["path","01",this.tr("Parcours","Training path")] ];
+    } else if(S.home==="savoir"){
+      homeTocData=[
+        ["equipment","01",this.tr("La machine","The machine")],
+        ["safety","02",this.tr("Sécurité","Safety")],
+        ["practice","03",this.tr("Pratique","Practice")],
+        ["documents","04",this.tr("Documents","Documents")]
+      ];
+    } else {
+      homeTocData=[
+        ["path","01",this.tr("Formation","Training")],
+        ["equipment","02",this.tr("Base de connaissances","Knowledge base")]
+      ];
+    }
     base.homeToc=homeTocData.map((item,index)=>({
       key:item[0],num:item[1],title:item[2],activeClass:index===0?"is-current":"",ariaCurrent:index===0?"location":"false",
       open:()=>this.scrollHomeSection(item[0])
@@ -2909,7 +2947,7 @@ class Component extends DCLogic {
     base.langFrStyle = (S.lang==="en") ? _inS : _actS;
     base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 12, 2026");
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 13, 2026");
     base.tourReplay = this.tourReplay;
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));

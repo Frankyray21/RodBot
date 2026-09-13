@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.70.0">
+<link rel="stylesheet" href="interface.css?v=1.71.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -146,41 +146,61 @@
     <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
     <div style="animation:rbFade .4s ease both">
 
-      <!-- Accueil : l'action principale précède les médias lourds. -->
+      <!-- ACCUEIL : deux chemins, rien de plus. Tout le reste vit derriere l'un des deux. -->
+      <sc-if value="{{ homeChoix }}" hint-placeholder-val="{{ true }}">
       <section class="rb-home-hero" data-rb-scroll-section="overview">
-        <div class="rb-home-grid">
-          <div>
-            <p class="rb-home-kicker">FORMATION OPÉRATEUR · BORTERRA</p>
-            <h1 class="rb-home-title">Apprenez<br><span>RodBot LP.</span></h1>
-            <p class="rb-home-intro">Lisez les leçons. Explorez les commandes. Vérifiez vos connaissances.</p>
-            <div class="rb-home-meta"><span>8 modules</span><span>Un quiz par module</span><span>Réussite : 70 %</span></div>
-            <div class="rb-home-actions">
-              <button class="rb-hero-cta" onClick="{{ startFirst }}">{{ ctaLabel }} la formation →</button>
-              <button id="rb-tour-suivi" class="rb-hero-secondary" onClick="{{ openSuivi }}">Mon suivi ↗</button>
-            </div>
+        <div class="rb-choix-wrap">
+          <p class="rb-home-kicker">FORMATION OPÉRATEUR · BORTERRA</p>
+          <h1 class="rb-choix-titre-page"><span>RodBot LP.</span></h1>
+          <p class="rb-choix-intro">Deux chemins. Vous apprenez, ou vous cherchez une réponse.</p>
+
+          <div class="rb-choix">
+            <button class="rb-choix-carte rb-choix-form" onClick="{{ goFormation }}">
+              <span class="rb-choix-bandeau" aria-hidden="true"></span>
+              <span class="rb-choix-tete"><span class="rb-choix-num">01</span><span class="rb-choix-ic" aria-hidden="true">🎓</span></span>
+              <strong class="rb-choix-nom">Formation</strong>
+              <span class="rb-choix-txt">8 modules. Un quiz par module. Attestation à la fin.</span>
+              <span class="rb-choix-meta">{{ choixFormEtat }}</span>
+              <span class="rb-choix-barre" aria-hidden="true"><span style="width: {{ progressPct }}%;background: {{ progressBarBg }}"></span></span>
+              <span class="rb-choix-go">{{ choixFormCta }} →</span>
+            </button>
+            <button class="rb-choix-carte rb-choix-savoir" onClick="{{ goSavoir }}">
+              <span class="rb-choix-bandeau" aria-hidden="true"></span>
+              <span class="rb-choix-tete"><span class="rb-choix-num">02</span><span class="rb-choix-ic" aria-hidden="true">📖</span></span>
+              <strong class="rb-choix-nom">Base de connaissances</strong>
+              <span class="rb-choix-txt">Le manuel, les commandes, la machine en 3D.</span>
+              <span class="rb-choix-meta">Manuel · Commandes · 3D · Documents</span>
+              <span class="rb-choix-barre rb-choix-barre-vide" aria-hidden="true"></span>
+              <span class="rb-choix-go">Chercher une réponse →</span>
+            </button>
+          </div>
+
+          <div class="rb-choix-liens">
+            <button id="rb-tour-suivi" onClick="{{ openSuivi }}">📋 Mon suivi</button>
+            <button onClick="{{ openSearch }}">⌕ Rechercher</button>
             <button class="rb-home-tour" onClick="{{ tourReplay }}">Comment ça fonctionne ?</button>
           </div>
-          <figure class="rb-home-visual">
-            <img src="img/hero-machine-photo.webp?v=1.8.11" alt="Système de manutention de tiges Borterra RodBot LP" fetchpriority="high" width="960" height="640">
-            <figcaption><span>RODBOT LP</span><a href="3d/?lang=fr">Explorer la machine en 3D ↗</a></figcaption>
-          </figure>
-        </div>
-        <div class="rb-home-tools">
-          <button onClick="{{ openPath }}"><span>01</span><strong>Modules de formation</strong><small>Choisir une leçon ou poursuivre le parcours.</small></button>
-          <button onClick="{{ openPractice }}"><span>02</span><strong>Pratiquer les commandes</strong><small>Télécommande et modes de fonctionnement.</small></button>
-          <button onClick="{{ openDocuments }}"><span>03</span><strong>Manuel et documents</strong><small>Consulter les documents de référence.</small></button>
         </div>
       </section>
+      </sc-if>
 
+      <!-- CHEMIN 01 : la formation, les 8 modules et la progression -->
+      <sc-if value="{{ homeFormation }}" hint-placeholder-val="{{ false }}">
+      <div class="rb-souspage">
+        <div class="rb-retour">
+          <button onClick="{{ goHomeChoix }}">← Accueil</button>
+          <span class="rb-retour-titre">PARCOURS DE FORMATION</span>
+        </div>
       <!-- PARCOURS -->
       <section class="mr-ghost" data-ghost="Parcours" data-rb-scroll-section="path" style="max-width:1180px;margin:0 auto;padding:54px 28px 24px">
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:28px;flex-wrap:wrap">
+        <div class="rb-path-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:28px;flex-wrap:wrap">
           <div>
             <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">01 : PARCOURS DE FORMATION</div>
             <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0;color:#1D1E1B">8 étapes de formation</h2>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+          <div class="rb-path-actions" style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
             <div style="font-size:14px;color:#535252;max-width:380px;text-align:right">Ouvrir un module. Faire les gestes. Répondre au petit quiz.</div>
+            <button onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;min-height:48px;padding:13px 22px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">{{ choixFormCta }} →</button>
             <button id="rb-tour-suivi" onClick="{{ openSuivi }}" style="background:transparent;border:1px solid rgba(29,30,27,.3);color:#1D1E1B;padding:9px 16px;font-weight:800;font-size:11.5px;letter-spacing:.08em;cursor:pointer;transition:border-color .15s" style-hover="border-color:#D92624">📋 MON SUIVI</button>
           </div>
         </div>
@@ -216,6 +236,22 @@
           </sc-for>
         </div>
       </section>
+      </div>
+      </sc-if>
+
+      <!-- CHEMIN 02 : la base de connaissances, tout ce qui se consulte -->
+      <sc-if value="{{ homeSavoir }}" hint-placeholder-val="{{ false }}">
+      <div class="rb-souspage">
+        <div class="rb-retour">
+          <button onClick="{{ goHomeChoix }}">← Accueil</button>
+          <span class="rb-retour-titre">BASE DE CONNAISSANCES</span>
+        </div>
+        <section class="rb-savoir-visuel" data-rb-scroll-section="equipment">
+            <figure class="rb-home-visual">
+              <img src="img/hero-machine-photo.webp?v=1.8.11" alt="Système de manutention de tiges Borterra RodBot LP" fetchpriority="high" width="960" height="640">
+              <figcaption><span>RODBOT LP</span><a href="3d/">Explorer la machine en 3D ↗</a></figcaption>
+            </figure>
+        </section>
 
       <!-- AUCUN SYSTEME DE VISION : deplacee avant la section du mat articule -->
       <section style="max-width:1180px;margin:0 auto;padding:28px 28px 0">
@@ -399,7 +435,10 @@
       </section>
 
 
-      <footer style="background:#141413;color:#8A8985;margin-top:40px">
+      </div>
+      </sc-if>
+
+      <footer style="background:#141413;color:#8A8985">
         <div style="max-width:1180px;margin:0 auto;padding:30px 28px 46px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-weight:600;font-size:11px;letter-spacing:.08em">
           <span>BM260024 · MANUEL DE L'OPÉRATEUR OM 10667 R0 · BORTERRA RODBOT LP</span>
           <span style="color:#6E6D69">APP DE FORMATION · VERSION {{ appVersion }} · MàJ {{ appVersionDate }}</span>
@@ -1353,41 +1392,61 @@
     <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
     <div style="animation:rbFade .4s ease both">
 
-      <!-- Accueil : l'action principale précède les médias lourds. -->
+      <!-- ACCUEIL : deux chemins, rien de plus. Tout le reste vit derriere l'un des deux. -->
+      <sc-if value="{{ homeChoix }}" hint-placeholder-val="{{ true }}">
       <section class="rb-home-hero" data-rb-scroll-section="overview">
-        <div class="rb-home-grid">
-          <div>
-            <p class="rb-home-kicker">OPERATOR TRAINING · BORTERRA</p>
-            <h1 class="rb-home-title">Learn<br><span>RodBot LP.</span></h1>
-            <p class="rb-home-intro">Read the lessons. Explore the controls. Check your knowledge.</p>
-            <div class="rb-home-meta"><span>8 modules</span><span>A quiz per module</span><span>Pass mark: 70%</span></div>
-            <div class="rb-home-actions">
-              <button class="rb-hero-cta" onClick="{{ startFirst }}">{{ ctaLabel }} the training →</button>
-              <button id="rb-tour-suivi" class="rb-hero-secondary" onClick="{{ openSuivi }}">My progress ↗</button>
-            </div>
+        <div class="rb-choix-wrap">
+          <p class="rb-home-kicker">OPERATOR TRAINING · BORTERRA</p>
+          <h1 class="rb-choix-titre-page"><span>RodBot LP.</span></h1>
+          <p class="rb-choix-intro">Two paths. You learn, or you look something up.</p>
+
+          <div class="rb-choix">
+            <button class="rb-choix-carte rb-choix-form" onClick="{{ goFormation }}">
+              <span class="rb-choix-bandeau" aria-hidden="true"></span>
+              <span class="rb-choix-tete"><span class="rb-choix-num">01</span><span class="rb-choix-ic" aria-hidden="true">🎓</span></span>
+              <strong class="rb-choix-nom">Training</strong>
+              <span class="rb-choix-txt">8 modules. One quiz per module. Certificate at the end.</span>
+              <span class="rb-choix-meta">{{ choixFormEtat }}</span>
+              <span class="rb-choix-barre" aria-hidden="true"><span style="width: {{ progressPct }}%;background: {{ progressBarBg }}"></span></span>
+              <span class="rb-choix-go">{{ choixFormCta }} →</span>
+            </button>
+            <button class="rb-choix-carte rb-choix-savoir" onClick="{{ goSavoir }}">
+              <span class="rb-choix-bandeau" aria-hidden="true"></span>
+              <span class="rb-choix-tete"><span class="rb-choix-num">02</span><span class="rb-choix-ic" aria-hidden="true">📖</span></span>
+              <strong class="rb-choix-nom">Knowledge base</strong>
+              <span class="rb-choix-txt">The manual, the controls, the machine in 3D.</span>
+              <span class="rb-choix-meta">Manual · Controls · 3D · Documents</span>
+              <span class="rb-choix-barre rb-choix-barre-vide" aria-hidden="true"></span>
+              <span class="rb-choix-go">Look something up →</span>
+            </button>
+          </div>
+
+          <div class="rb-choix-liens">
+            <button id="rb-tour-suivi" onClick="{{ openSuivi }}">📋 My progress</button>
+            <button onClick="{{ openSearch }}">⌕ Search</button>
             <button class="rb-home-tour" onClick="{{ tourReplay }}">How does it work?</button>
           </div>
-          <figure class="rb-home-visual">
-            <img src="img/hero-machine-photo.webp?v=1.8.11" alt="Borterra RodBot LP rod handler" fetchpriority="high" width="960" height="640">
-            <figcaption><span>RODBOT LP</span><a href="3d/?lang=en">Explore the machine in 3D ↗</a></figcaption>
-          </figure>
-        </div>
-        <div class="rb-home-tools">
-          <button onClick="{{ openPath }}"><span>01</span><strong>Training modules</strong><small>Find a lesson or continue the course.</small></button>
-          <button onClick="{{ openPractice }}"><span>02</span><strong>Practice the controls</strong><small>Remote control and operating modes.</small></button>
-          <button onClick="{{ openDocuments }}"><span>03</span><strong>Manual and documents</strong><small>Open the reference documents.</small></button>
         </div>
       </section>
+      </sc-if>
 
+      <!-- CHEMIN 01 : la formation, les 8 modules et la progression -->
+      <sc-if value="{{ homeFormation }}" hint-placeholder-val="{{ false }}">
+      <div class="rb-souspage">
+        <div class="rb-retour">
+          <button onClick="{{ goHomeChoix }}">← Home</button>
+          <span class="rb-retour-titre">TRAINING PATH</span>
+        </div>
       <!-- LEARNING PATH -->
       <section class="mr-ghost" data-ghost="Path" data-rb-scroll-section="path" style="max-width:1180px;margin:0 auto;padding:54px 28px 24px">
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:28px;flex-wrap:wrap">
+        <div class="rb-path-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:28px;flex-wrap:wrap">
           <div>
             <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">01 : TRAINING PATH</div>
             <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0;color:#1D1E1B">8 training steps</h2>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+          <div class="rb-path-actions" style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
             <div style="font-size:14px;color:#535252;max-width:380px;text-align:right">Open a module. Do the moves. Answer the short quiz.</div>
+            <button onClick="{{ startFirst }}" style="background:#D92624;color:#FFFFFF;border:none;min-height:48px;padding:13px 22px;font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">{{ choixFormCta }} →</button>
             <button id="rb-tour-suivi" onClick="{{ openSuivi }}" style="background:transparent;border:1px solid rgba(29,30,27,.3);color:#1D1E1B;padding:9px 16px;font-weight:800;font-size:11.5px;letter-spacing:.08em;cursor:pointer;transition:border-color .15s" style-hover="border-color:#D92624">📋 MY PROGRESS</button>
           </div>
         </div>
@@ -1423,6 +1482,22 @@
           </sc-for>
         </div>
       </section>
+      </div>
+      </sc-if>
+
+      <!-- CHEMIN 02 : la base de connaissances, tout ce qui se consulte -->
+      <sc-if value="{{ homeSavoir }}" hint-placeholder-val="{{ false }}">
+      <div class="rb-souspage">
+        <div class="rb-retour">
+          <button onClick="{{ goHomeChoix }}">← Home</button>
+          <span class="rb-retour-titre">KNOWLEDGE BASE</span>
+        </div>
+        <section class="rb-savoir-visuel" data-rb-scroll-section="equipment">
+            <figure class="rb-home-visual">
+              <img src="img/hero-machine-photo.webp?v=1.8.11" alt="Borterra RodBot LP rod handler" fetchpriority="high" width="960" height="640">
+              <figcaption><span>RODBOT LP</span><a href="3d/">Explore the machine in 3D ↗</a></figcaption>
+            </figure>
+        </section>
 
       <!-- NO VISION SYSTEM : moved before the mast section -->
       <section style="max-width:1180px;margin:0 auto;padding:28px 28px 0">
@@ -1606,7 +1681,10 @@
       </section>
 
 
-      <footer style="background:#141413;color:#8A8985;margin-top:40px">
+      </div>
+      </sc-if>
+
+      <footer style="background:#141413;color:#8A8985">
         <div style="max-width:1180px;margin:0 auto;padding:30px 28px 46px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-weight:600;font-size:11px;letter-spacing:.08em">
           <span>BM260024 · OPERATOR'S MANUAL OM 10667 R0 · BORTERRA RODBOT LP</span>
           <span style="color:#6E6D69">TRAINING APP · VERSION {{ appVersion }} · UPD. {{ appVersionDate }}</span>
@@ -2468,8 +2546,8 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.70.0"></script>
-<script src="pdf.js?v=1.70.0"></script>
-<script src="app.js?v=1.70.0"></script>
+<script src="interface.js?v=1.71.0"></script>
+<script src="pdf.js?v=1.71.0"></script>
+<script src="app.js?v=1.71.0"></script>
 </body>
 </html>

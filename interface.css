@@ -169,6 +169,80 @@ html, body { overflow-x: clip; }
 .rb-search-results button:hover { border-color: #d92624; box-shadow: inset 3px 0 #d92624; }
 .rb-search-results button span, .rb-search-results button small { display: block; color: #64635d; font-size: 12px; font-weight: 400; margin-top: 4px; }
 .rb-search-empty { padding: 24px 0; color: #64635d; }
+
+/* ===== Accueil : deux chemins =========================================
+   Le travailleur arrive et ne voit que deux choses : apprendre, ou
+   chercher une reponse. Deux cartes plein doigt, rien autour. */
+.rb-choix-wrap { max-width: 1180px; margin: 0 auto; padding: clamp(30px, 4vw, 52px) 28px clamp(32px, 4vw, 54px); }
+.rb-choix-titre-page {
+  font-weight: 900; font-size: clamp(38px, 7vw, 60px); line-height: .96;
+  letter-spacing: .01em; text-transform: uppercase; margin: 0 0 12px; color: #faf9f5;
+}
+.rb-choix-titre-page span { color: #f04a47; }
+.rb-choix-intro { margin: 0 0 26px; max-width: 44ch; font-size: 17px; line-height: 1.55; color: #c6c4bb; }
+.rb-choix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.rb-choix-carte {
+  display: flex; flex-direction: column; align-items: stretch; gap: 0;
+  position: relative; text-align: left; font: inherit; cursor: pointer;
+  background: #faf9f5; color: #1d1e1b; border: 1px solid #494940;
+  padding: 0 24px 22px; min-height: 100%;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+}
+.rb-choix-carte:hover { transform: translateY(-3px); box-shadow: 0 22px 44px -26px rgba(0,0,0,.85); border-color: #faf9f5; }
+.rb-choix-carte:active { transform: translateY(0); }
+.rb-choix-carte:focus-visible { outline: 3px solid #f0a81e; outline-offset: 3px; }
+.rb-choix-bandeau { display: block; height: 7px; margin: 0 -24px 20px; background: #d92624; }
+.rb-choix-savoir .rb-choix-bandeau { background: #141413; }
+.rb-choix-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.rb-choix-num { font-weight: 900; font-size: 13px; letter-spacing: .18em; color: #d92624; }
+.rb-choix-savoir .rb-choix-num { color: #535252; }
+.rb-choix-ic { font-size: 30px; line-height: 1; }
+.rb-choix-nom {
+  display: block; font-weight: 900; font-size: clamp(21px, 2.4vw, 26px); line-height: 1.1;
+  letter-spacing: .01em; text-transform: uppercase; margin-bottom: 8px; color: #1d1e1b;
+}
+.rb-choix-txt { display: block; font-size: 14.5px; line-height: 1.55; color: #535252; margin-bottom: 14px; }
+.rb-choix-meta {
+  display: block; margin-top: auto; font-weight: 800; font-size: 11.5px;
+  letter-spacing: .07em; text-transform: uppercase; color: #8a8985; margin-bottom: 8px;
+}
+.rb-choix-barre { display: block; height: 6px; background: rgba(29,30,27,.12); margin-bottom: 16px; }
+.rb-choix-barre > span { display: block; height: 100%; transition: width .4s ease; }
+.rb-choix-barre-vide { background: transparent; }
+.rb-choix-go {
+  display: flex; align-items: center; justify-content: center; min-height: 50px; padding: 0 16px;
+  background: #d92624; color: #fff; font-weight: 800; font-size: 13.5px;
+  letter-spacing: .05em; text-transform: uppercase; transition: background .15s;
+}
+.rb-choix-savoir .rb-choix-go { background: #141413; }
+.rb-choix-carte:hover .rb-choix-go { background: #b71f1d; }
+.rb-choix-savoir:hover .rb-choix-go { background: #35362f; }
+.rb-choix-liens { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.rb-choix-liens button {
+  min-height: 46px; padding: 10px 16px; background: transparent; border: 1px solid #6b6b62;
+  color: #e6e4dc; font: inherit; font-weight: 800; font-size: 12.5px; letter-spacing: .06em;
+  cursor: pointer; transition: border-color .15s, background .15s, color .15s;
+}
+.rb-choix-liens button:hover { border-color: #faf9f5; background: #2b2c26; color: #fff; }
+.rb-choix-liens .rb-home-tour { border-color: transparent; text-decoration: underline; text-underline-offset: 4px; }
+
+/* Barre de retour, en tete des deux chemins */
+.rb-retour {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  max-width: 1180px; margin: 0 auto; padding: 14px 28px;
+  border-bottom: 1px solid rgba(29,30,27,.14);
+}
+.rb-retour button {
+  min-height: 44px; padding: 8px 14px; background: #141413; border: none; color: #faf9f5;
+  font: inherit; font-weight: 800; font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; cursor: pointer; transition: background .15s;
+}
+.rb-retour button:hover { background: #d92624; }
+.rb-retour-titre { font-weight: 800; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: #8a8985; }
+.rb-souspage { padding-bottom: 40px; }
+.rb-savoir-visuel { max-width: 1180px; margin: 0 auto; padding: 22px 28px 0; }
+.rb-savoir-visuel .rb-home-visual { border-color: rgba(29,30,27,.18); background: #141413; }
+
 @media (min-width: 1240px) {
   #app .rb-side-toc { top: calc(var(--rb-sticky-height) + 18px); max-height: calc(100dvh - var(--rb-sticky-height) - 36px); }
 }
@@ -178,6 +252,21 @@ html, body { overflow-x: clip; }
   .rb-home-title { font-size: 42px; }
 }
 @media (max-width: 720px) {
+  .rb-choix { grid-template-columns: 1fr; gap: 14px; }
+  .rb-choix-wrap { padding: 24px 20px 30px; }
+  .rb-choix-titre-page { font-size: 40px; }
+  .rb-choix-intro { font-size: 15.5px; margin-bottom: 20px; }
+  .rb-choix-carte { padding: 0 18px 18px; }
+  .rb-choix-bandeau { margin: 0 -18px 16px; }
+  .rb-choix-liens { gap: 8px; }
+  .rb-choix-liens button { flex: 1 1 calc(50% - 4px); justify-content: center; text-align: center; font-size: 12px; padding: 10px 8px; }
+  .rb-retour { padding: 12px 20px; gap: 10px; }
+  /* Telephone : l'entete du parcours se range a gauche, pleine largeur.
+     Aligne a droite, le bouton rouge et « Mon suivi » partaient en escalier. */
+  .rb-path-actions { align-items: stretch !important; width: 100%; }
+  .rb-path-actions > div { text-align: left !important; max-width: none !important; }
+  .rb-path-actions > button { width: 100%; justify-content: center; }
+  .rb-savoir-visuel { padding: 16px 20px 0; }
   :root { --rb-sticky-height: 110px; }
   :root:has(.rb-worker-badge) { --rb-sticky-height: 154px; }
   #app .rb-topbar-inner {
