@@ -121,3 +121,19 @@ test("le bouton de fin de leçon ne se confond plus avec l'état « lue »", () 
     assert.ok(bandeau.includes(VERT), 'le bandeau « lue » doit rester vert : ' + fait);
   }
 });
+
+test('les figures du manuel dans les leçons sont des miniatures cliquables', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const blocs = html.split('<sc-if value="{{ b.isImg }}"').slice(1);
+  assert.equal(blocs.length, 2, 'un bloc figure par langue');
+  for (const b of blocs) {
+    const fig = b.slice(0, b.indexOf('</sc-if>'));
+    // Hauteur bornée : une page entière déroulée mangeait tout l'écran.
+    assert.match(fig, /height:clamp\(170px,30vh,260px\)/);
+    assert.match(fig, /object-fit:contain/, 'la page entière doit rester visible, sans rognage');
+    // Cliquable, et on le dit.
+    assert.match(fig, /onClick="\{\{ b\.openPage \}\}"/);
+    assert.match(fig, /cursor:zoom-in/);
+    assert.match(fig, /🔍/, 'une pastille annonce que la figure s’agrandit');
+  }
+});

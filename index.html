@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.83.0">
+<link rel="stylesheet" href="interface.css?v=1.84.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -763,8 +763,9 @@
                       </sc-if>
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
                         <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
-                          <button onClick="{{ b.openPage }}" title="Ouvrir la page {{ b.imgPage }} du manuel" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
-                            <img src="{{ b.src }}" loading="lazy" alt="Figure du manuel, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
+                          <button onClick="{{ b.openPage }}" title="Agrandir la page {{ b.imgPage }} du manuel" style="position:relative;display:block;width:100%;background:#FFFFFF;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:zoom-in" style-hover="background:#F4F1EA">
+                            <img src="{{ b.src }}" loading="lazy" alt="Figure du manuel, page {{ b.imgPage }}" style="display:block;width:100%;height:clamp(170px,30vh,260px);object-fit:contain;background:#FFFFFF">
+                            <span aria-hidden="true" style="position:absolute;right:10px;bottom:10px;background:rgba(20,20,19,.86);color:#FFFFFF;font-weight:800;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px">🔍 Agrandir</span>
                           </button>
                           <figcaption style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px">
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
@@ -2064,8 +2065,9 @@
                       </sc-if>
                       <sc-if value="{{ b.isImg }}" hint-placeholder-val="{{ false }}">
                         <figure style="margin:2px 0;border:1px solid rgba(29,30,27,.18);background:#FFFFFF">
-                          <button onClick="{{ b.openPage }}" title="Open manual page {{ b.imgPage }}" style="display:block;width:100%;background:#F4F1EA;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:pointer" style-hover="background:#ECE7DB">
-                            <img src="{{ b.src }}" loading="lazy" alt="Manual figure, page {{ b.imgPage }}" style="display:block;width:100%;height:auto">
+                          <button onClick="{{ b.openPage }}" title="Enlarge manual page {{ b.imgPage }}" style="position:relative;display:block;width:100%;background:#FFFFFF;border:none;border-bottom:1px solid rgba(29,30,27,.12);padding:8px;cursor:zoom-in" style-hover="background:#F4F1EA">
+                            <img src="{{ b.src }}" loading="lazy" alt="Manual figure, page {{ b.imgPage }}" style="display:block;width:100%;height:clamp(170px,30vh,260px);object-fit:contain;background:#FFFFFF">
+                            <span aria-hidden="true" style="position:absolute;right:10px;bottom:10px;background:rgba(20,20,19,.86);color:#FFFFFF;font-weight:800;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px">🔍 Enlarge</span>
                           </button>
                           <figcaption style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px">
                             <span style="font-size:12.5px;line-height:1.4;color:#535252">{{ b.cap }}</span>
@@ -2654,9 +2656,9 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.83.0"></script>
-<script src="pdf.js?v=1.83.0"></script>
-<script src="scene3d.js?v=1.83.0"></script>
-<script src="app.js?v=1.83.0"></script>
+<script src="interface.js?v=1.84.0"></script>
+<script src="pdf.js?v=1.84.0"></script>
+<script src="scene3d.js?v=1.84.0"></script>
+<script src="app.js?v=1.84.0"></script>
 </body>
 </html>
