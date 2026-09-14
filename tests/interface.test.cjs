@@ -110,7 +110,7 @@ test("le bouton de fin de leçon ne se confond plus avec l'état « lue »", () 
     // Le vert est réservé à l'état atteint. L'action reste en rouge, la
     // couleur de « ce qu'il reste à faire » partout ailleurs dans l'app.
     assert.ok(!bouton.includes(VERT), 'le bouton d’action ne doit plus être vert : ' + action);
-    assert.ok(bouton.includes('#D92624'), 'le bouton d’action doit être rouge : ' + action);
+    assert.ok(bouton.includes('#141413'), 'le bouton d’action est noir, la couleur neutre du site : ' + action);
     // Et il ne doit pas porter de coche : une coche sur un bouton non touché
     // se lit comme « déjà fait ».
     assert.ok(!bouton.includes('✓'), 'pas de coche sur le bouton d’action : ' + action);
@@ -156,4 +156,20 @@ test("toute ouverture de leçon passe par le même ancrage", () => {
     'on n’ancre qu’à l’ouverture, jamais à la fermeture');
   // Plus de décalage codé en dur : c'était la source du mauvais placement.
   assert.ok(!/window\.scrollY-70/.test(app), 'plus de marge de 70 px en dur');
+});
+
+test('les deux boutons de confirmation de lecture partagent le même format', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  // Celui du bas de leçon et celui d'avant le quiz disent la même chose :
+  // « j'ai lu ». Ils doivent donc se ressembler, et ne ressembler ni au vert
+  // « déjà fait » ni au rouge « danger ».
+  const prequiz = [...html.matchAll(/<button onClick="\{\{ preQuiz\.go \}\}"[\s\S]{0,900}?<\/button>/g)].map(m => m[0]);
+  assert.equal(prequiz.length, 2, 'un bouton par langue');
+  for (const b of prequiz) {
+    assert.ok(b.includes('background:#141413'), 'le bouton d’avant-quiz est noir comme celui de la leçon');
+    assert.ok(!b.includes('#2F7D48'), 'jamais vert');
+    assert.ok(!b.includes('M4.5 12.5l5 5L19.5 7'), 'pas de coche avant d’avoir touché');
+    assert.match(b, /border:2px solid rgba\(255,255,255,\.9\)/, 'une case vide, comme au bas de la leçon');
+    assert.ok(b.includes('M9 5.5l7 6.5-7 6.5'), 'le chevron reste : ce bouton mène ailleurs');
+  }
 });
