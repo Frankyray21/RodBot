@@ -99,3 +99,25 @@ test("l'attestation PDF se fabrique sans réseau et se lit", () => {
   assert.ok(txt.includes('\\311ric C\\364t\\351'), 'accents encodés en WinAnsi');
   assert.ok(!/[\u0080-\uffff]/.test(txt.slice(0, startxref)), 'le corps reste en ASCII');
 });
+
+test("le bouton de fin de leçon ne se confond plus avec l'état « lue »", () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const VERT = '#2F7D48';
+  for (const [action, fait] of [["J'ai lu cette leçon", '✓ Leçon lue'], ['I have read this lesson', '✓ Lesson read']]) {
+    const i = html.indexOf('>' + action + '</button>');
+    assert.ok(i > 0, 'bouton introuvable : ' + action);
+    const bouton = html.slice(html.lastIndexOf('<button', i), i);
+    // Le vert est réservé à l'état atteint. L'action reste en rouge, la
+    // couleur de « ce qu'il reste à faire » partout ailleurs dans l'app.
+    assert.ok(!bouton.includes(VERT), 'le bouton d’action ne doit plus être vert : ' + action);
+    assert.ok(bouton.includes('#D92624'), 'le bouton d’action doit être rouge : ' + action);
+    // Et il ne doit pas porter de coche : une coche sur un bouton non touché
+    // se lit comme « déjà fait ».
+    assert.ok(!bouton.includes('✓'), 'pas de coche sur le bouton d’action : ' + action);
+    // Le bandeau qui suit, lui, reste vert avec sa coche.
+    const j = html.indexOf(fait);
+    assert.ok(j > 0, 'bandeau introuvable : ' + fait);
+    const bandeau = html.slice(html.lastIndexOf('<div', j), j);
+    assert.ok(bandeau.includes(VERT), 'le bandeau « lue » doit rester vert : ' + fait);
+  }
+});
