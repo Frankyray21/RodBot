@@ -32,7 +32,7 @@ const CONTROL_INFO = {
 };
 
 // A separate practice session: it never writes to the course, quizzes or certificate.
-export function mountTraining({ container, viewer, controls, emergencies, onActivate, onDeactivate, onManual }) {
+export function mountTraining({ container, viewer, controls, emergencies, onActivate, onDeactivate, manualSrc, onManual }) {
   let active = false, selected = null, exercise = EXERCISES[0], seen = new Set(), evidence = new Set();
   let frame = 0, last = 0, demonstration = 0, demoStart = 0, previousFeedback = '', status = null;
   let panelFraction=0, panelGoal=0, panelShown=false, pendingPanelFocus=null;
@@ -52,7 +52,7 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
     <div class="sim-progress"><progress id="simProgress" value="0" max="1"></progress><span id="simProgressText" role="status"></span></div>
     <div class="sim-tools"><button type="button" class="vbtn" id="simHint">Me montrer</button><button type="button" class="vbtn" id="simRestart">Recommencer</button><button type="button" class="vbtn" id="simManual">📖 Manuel</button></div>
     <dialog class="sim-info-modal" id="simSelected" aria-labelledby="simSelectedTitle" aria-describedby="simSelectedText"><div class="sim-info-body"><div class="sim-info-heading"><h3 id="simSelectedTitle"></h3><button type="button" class="vbtn" id="simInfoClose" aria-label="Fermer les informations" autofocus>Fermer ×</button></div><p id="simSelectedText"></p><div id="simSelectedActions"></div></div></dialog>
-    <div class="sim-panel-access" id="simPanelAccess" hidden><button type="button" class="vbtn" id="simPanelToggle" aria-pressed="false">Ouvrir le coffret</button><p id="simPanelState" role="status">Coffret fermé</p><p class="sim-small">Observation de l’intérieur. Aucune intervention électrique n’est simulée.</p></div>
+    <div class="sim-panel-access" id="simPanelAccess" hidden><p class="sim-panel-titre">🚪 Le coffret IHM s’ouvre</p><button type="button" class="vbtn" id="simPanelToggle" aria-pressed="false">Ouvrir le coffret</button><p id="simPanelState" role="status">Coffret fermé</p><p class="sim-small">Observation de l’intérieur. Aucune intervention électrique n’est simulée.</p></div>
     <section class="sim-lever-practice" id="simLeverPractice" hidden aria-labelledby="simLeverTitle"><h3 id="simLeverTitle"></h3><p class="sim-small">Maintiens un bouton pour observer le levier, puis relâche. Débattement visuel seulement.</p><div id="simLeverControls"></div></section>
     <div id="simPractice">
       <div class="sim-state"><span id="simSource">REMOTE</span><span id="simMode">VEILLE</span><strong id="simArmed">À réarmer</strong></div>
@@ -95,6 +95,30 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
   const $ = id => container.querySelector('#'+id);
   const controlsBySelector = selector => [...container.querySelectorAll(selector)];
   const isFind = () => exercise.targets.length > 0;
+  /* Image d'une page du manuel. La page hote fournit le chemin ; le repli
+     garde le module utilisable seul, notamment dans les tests. */
+  const pageManuel = manualSrc || ((n) => '../img/manual/p' + String(n).padStart(2, '0') + '.jpg');
+  /* Le renvoi au manuel n'est plus un bouton a lire : on montre la page.
+     L'operateur reconnait la figure avant de toucher. Meme habillage que la
+     fiche de composant, pour qu'il n'y ait qu'un seul langage visuel. */
+  function vignetteManuel(page, surClic) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'fm-vignette sim-manuel';
+    b.setAttribute('aria-label', 'Agrandir la page ' + page + ' du manuel de l\u2019opérateur');
+    const img = document.createElement('img');
+    img.decoding = 'async';
+    img.alt = 'Page ' + page + ' du manuel de l\u2019opérateur';
+    img.onerror = () => b.classList.add('sans-image');
+    img.src = pageManuel(page);
+    const loupe = document.createElement('span');
+    loupe.className = 'fm-loupe'; loupe.setAttribute('aria-hidden', 'true');
+    loupe.textContent = '🔍 Manuel · p. ' + page;
+    const repli = document.createElement('span');
+    repli.className = 'fm-repli'; repli.textContent = 'Manuel · p. ' + page;
+    b.append(img, loupe, repli);
+    b.addEventListener('click', surClic);
+    return b;
+  }
   function closeInfo(restoreFocus=true) {
     const dialog=$('simSelected');
     if(!dialog.open)return;
@@ -244,7 +268,7 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
     else if(id==='front-levers'||id==='side-levers') {
       action('Essayer les leviers',()=>showManualLevers(id));
     }
-    action('Manuel · p. '+info.page,()=>onManual(info.page));
+    actions.append(vignetteManuel(info.page,()=>{closeInfo();onManual(info.page);}));
     container.querySelectorAll('[data-focus]').forEach(b=>b.classList.toggle('is-selected',b.dataset.focus===id));
     if(popup)showInfo(trigger);
     if(stopDemo){releaseAll();dispatch({type:'ESTOP',id});}
@@ -292,7 +316,7 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
     $('simPrompt').textContent=exercise.prompt;
     $('simPractice').hidden=isFind();$('simFindList').hidden=!isFind();
     $('simDemo').hidden=exercise.id!=='stop';
-    $('simPanelAccess').hidden=exercise.id!=='panel';
+    $('simPanelAccess').hidden=!(viewer.availableAccessKeys||[]).includes('panel');
     $('simPanelToggle').disabled=!(viewer.availableAccessKeys||[]).includes('panel');
     $('simHint').hidden=!isFind();
     $('simFindList').replaceChildren();

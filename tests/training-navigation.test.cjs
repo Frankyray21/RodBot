@@ -137,3 +137,19 @@ test('le renvoi au manuel montre la page en vignette cliquable', () => {
     assert.ok(fs.existsSync(f), 'page ' + n + ' citée par une fiche mais absente de 3d/assets/manuel/');
   }
 });
+
+test("l'ouverture du coffret est annoncée, et le renvoi au manuel est une vignette", () => {
+  const src = fs.readFileSync(path.join(__dirname, '..', '3d', 'js', 'training-ui.js'), 'utf8');
+  // Le bloc du coffret ne dépend plus de l'exercice choisi : la porte s'ouvre
+  // dans tous les exercices, rien ne le disait à l'opérateur.
+  assert.match(src, /simPanelAccess'\)\.hidden\s*=\s*!\(viewer\.availableAccessKeys/);
+  assert.ok(!/simPanelAccess'\)\.hidden\s*=\s*exercise\.id/.test(src), "le bloc ne doit plus être réservé à un exercice");
+  assert.match(src, /sim-panel-titre/, 'un titre annonce que le coffret s’ouvre');
+  // Le renvoi au manuel montre la page au lieu de la nommer.
+  assert.match(src, /function vignetteManuel\(/);
+  assert.ok(!/action\('Manuel · p\./.test(src), 'plus de bouton texte pour le manuel');
+  assert.match(src, /const pageManuel = manualSrc \|\|/, 'un repli garde le module utilisable seul');
+  // La page hôte fournit le chemin des images du manuel.
+  const html = fs.readFileSync(path.join(__dirname, '..', '3d', 'index.html'), 'utf8');
+  assert.match(html, /manualSrc:\s*\(page\)\s*=>/);
+});
