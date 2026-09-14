@@ -734,9 +734,12 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 .pb-pt:hover .pb-lb,.pb-pt.is-open .pb-lb{display:block}
 .pb-pt.lb-left .pb-lb{left:auto;right:20px}
 .photobox-top{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;gap:1rem;padding:.9rem 1.2rem;background:linear-gradient(180deg,rgba(7,9,15,.92),transparent);pointer-events:none}
-.photobox-titre{font-family:var(--font-display);font-weight:800;font-size:1.15rem;text-transform:uppercase;letter-spacing:.04em}
-.photobox-fermer{margin-left:auto;width:44px;height:44px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:1.4rem;line-height:1;cursor:pointer;pointer-events:auto;transition:background .2s,transform .2s}
-.photobox-fermer:hover{background:var(--brand);transform:rotate(90deg)}
+.photobox-titre{font-family:var(--font-display);font-weight:800;font-size:1.15rem;text-transform:uppercase;letter-spacing:.04em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.photobox-fermer{margin-left:auto;display:inline-flex;align-items:center;gap:.5rem;flex:none;min-height:48px;padding:0 1.1rem;border-radius:50px;border:2px solid #fff;background:var(--brand);color:#fff;font-family:var(--font-display);font-weight:800;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;line-height:1;cursor:pointer;pointer-events:auto;box-shadow:0 8px 22px rgba(0,0,0,.5);transition:background .2s,transform .12s}
+.photobox-fermer .pbf-croix{font-size:1.35rem}
+.photobox-fermer:hover{background:#b51f26}
+.photobox-fermer:active{transform:scale(.97)}
+.photobox-fermer:focus-visible{outline:3px solid #f6c85b;outline-offset:3px}
 .photobox-hint{position:absolute;bottom:.9rem;left:50%;transform:translateX(-50%);color:var(--dim);font-size:.78rem;font-weight:600;background:rgba(13,19,32,.72);border:1px solid var(--border);border-radius:50px;padding:.35rem .9rem;pointer-events:none;z-index:2}
 .pb-basc{position:absolute;bottom:.9rem;right:1rem;z-index:2}
 
