@@ -137,3 +137,23 @@ test('les figures du manuel dans les leçons sont des miniatures cliquables', ()
     assert.match(fig, /🔍/, 'une pastille annonce que la figure s’agrandit');
   }
 });
+
+test("toute ouverture de leçon passe par le même ancrage", () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  assert.match(app, /ancrerSous\(trouver, doux\)/, "un seul point d’ancrage");
+  assert.match(app, /ancrerLecon\(si, doux\)/);
+  // La hauteur collante est lue dans la feuille de style : elle change sur
+  // téléphone et quand le bandeau employé est affiché.
+  assert.match(app, /--rb-sticky-height/);
+  // Les trois chemins qui ouvrent une leçon l'appellent.
+  for (const [nom, motif] of [
+    ['gotoLesson', /gotoLesson = \(si\)=>\{[\s\S]*?ancrerLecon\(si, true\)/],
+    ['openLesson', /openLesson = \(mi,si\)=>\{[\s\S]*?ancrerLecon\(si, false\)/],
+    ['toggleSection', /toggleSection = \(key\)=> this\.setState\([\s\S]*?ancrerLecon\(Number/]
+  ]) assert.match(app, motif, nom + ' doit ancrer la leçon');
+  // Replier une leçon ne doit PAS déplacer l'opérateur.
+  assert.match(app, /if\(this\.state\.openKey===key\) this\.ancrerLecon/,
+    'on n’ancre qu’à l’ouverture, jamais à la fermeture');
+  // Plus de décalage codé en dur : c'était la source du mauvais placement.
+  assert.ok(!/window\.scrollY-70/.test(app), 'plus de marge de 70 px en dur');
+});

@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.84.0';
+var APP_VERSION = '1.85.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1653,20 +1653,38 @@ class Component extends DCLogic {
   }
   /* Index de la première leçon pas encore lue, ou -1 si tout est lu. */
   firstUnread(i){ for(let s=0;s<this.lessonsTotal(i);s++) if(!this.lessonRead(i,s)) return s; return -1; }
+  /* ---------- Ancrage d'une leçon ouverte ----------
+     Une leçon qui s'ouvre doit se poser JUSTE SOUS l'en-tête collant, et le
+     contenu descendre à partir de là. Sans ça, quand la leçon d'avant se
+     referme, la page remonte : la leçon ouverte part au-dessus de l'écran, ou
+     se cache derrière la barre du haut, et l'opérateur doit chercher.
+     La hauteur collante vient de la feuille de style (--rb-sticky-height) :
+     elle change sur téléphone et quand le bandeau employé est là. */
+  ancrerSous(trouver, doux){
+    const poser = ()=>{
+      try{
+        const el = trouver();
+        if(!el) return;
+        const css = getComputedStyle(document.documentElement).getPropertyValue('--rb-sticky-height');
+        const marge = (parseFloat(css) || 116) + 16;
+        const y = el.getBoundingClientRect().top + window.scrollY - marge;
+        let fluide = doux;
+        try { if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) fluide = false; } catch(e){}
+        window.scrollTo({ top: Math.max(0, y), behavior: fluide ? "smooth" : "auto" });
+      }catch(e){}
+    };
+    // Deux images : la seconde rattrape le décalage laissé par le bloc
+    // précédent qui se referme au même moment.
+    requestAnimationFrame(()=>{ poser(); requestAnimationFrame(poser); });
+  }
+  ancrerLecon(si, doux){
+    this.ancrerSous(()=>ROOT && ROOT.querySelector('[data-rb-lesson-index="'+si+'"]'), doux);
+  }
   /* Amène l'opérateur à la leçon visée et l'ouvre. */
   gotoLesson = (si)=>{
     const mi=this.state.activeId;
     if(mi==null || si<0) return;
-    this.setState({ openKey: mi+"-"+si, manualDetailKey:null }, ()=>{
-      requestAnimationFrame(()=>{
-        try{
-          const el=ROOT&&ROOT.querySelector('[data-rb-lesson-index="'+si+'"]');
-          if(!el) return;
-          const y=el.getBoundingClientRect().top+window.scrollY-70;
-          window.scrollTo({ top:Math.max(0,y), behavior:"smooth" });
-        }catch(e){}
-      });
-    });
+    this.setState({ openKey: mi+"-"+si, manualDetailKey:null }, ()=>this.ancrerLecon(si, true));
   };
   /* Bouton « Lire les leçons » de la carte du quiz verrouillée. */
   goFirstUnread = ()=>{ const nx=this.firstUnread(this.state.activeId); if(nx>=0) this.gotoLesson(nx); };
@@ -1688,14 +1706,7 @@ class Component extends DCLogic {
       const nx=this.firstUnread(mi);
       if(nx>=0){ this.gotoLesson(nx); return; }
       this.setState({ openKey:null }, ()=>{
-        requestAnimationFrame(()=>{
-          try{
-            const el=ROOT&&ROOT.querySelector('[data-rb-quiz-card]');
-            if(!el) return;
-            const y=el.getBoundingClientRect().top+window.scrollY-70;
-            window.scrollTo({ top:Math.max(0,y), behavior:"smooth" });
-          }catch(e){}
-        });
+        this.ancrerSous(()=>ROOT && ROOT.querySelector('[data-rb-quiz-card]'), true);
       });
     });
   };
@@ -1716,11 +1727,16 @@ class Component extends DCLogic {
     ptEnter(mi,'module');
     if(this.state.activeId!==mi) this.sigStrokes=[];
     this.setState({view:'module',activeId:mi,openKey:mi+'-'+si,manualDetailKey:null,graded:false},()=>{
+      this.ancrerLecon(si, false);
       const item=ROOT.querySelector('[data-rb-lesson-index="'+si+'"]');
-      if(item){ item.scrollIntoView({block:'start',behavior:'auto'}); const button=item.querySelector('button'); if(button) button.focus({preventScroll:true}); }
+      const button=item && item.querySelector('button');
+      if(button) button.focus({preventScroll:true});
     });
   };
-  toggleSection = (key)=> this.setState(s=>({ openKey: s.openKey===key ? null : key, manualDetailKey:null }));
+  toggleSection = (key)=> this.setState(
+    s=>({ openKey: s.openKey===key ? null : key, manualDetailKey:null }),
+    ()=>{ if(this.state.openKey===key) this.ancrerLecon(Number(String(key).split('-')[1]), true); }
+  );
   toggleManualDetails = (key,page)=>{
     if(this.state.manualDetailKey===key){
       this.setState({ manualDetailKey:null });
