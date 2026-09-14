@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RodBot LP</string>
+    <string name="title_activity_main">RodBot LP</string>
+    <string name="package_name">io.github.frankyray21.rodbot</string>
+    <string name="custom_url_scheme">io.github.frankyray21.rodbot</string>
+</resources>

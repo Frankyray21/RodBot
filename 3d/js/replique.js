@@ -287,7 +287,9 @@ try {
 }
 
 // Match the training app's update behavior when this page is opened directly.
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+const natif = (() => { try { return Boolean(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) { return false; } })();
+// Android app (APK): everything is already on the device, no service worker.
+if (!natif && 'serviceWorker' in navigator && location.protocol.startsWith('http')) {
   let controlled = Boolean(navigator.serviceWorker.controller);
   let reloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {

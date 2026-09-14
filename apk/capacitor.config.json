@@ -1,0 +1,15 @@
+{
+  "appId": "io.github.frankyray21.rodbot",
+  "appName": "RodBot LP",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#141413",
+    "buildOptions": {
+      "releaseType": "APK"
+    }
+  }
+}

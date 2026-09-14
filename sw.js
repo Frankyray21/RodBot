@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.87.0';
+const CACHE = 'rodbot-formation-v1.88.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -19,17 +19,47 @@ const CORE = [
   './3d/js/hotspots-v6.js', './3d/js/hero-v6.js', './3d/js/model-assets.js',
   './3d/js/training-ui.js', './3d/js/simulation-state.js',
   './3d/replique.html', './3d/fidelite.html', './3d/js/replique.js', './3d/css/replique.css',
-  './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js'
+  './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js',
+  './fonts/fonts.css'
 ];
 
-/* Ressources CDN nécessaires hors-ligne : les feuilles de polices.
-   Le moteur 3D est local depuis le passage à model-viewer (3d/vendor/).
-   Les fichiers de police (.woff2) eux-mêmes sont capturés au vol à la première
-   visite par le gestionnaire fetch (leurs URL sont dans le CSS de Google). */
-const CDN = [
-  'https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap',
-  'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap'
+/* Polices : locales depuis la version 1.88.0 (dossier fonts/). Plus aucune
+   ressource externe : le site fonctionne sans Google, en ligne ou non. */
+const POLICES = [
+  './fonts/barlow-400-latin-ext.woff2',
+  './fonts/barlow-400-latin.woff2',
+  './fonts/barlow-500-latin-ext.woff2',
+  './fonts/barlow-500-latin.woff2',
+  './fonts/barlow-600-latin-ext.woff2',
+  './fonts/barlow-600-latin.woff2',
+  './fonts/barlow-700-latin-ext.woff2',
+  './fonts/barlow-700-latin.woff2',
+  './fonts/barlow-800-latin-ext.woff2',
+  './fonts/barlow-800-latin.woff2',
+  './fonts/barlow-condensed-600-latin-ext.woff2',
+  './fonts/barlow-condensed-600-latin.woff2',
+  './fonts/barlow-condensed-700-latin-ext.woff2',
+  './fonts/barlow-condensed-700-latin.woff2',
+  './fonts/barlow-condensed-800-latin-ext.woff2',
+  './fonts/barlow-condensed-800-latin.woff2',
+  './fonts/heebo-300-latin-ext.woff2',
+  './fonts/heebo-300-latin.woff2',
+  './fonts/heebo-400-latin-ext.woff2',
+  './fonts/heebo-400-latin.woff2',
+  './fonts/heebo-500-latin-ext.woff2',
+  './fonts/heebo-500-latin.woff2',
+  './fonts/heebo-700-latin-ext.woff2',
+  './fonts/heebo-700-latin.woff2',
+  './fonts/heebo-800-latin-ext.woff2',
+  './fonts/heebo-800-latin.woff2',
+  './fonts/heebo-900-latin-ext.woff2',
+  './fonts/heebo-900-latin.woff2'
 ];
+
+/* Contenu OPTIONNEL, lourd (27 Mo) : la réplique 3D articulée et son éclairage.
+   Téléchargé seulement si l'opérateur le demande (bouton « Ajouter le modèle 3D »),
+   ou dès la première ouverture de la page 3D. */
+const OPTIONNEL = ['./3d/assets/rodbot-v6-c9499d45.glb', './3d/assets/warehouse-v5.hdr'];
 
 /* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
    La réplique articulée et son éclairage sont chargés à la demande, puis conservés
@@ -97,31 +127,69 @@ const PRECACHE = [
   './img/mat-annote.png', './img/p13-0.png', './img/p21-0.png', './img/portee.webp', './img/ra/p1.jpg', './img/ra/p2.jpg',
   './img/ra/p3.jpg', './img/ra/p4.jpg', './img/telecommande-annotee.png', './manual-en.pdf', './manuel-operateur.pdf', './qr-formation-rodbot.png',
   './qr-formation-rodbot.svg'
-].concat(CDN);
+].concat(POLICES);
 
 /* Télécharge tout ce qui manque encore dans le cache de contenu.
    - par lots de 5 pour ne pas saturer la connexion ;
    - un échec sur un fichier n'arrête pas le reste (Promise.allSettled) ;
    - relancé à chaque ouverture de page et au retour du réseau (message PRECACHE),
-     donc un téléchargement interrompu reprend là où il était rendu. */
+     donc un téléchargement interrompu reprend là où il était rendu ;
+   - l'avancement (fichiers prêts / total) est envoyé aux pages ouvertes
+     (message PRECACHE_ETAT) : l'opérateur voit quand il peut descendre sous terre.
+   « tout » ajoute le modèle 3D (OPTIONNEL) à la liste. */
+function listeContenu(tout) { return tout ? PRECACHE.concat(OPTIONNEL) : PRECACHE; }
+
+async function diffuser(message) {
+  try {
+    if (!self.clients || typeof self.clients.matchAll !== 'function') return;
+    const pages = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+    for (const page of pages) { try { page.postMessage(message); } catch (e) {} }
+  } catch (e) {}
+}
+
+async function etatContenu(tout) {
+  const c = await caches.open(ASSETS);
+  const liste = listeContenu(tout);
+  let prets = 0;
+  for (const url of liste) if (await c.match(url)) prets++;
+  return { type: 'PRECACHE_ETAT', prets, total: liste.length, enCours: !!precacheEnCours, tout: !!tout };
+}
+
 let precacheEnCours = null;
-function precacherTout() {
+let toutDemande = false;
+function precacherTout(tout) {
+  if (tout) toutDemande = true;
   if (precacheEnCours) return precacheEnCours;
+  const avecTout = toutDemande;
   precacheEnCours = (async () => {
     const c = await caches.open(ASSETS);
+    const liste = listeContenu(avecTout);
+    const total = liste.length;
     const manquants = [];
-    for (const url of PRECACHE) {
+    for (const url of liste) {
       if (!(await c.match(url))) manquants.push(url);
     }
-    if (!manquants.length) return;
+    let prets = total - manquants.length;
+    if (!manquants.length) {
+      await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: false, tout: avecTout });
+      return;
+    }
+    await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: true, tout: avecTout });
     const LOT = 5;
     for (let i = 0; i < manquants.length; i += LOT) {
-      await Promise.allSettled(manquants.slice(i, i + LOT).map(async (url) => {
+      const resultats = await Promise.allSettled(manquants.slice(i, i + LOT).map(async (url) => {
         const r = await fetch(url);
-        if (r && (r.ok || r.type === 'opaque')) await c.put(url, r);
+        if (r && (r.ok || r.type === 'opaque')) { await c.put(url, r); return true; }
+        return false;
       }));
+      prets += resultats.filter((x) => x.status === 'fulfilled' && x.value).length;
+      await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: i + LOT < manquants.length, tout: avecTout });
     }
-  })().catch(() => {}).finally(() => { precacheEnCours = null; });
+  })().catch(() => {}).finally(() => {
+    precacheEnCours = null;
+    // Le modèle 3D a été demandé pendant un téléchargement sans lui : on enchaîne.
+    if (toutDemande && !avecTout) precacherTout(true);
+  });
   return precacheEnCours;
 }
 
@@ -143,8 +211,16 @@ self.addEventListener('activate', (e) => {
 /* Les pages envoient PRECACHE à chaque chargement et au retour du réseau :
    permet de reprendre un téléchargement interrompu (connexion coupée, appli fermée). */
 self.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'PRECACHE') {
-    const p = precacherTout();
+  const d = e.data || {};
+  if (d.type === 'PRECACHE') {
+    const p = precacherTout(!!d.tout);
+    if (e.waitUntil) e.waitUntil(p);
+  } else if (d.type === 'ETAT') {
+    // Réponse au demandeur seul si possible, sinon à toutes les pages.
+    const p = etatContenu(!!d.tout).then((etat) => {
+      if (e.source && typeof e.source.postMessage === 'function') e.source.postMessage(etat);
+      else return diffuser(etat);
+    }).catch(() => {});
     if (e.waitUntil) e.waitUntil(p);
   }
 });
@@ -228,14 +304,9 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // Ressources CDN (polices) : cache d'abord, sinon réseau + mise en cache
-  if (url.origin !== self.location.origin) {
-    // Le registre des employés et les autres API ne sont jamais mis en cache.
-    const cdnOrigins = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
-    if (!cdnOrigins.includes(url.origin)) return;
-    e.respondWith(assetResponse(req, true));
-    return;
-  }
+  // Aucune origine externe n'est interceptée : les polices sont locales, et le
+  // registre des employés (Worker) comme les autres API ne sont jamais mis en cache.
+  if (url.origin !== self.location.origin) return;
   if (!url.pathname.startsWith(APP_ROOT.pathname)) return;
 
   // La COQUILLE DE CODE (page, JS, CSS, manifeste) doit toujours rester synchronisée :

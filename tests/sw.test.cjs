@@ -1,6 +1,8 @@
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
-const { join } = require('node:path');
+const fs = require('node:fs');
+const { readFileSync } = fs;
+const path = require('node:path');
+const { join } = path;
 const { test } = require('node:test');
 const vm = require('node:vm');
 
@@ -62,9 +64,11 @@ function harness() {
     async delete(name) { deleted.push(name); return stores.delete(name); },
     async match() { throw new Error('Cross-cache lookup is forbidden'); }
   };
+  const messages = [];
+  const page = { postMessage(m) { messages.push(m); } };
   const self = {
     location: new URL('sw.js', BASE),
-    clients: { async claim() { claimed = true; } },
+    clients: { async claim() { claimed = true; }, async matchAll() { return [page]; } },
     async skipWaiting() { skipped = true; },
     addEventListener(name, handler) { handlers[name] = handler; }
   };
@@ -79,7 +83,7 @@ function harness() {
     }
   }, { filename: 'sw.js' });
   return {
-    stores, network, deleted, precached, networkCalls,
+    stores, network, deleted, precached, networkCalls, messages,
     get claimed() { return claimed; },
     get skipped() { return skipped; },
     failStorage() { storageFails = true; },
@@ -91,9 +95,9 @@ function harness() {
       handlers[name]({ waitUntil(value) { promises.push(value); } });
       await Promise.all(promises);
     },
-    async message(data) {
+    async message(data, source) {
       const promises = [];
-      handlers.message({ data, waitUntil(value) { promises.push(value); } });
+      handlers.message({ data, source, waitUntil(value) { promises.push(value); } });
       await Promise.all(promises);
     },
     async request(path, { mode = 'cors', method = 'GET', headers = {} } = {}) {
@@ -314,20 +318,57 @@ test('offline video range requests use the complete stable cached resource', asy
   assert.equal(h.networkCalls.length, 0);
 });
 
-test('les polices restent disponibles hors ligne sans mettre en cache le registre des employés', async () => {
+test('les polices sont locales et précachées ; aucune origine externe n\'est interceptée', async () => {
   const h = harness();
-  // Le moteur 3D est local depuis model-viewer : plus aucune origine CDN de code.
-  const police = 'https://fonts.gstatic.com/s/heebo/v1/font.woff2';
-  const font = 'https://fonts.googleapis.com/css2?family=Heebo&display=swap';
-  h.network.set(police, new Response('woff2'));
-  h.network.set(font, new Response('Heebo CSS'));
-  for (const url of [police, font]) assert.equal((await h.request(url)).status, 200);
-  h.network.clear();
-  assert.equal(await (await h.request(police)).text(), 'woff2');
-  assert.equal(await (await h.request(font)).text(), 'Heebo CSS');
-  // Aucune origine de code étrangère n'est plus autorisée.
+  // Depuis 1.88.0 : plus de Google Fonts. La feuille est dans la coquille,
+  // les fichiers woff2 dans le contenu stable.
+  assert.ok(source.includes("'./fonts/fonts.css'"), 'fonts.css doit être dans CORE');
+  assert.ok(!source.includes('fonts.googleapis.com'), 'plus aucune police Google');
+  const woff2 = fs.readdirSync(path.join(__dirname, '..', 'fonts')).filter((f) => f.endsWith('.woff2'));
+  assert.ok(woff2.length >= 28, 'au moins 28 fichiers woff2 (Heebo, Barlow, Barlow Condensed ; latin + latin-ext)');
+  for (const f of woff2) assert.ok(source.includes("'./fonts/" + f + "'"), f + ' doit être précaché');
+  await h.lifecycle('install');
+  assert.ok(h.precached.includes(BASE + 'fonts/fonts.css'));
+  // Rien d'externe : ni Google, ni CDN, ni le Worker des attestations, ni un autre site du domaine.
+  assert.equal(await h.request('https://fonts.googleapis.com/css2?family=Heebo&display=swap'), undefined);
+  assert.equal(await h.request('https://fonts.gstatic.com/s/heebo/v1/font.woff2'), undefined);
   assert.equal(await h.request('https://cdn.jsdelivr.net/npm/playcanvas/build/playcanvas.mjs'), undefined);
-  assert.equal((await h.request('https://fonts.googleapis.com/css2?family=Other')).type, 'error');
   assert.equal(await h.request('https://attestations-rodbot.frankyray-21.workers.dev?q=Alice'), undefined);
   assert.equal(await h.request('https://example.github.io/TMS/app.js'), undefined);
+});
+
+test('le téléchargement annonce son avancement aux pages et ETAT répond au demandeur', async () => {
+  const h = harness();
+  const glb = '3d/assets/' + assetName('MODEL_URL');
+  const hdr = '3d/assets/' + assetName('ENVIRONMENT_URL');
+  // Deux fichiers seulement sont joignables : le reste échoue, le compteur reste honnête.
+  h.network.set(BASE + 'manuel-operateur.pdf', new Response('FR manual'));
+  h.network.set(BASE + 'manual-en.pdf', new Response('EN manual'));
+  await h.message({ type: 'PRECACHE' });
+  const etats = h.messages.filter((m) => m.type === 'PRECACHE_ETAT');
+  assert.ok(etats.length >= 2, 'au moins un message de début et un de fin');
+  const premier = etats[0], dernier = etats[etats.length - 1];
+  assert.equal(premier.prets, 0);
+  assert.equal(premier.enCours, true);
+  assert.equal(dernier.prets, 2);
+  assert.equal(dernier.enCours, false);
+  assert.equal(dernier.tout, false);
+  assert.ok(dernier.total > 300, 'tout le contenu est compté');
+  // Sans « tout », le modèle 3D n'est ni compté ni téléchargé.
+  assert.ok(!h.networkCalls.includes(BASE + glb));
+  // ETAT répond au demandeur (e.source) avec le même compteur.
+  const recu = [];
+  await h.message({ type: 'ETAT' }, { postMessage(m) { recu.push(m); } });
+  assert.equal(recu.length, 1);
+  assert.equal(recu[0].prets, 2);
+  assert.equal(recu[0].total, dernier.total);
+  // « tout » ajoute les deux fichiers 3D au total et tente de les télécharger.
+  h.network.set(BASE + glb, new Response('glb'));
+  h.network.set(BASE + hdr, new Response('hdr'));
+  await h.message({ type: 'PRECACHE', tout: true });
+  const complet = h.messages.filter((m) => m.type === 'PRECACHE_ETAT').pop();
+  assert.equal(complet.tout, true);
+  assert.equal(complet.total, dernier.total + 2);
+  assert.equal(complet.prets, 4);
+  assert.equal(await (await h.request(glb)).text(), 'glb');
 });

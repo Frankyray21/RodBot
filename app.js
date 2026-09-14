@@ -17,16 +17,154 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.87.0';
+var APP_VERSION = '1.88.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
    indique simplement « service injoignable ». */
 var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
+
+/* ---------- Application Android (APK, Capacitor) ----------
+   Tout le contenu est déjà sur l'appareil : pas de service worker, pas de
+   téléchargement. Les PDF s'ouvrent avec le lecteur du téléphone, car la
+   WebView Android n'affiche pas les PDF. */
+var IS_NATIVE = false;
+try { IS_NATIVE = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform()); } catch (e) {}
+
+/* ---------- File d'attente hors ligne (attestations, avis sur les questions) ----------
+   Sous terre, il n'y a pas de réseau. Tout envoi qui échoue est gardé ici
+   (localStorage) et repart tout seul au retour du réseau : rien n'est perdu. */
+var OUTBOX_KEY = "rodbot_outbox_v1";
+function obLire(){ try { var l = JSON.parse(localStorage.getItem(OUTBOX_KEY) || "[]"); return Array.isArray(l) ? l : []; } catch (e) { return []; } }
+function obEcrire(l){ try { localStorage.setItem(OUTBOX_KEY, JSON.stringify(l)); } catch (e) {} }
+function obAjouter(payload){ var l = obLire(); l.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2, 8), t: Date.now(), n: 0, p: payload }); obEcrire(l); return l.length; }
+function obTaille(){ return obLire().length; }
+var __obEnvoi = null;
+/* Envoie la file dans l'ordre.
+   - Réponse du serveur reçue (2xx/4xx) : l'élément sort de la file, accepté ou
+     refusé (réessayer un refus ne changerait rien ; le refus est signalé).
+   - Réseau coupé, réponse illisible ou panne du serveur (5xx) : on arrête et on
+     garde tout pour plus tard. Après 100 tentatives, l'envoi est abandonné pour
+     ne pas bloquer les suivants.
+   La file est relue avant chaque écriture : un envoi ajouté pendant l'attente
+   n'est jamais écrasé. */
+function obVider(){
+  if (__obEnvoi) return __obEnvoi;
+  if (!ATTEST_ENDPOINT || !navigator.onLine || !obTaille()) return Promise.resolve({ envoyes: 0, refuses: 0 });
+  __obEnvoi = (async function(){
+    var envoyes = 0, refuses = 0;
+    for (;;) {
+      var tete = obLire()[0]; if (!tete) break;
+      var d = null, transitoire = false;
+      try {
+        var r = await fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(tete.p) });
+        transitoire = r.status >= 500;
+        if (!transitoire) d = await r.json();
+      } catch (e) { transitoire = true; }
+      var l = obLire();
+      if (!l.length || l[0].id !== tete.id) { if (transitoire) break; continue; }
+      if (transitoire) {
+        l[0].n = (l[0].n || 0) + 1;
+        if (l[0].n >= 100) l.shift();
+        obEcrire(l);
+        break;
+      }
+      l.shift(); obEcrire(l);
+      if (d && d.ok) envoyes++; else refuses++;
+    }
+    return { envoyes: envoyes, refuses: refuses };
+  })().catch(function(){ return { envoyes: 0, refuses: 0 }; }).then(function(res){ __obEnvoi = null; return res; });
+  return __obEnvoi;
+}
+
+/* ---------- Contenu hors ligne : compteur « Prêt pour le terrain » ----------
+   Le service worker annonce son avancement (message PRECACHE_ETAT). Le compteur
+   est mis à jour directement dans la page, sans re-rendu complet à chaque lot ;
+   un re-rendu seulement quand la phase change (à faire / en cours / prêt). */
+function dlVeut3d(){ try { return localStorage.getItem('rodbot_dl_3d') === '1'; } catch (e) { return false; } }
+function dlDemander(tout){
+  if (IS_NATIVE || !('serviceWorker' in navigator)) return;
+  try {
+    navigator.serviceWorker.ready.then(function (r) {
+      if (r.active) r.active.postMessage({ type: 'PRECACHE', tout: !!(tout || dlVeut3d()) });
+    });
+  } catch (e) {}
+}
+function dlPhase(d){ return !d.connu ? 'inconnu' : d.enCours ? 'encours' : (d.total > 0 && d.prets >= d.total) ? 'pret' : 'afaire'; }
+function dlMaj(etat){
+  if (!COMP) return;
+  var avant = COMP.state.dl || {};
+  var apres = { prets: etat.prets|0, total: etat.total|0, enCours: !!etat.enCours, tout: !!etat.tout, connu: true, sansSW: false };
+  COMP.state.dl = apres;
+  if (dlPhase(avant) !== dlPhase(apres) || !!avant.tout !== apres.tout) { COMP.setState({ dl: apres }); return; }
+  // Même phase : mise à jour douce du compteur et de la barre, sans re-rendu.
+  try {
+    var pct = apres.total ? Math.round(apres.prets / apres.total * 100) : 0;
+    var els = document.querySelectorAll('[data-rb-dl="count"]');
+    for (var i = 0; i < els.length; i++) els[i].textContent = apres.prets + ' / ' + apres.total;
+    var bars = document.querySelectorAll('[data-rb-dl="bar"]');
+    for (var j = 0; j < bars.length; j++) bars[j].style.width = pct + '%';
+  } catch (e) {}
+}
+
+/* ---------- PDF dans l'application Android ----------
+   La WebView n'affiche pas les PDF et ne télécharge pas les blobs. Le fichier
+   est écrit dans le cache de l'app (greffon Filesystem) puis ouvert avec le
+   lecteur du téléphone (greffon FileOpener) : lecture, partage, impression. */
+var __pdfNatifOccupe = false;
+/* Les greffons viennent de apk-natif.js (window.RodbotNatif, regroupé par esbuild).
+   Repli sur window.Capacitor.Plugins si un jour ils y sont enregistrés. */
+function pdfNatifPlugins(){
+  var N = window.RodbotNatif;
+  if (N && N.Filesystem && N.FileOpener) return N;
+  var C = window.Capacitor;
+  return (C && C.Plugins && C.Plugins.Filesystem && C.Plugins.FileOpener) ? C.Plugins : null;
+}
+function b64DepuisOctets(bytes){ var t = ''; for (var i = 0; i < bytes.length; i += 0x8000) t += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(t); }
+function b64DepuisBlob(blob){ return new Promise(function (res, rej) { var fr = new FileReader(); fr.onload = function () { res(String(fr.result).split(',')[1] || ''); }; fr.onerror = rej; fr.readAsDataURL(blob); }); }
+function pdfNatifOuvrirUri(P, uri){ return P.FileOpener.open({ filePath: uri, contentType: 'application/pdf', openWithDefault: true }); }
+/* PDF du dépôt (manuel FR/EN, analyse de risques) : copié une fois par version
+   dans le cache, puis ouvert. Sans lecteur PDF, le manuel s'ouvre en images. */
+function ouvrirPdfNatif(nom, page){
+  if (__pdfNatifOccupe) return; __pdfNatifOccupe = true;
+  var P = pdfNatifPlugins();
+  var fichier = nom.split('/').pop();
+  var chemin = 'rodbot-pdf/' + APP_VERSION + '/' + fichier;
+  var fin = function () { __pdfNatifOccupe = false; };
+  var promesse = !P ? Promise.reject(new Error('plugins')) :
+    P.Filesystem.stat({ path: chemin, directory: 'CACHE' }).then(function (st) { return st.uri; }, function () {
+      return fetch(nom).then(function (r) { if (!r.ok) throw new Error('pdf'); return r.blob(); })
+        .then(b64DepuisBlob)
+        .then(function (b64) { return P.Filesystem.writeFile({ path: chemin, data: b64, directory: 'CACHE', recursive: true }); })
+        .then(function (w) { return w.uri; });
+    }).then(function (uri) { return pdfNatifOuvrirUri(P, uri); });
+  promesse.catch(function () {
+    // Pas de lecteur PDF : le manuel s'ouvre en images, l'analyse de risques aussi.
+    try {
+      if (!COMP) return;
+      if (/manu/i.test(fichier)) COMP.openManual(page || 1);
+      else COMP.openImg('img/ra/p1.jpg', COMP.tr("Analyse de risques", "Risk assessment") + " : page 1 / 4");
+    } catch (e) {}
+  }).then(fin, fin);
+}
+/* Les PDF copiés par une ancienne version de l'app (9 Mo chacun) sont supprimés. */
+function pdfNatifPurger(){
+  var P = pdfNatifPlugins(); if (!P) return;
+  try {
+    P.Filesystem.readdir({ path: 'rodbot-pdf', directory: 'CACHE' }).then(function (r) {
+      (r.files || []).forEach(function (f) {
+        var nom = (typeof f === 'string') ? f : (f && f.name);
+        if (nom && nom !== APP_VERSION && nom !== 'attestations') {
+          P.Filesystem.rmdir({ path: 'rodbot-pdf/' + nom, directory: 'CACHE', recursive: true }).catch(function () {});
+        }
+      });
+    }).catch(function () {});
+  } catch (e) {}
+}
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:11,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '13 SEPT. 2026';
+var APP_VERSION_DATE = '14 SEPT. 2026';
 
 /* ---------- Tour guidé à la demande ----------
    Depuis l'accueil ou le pied de page, le travailleur peut ouvrir un tour
@@ -1100,8 +1238,10 @@ class Component extends DCLogic {
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
       canInstall:false, showInstallHelp:false,
-      attSending:false, attDone:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
+      attSending:false, attDone:false, attQueued:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
       pdfError:"", pdfOk:false,
+      // Contenu hors ligne (compteur « Prêt pour le terrain », voir dlMaj)
+      dl:{ prets:0, total:0, enCours:false, tout:false, connu:false, sansSW:false },
       suiviHist:null, suiviHistState:"",
       qbFb:{}, qbCommentKey:null, qbComment:"",   // retours pouce haut/bas sur les questions (bêta)
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
@@ -1375,6 +1515,17 @@ class Component extends DCLogic {
     } else { this.setState({ showInstallHelp:true }); }
   };
   closeInstallHelp = ()=> this.setState({ showInstallHelp:false });
+  /* Carte « Hors ligne » (accueil, Documents) : relance le téléchargement, ou
+     ajoute le modèle 3D (27 Mo) au contenu gardé sur l'appareil. */
+  dlRelancer = ()=>{
+    const dl=Object.assign({}, this.state.dl||{}, { enCours:true, connu:true });
+    this.setState({ dl }, ()=>dlDemander(false));
+  };
+  dlAjouter3d = ()=>{
+    try { localStorage.setItem('rodbot_dl_3d','1'); } catch(e){}
+    const dl=Object.assign({}, this.state.dl||{}, { tout:true, enCours:true, connu:true });
+    this.setState({ dl }, ()=>dlDemander(true));
+  };
   manualPrev = ()=> this.setState(s=>({ mpage: Math.max(1, (s.mpage||1)-1) }));
   manualNext = ()=> this.setState(s=>({ mpage: Math.min(this.manualTotal(), (s.mpage||1)+1) }));
 
@@ -1721,7 +1872,7 @@ class Component extends DCLogic {
   goSavoir = ()=> { ptEnter(null,null); this.setState({ view:"home", home:"savoir", graded:false, answers:{} },()=>window.scrollTo(0,0)); };
   /* Quelle page d'accueil contient telle section ? Sert aux ancres du menu. */
   homePageOf(key){ return (key==="path") ? "formation" : (key==="overview" ? "choix" : "savoir"); }
-  openModule = (i)=> { if(!this.M()[i]) return; ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ preQuiz:false, view:"module", activeId:i, openKey:i+'-0', manualDetailKey:null, graded:false, attSending:false, attDone:false, attError:"" },()=>window.scrollTo(0,0)); };
+  openModule = (i)=> { if(!this.M()[i]) return; ptEnter(i,'module'); this.sigStrokes=[]; this.setState({ preQuiz:false, view:"module", activeId:i, openKey:i+'-0', manualDetailKey:null, graded:false, attSending:false, attDone:false, attQueued:false, attError:"" },()=>window.scrollTo(0,0)); };
   openLesson = (mi,si)=>{
     if(!this.M()[mi] || !this.M()[mi].sections[si]) return;
     ptEnter(mi,'module');
@@ -1777,7 +1928,7 @@ class Component extends DCLogic {
       this.sigStrokes=[];
       this.sigRefresh();
     }
-    this.setState({name:v, attEmpId:"", attDone:false, attLinked:false, attSending:false, attError:"", progRestoredMsg:"", suiviHist:null, suiviHistState:""}, ()=>this.persist());
+    this.setState({name:v, attEmpId:"", attDone:false, attQueued:false, attLinked:false, attSending:false, attError:"", progRestoredMsg:"", suiviHist:null, suiviHistState:""}, ()=>this.persist());
     this.clearSuggestionsUI();
     this.fetchEmpSuggestions(v);
     // Sur « Mon suivi » : recharge l'historique quand le nom change (sans attendre un pick).
@@ -1835,7 +1986,7 @@ class Component extends DCLogic {
       this.sigStrokes=[];
     }
     this.clearSuggestionsUI();
-    this.setState({ name:sg.name, attEmpId:sg.id, attDone:false, attLinked:false, attSending:false, attError:"", progRestoredMsg:"", suiviHist:null, suiviHistState:"" }, ()=>{
+    this.setState({ name:sg.name, attEmpId:sg.id, attDone:false, attQueued:false, attLinked:false, attSending:false, attError:"", progRestoredMsg:"", suiviHist:null, suiviHistState:"" }, ()=>{
       this.persist();
       this.progPullNow(true);
       if(this.state.view==="suivi") this.fetchSuiviHist();
@@ -1880,7 +2031,7 @@ class Component extends DCLogic {
       view:"home", home:"choix", activeId:null, openKey:null, manualDetailKey:null, mpage:null, imgView:null,
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], qbFb:{}, qbCommentKey:null, qbComment:"",
-      attDone:false, attLinked:false, attError:"", attSending:false, attRemind:false,
+      attDone:false, attQueued:false, attLinked:false, attError:"", attSending:false, attRemind:false,
       pdfError:"", pdfOk:false,
       progRestoredMsg:"", suiviHist:null, suiviHistState:"", showInstallHelp:false,
       rrcInfoOpen:false, estopped:false, klaxon:false
@@ -2104,8 +2255,8 @@ class Component extends DCLogic {
         this.tr("Document produit sur l'appareil de l'opérateur. Le registre de formation fait foi.",
                 "Document produced on the operator's device. The training registry is the record of truth.")
       ],
-      pied:this.tr("Copie locale · RodBot LP "+APP_VERSION+" · Français · "+(S.attDone?"Envoyée au registre de formation.":"Pas encore envoyée au registre."),
-                   "Local copy · RodBot LP "+APP_VERSION+" · English · "+(S.attDone?"Sent to the training registry.":"Not yet sent to the registry.")),
+      pied:this.tr("Copie locale · RodBot LP "+APP_VERSION+" · Français · "+(S.attQueued?"Gardée sur l'appareil, envoi au retour du réseau.":S.attDone?"Envoyée au registre de formation.":"Pas encore envoyée au registre."),
+                   "Local copy · RodBot LP "+APP_VERSION+" · English · "+(S.attQueued?"Kept on the device, sent when the network returns.":S.attDone?"Sent to the training registry.":"Not yet sent to the registry.")),
       fileName:this.pdfFileName(S.name, iso),
       labels:{
         marque:"BORTERRA RODBOT LP", ref:"OM 10667 · R0 · BM260024",
@@ -2126,6 +2277,14 @@ class Component extends DCLogic {
   /* Remet le fichier a l'operateur. Un lien avec download : rien d'autre ne
      marche de facon fiable sur tablette comme sur telephone. */
   pdfSave(bytes, nom){
+    if(IS_NATIVE){
+      // APK : la WebView ne télécharge pas les blobs. Le PDF est écrit dans le
+      // cache de l'app puis ouvert avec le lecteur du téléphone (partage, impression).
+      const P=pdfNatifPlugins();
+      return P ? P.Filesystem.writeFile({ path:'rodbot-pdf/attestations/'+nom, data:b64DepuisOctets(bytes), directory:'CACHE', recursive:true })
+                  .then(w=>pdfNatifOuvrirUri(P, w.uri))
+               : Promise.reject(new Error('plugins'));
+    }
     const blob=new Blob([bytes], { type:"application/pdf" });
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
@@ -2144,8 +2303,13 @@ class Component extends DCLogic {
     }
     try{
       const p=this.certPdfPayload();
-      this.pdfSave(RodbotPdf.attestation(p), p.fileName);
-      this.setState({ pdfError:"", pdfOk:true });
+      const r=this.pdfSave(RodbotPdf.attestation(p), p.fileName);
+      if(r && typeof r.then==="function"){
+        // APK : l'écriture et l'ouverture sont asynchrones ; le message attend le succès.
+        this.setState({ pdfError:"", pdfOk:false });
+        r.then(()=>this.setState({ pdfError:"", pdfOk:true }))
+         .catch(()=>this.setState({ pdfOk:false, pdfError:this.tr("Aucun lecteur PDF sur l'appareil.","No PDF reader on the device.") }));
+      } else this.setState({ pdfError:"", pdfOk:true });
     }catch(e){
       this.setState({ pdfOk:false, pdfError:this.tr("Le PDF n'a pas pu être créé.","The PDF could not be created.") });
     }
@@ -2162,15 +2326,23 @@ class Component extends DCLogic {
       date:new Date().toISOString().slice(0,10),
       langue:(S.lang==="en"?"English":"Français"), version:APP_VERSION }, extra);
     if(!this.sigEmpty()) payload.signature=this.sigDataUrl();
+    // Sans réseau (sous terre) ou service injoignable : l'attestation est gardée
+    // sur l'appareil et part toute seule au retour du réseau. Rien n'est perdu.
+    const garder=()=>{
+      obAjouter(payload);
+      if(!current()) return;
+      this._sigSent=this.sigStrokes; this.sigStrokes=[];
+      this.setState({ attSending:false, attDone:true, attQueued:true, attLinked:false, attError:"" });
+    };
+    if(!navigator.onLine){ garder(); return; }
     this.setState({ attSending:true, attError:"" });
     fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
       .then(r=>r.json())
       .then(d=>{
         if(!current()) return;
-        if(d && d.ok){ this._sigSent=this.sigStrokes; this.sigStrokes=[]; this.setState({ attSending:false, attDone:true, attLinked:!!d.linked }); }
+        if(d && d.ok){ this._sigSent=this.sigStrokes; this.sigStrokes=[]; this.setState({ attSending:false, attDone:true, attQueued:false, attLinked:!!d.linked }); obVider(); }
         else this.setState({ attSending:false, attError:(d&&d.error)||this.tr("Envoi refusé.","Submission refused.") });
-      })
-      .catch(()=>{ if(current()) this.setState({ attSending:false, attError:this.tr("Service injoignable. Réessayez avec du réseau.","Service unreachable. Try again with network.") }); });
+      }, garder);
   }
   /* Attestation FINALE (vue « cert ») : exige les 8 modules validés. */
   submitAttestation = ()=>{
@@ -2319,7 +2491,8 @@ class Component extends DCLogic {
       langue:(S.lang==="en"?"English":"Français"),
       version:APP_VERSION,
       date:new Date().toISOString().slice(0,10) };
-    fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) }).catch(()=>{});
+    if(!navigator.onLine){ obAjouter(payload); return; }
+    fetch(ATTEST_ENDPOINT, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) }).catch(()=>{ obAjouter(payload); });
   }
   quizNext = ()=>{
     // Dernier verrou, celui qui compte : aucun résultat ne peut être écrit
@@ -2344,14 +2517,14 @@ class Component extends DCLogic {
       // Meilleur score TENTÉ (même sous 70 %) : sert à l'attestation par module.
       const attempts={...s.attempts}; attempts[s.activeId]=Math.max(pct,attempts[s.activeId]||0);
       // Nouvel écran de résultat : l'envoi d'attestation repart à zéro pour CE module.
-      return { graded:true, lastScore:pct, lastPassed:passed, completed, attempts, attSending:false, attDone:false, attError:"" };
+      return { graded:true, lastScore:pct, lastPassed:passed, completed, attempts, attSending:false, attDone:false, attQueued:false, attError:"" };
     }, ()=>{ this.persist(); this.progPushSoon(); });
     window.scrollTo(0,0);
   };
   goToNextModule = ()=>{
     const next=this.state.activeId+1;
     if(next<this.M().length){ ptEnter(next,'module'); this.setState({ view:"module", activeId:next, openKey:next+'-0', graded:false, qIdx:0, qSel:null, qChecked:false, qResults:[] }); }
-    else if(this.allDone()){ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"", pdfError:"", pdfOk:false }); }
+    else if(this.allDone()){ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attQueued:false, attError:"", pdfError:"", pdfOk:false }); }
     else this.goHome();
   };
 
@@ -2650,7 +2823,7 @@ class Component extends DCLogic {
         "Attestation finale : disponible quand les 8 modules sont validés ("+doneN+"/8).",
         "Final certificate: available once all 8 modules are passed ("+doneN+"/8).");
       base.certHintShow = !this.allDone();
-      base.openCert = ()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"", pdfError:"", pdfOk:false }); window.scrollTo(0,0); };
+      base.openCert = ()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attQueued:false, attError:"", pdfError:"", pdfOk:false }); window.scrollTo(0,0); };
       base.showCertCta = this.allDone();
       // Attestation PAR MODULE : offerte après CHAQUE quiz, réussi ou non (base.modAtt est construit plus bas).
       base.showModAtt = true;
@@ -2812,10 +2985,14 @@ class Component extends DCLogic {
         noTryMsg:this.tr("Faites d'abord le quiz du module pour avoir un score à enregistrer.","Take the module quiz first to have a score to save."),
         sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
         idle:!S.attSending && !S.attDone && tried,
-        doneMsg:this.tr("Attestation du module enregistrée.","Module certificate saved."),
-        linkedMsg:S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
-                              : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
-        registryLine:this.tr("Résultat envoyé au registre de formation.","Result sent to the training registry."),
+        donePicto:S.attQueued ? "📥" : "✅",
+        doneMsg:S.attQueued ? this.tr("Attestation gardée sur l'appareil.","Certificate kept on the device.")
+                            : this.tr("Attestation du module enregistrée.","Module certificate saved."),
+        linkedMsg:S.attQueued ? this.tr("Envoi automatique au retour du réseau.","Sent automatically when the network returns.")
+                 : S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
+                               : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
+        registryLine:S.attQueued ? this.tr("Résultat gardé sur l'appareil. Envoi au retour du réseau.","Result kept on the device. Sent when the network returns.")
+                                 : this.tr("Résultat envoyé au registre de formation.","Result sent to the training registry."),
         send:this.submitModuleAttestation,
         btnLabel:S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate")
       };
@@ -2849,7 +3026,7 @@ class Component extends DCLogic {
         hist:(S.suiviHist||[]).map(h=>({ module:h.module, date:h.date, score:h.score })),
         refresh:this.fetchSuiviHist,
         showCert:this.allDone(),
-        goCert:()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attError:"", pdfError:"", pdfOk:false }); window.scrollTo(0,0); }
+        goCert:()=>{ ptEnter(null,null); this.setState({ view:"cert", attSending:false, attDone:false, attQueued:false, attError:"", pdfError:"", pdfOk:false }); window.scrollTo(0,0); }
       };
     } else base.suivi=null;
     /* Bouton « Telecharger l'attestation (PDF) » de la vue attestation. */
@@ -2860,12 +3037,16 @@ class Component extends DCLogic {
       btnLabel:this.tr("Télécharger l'attestation (PDF)","Download the certificate (PDF)"),
       download:this.downloadCertPdf,
       ok:!!S.pdfOk, hasError:!!S.pdfError, error:S.pdfError||"",
-      okMsg:this.tr("PDF créé. Cherchez-le dans vos téléchargements.","PDF created. Look for it in your downloads.")
+      okMsg:IS_NATIVE ? this.tr("PDF ouvert dans le lecteur du téléphone.","PDF opened in the phone's reader.")
+                      : this.tr("PDF créé. Cherchez-le dans vos téléchargements.","PDF created. Look for it in your downloads.")
     };
     base.attest={
       sending:S.attSending, done:S.attDone, error:S.attError, hasError:!!S.attError,
       idle:!S.attSending && !S.attDone,
-      linkedMsg: S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
+      doneMsg: S.attQueued ? this.tr("📥 Attestation gardée sur l'appareil.","📥 Certificate kept on the device.")
+                           : this.tr("✓ Attestation enregistrée au registre.","✓ Certificate saved to the registry."),
+      linkedMsg: S.attQueued ? this.tr("Envoi automatique au retour du réseau.","Sent automatically when the network returns.")
+               : S.attLinked ? this.tr("Reliée à votre dossier employé.","Linked to your employee file.")
                              : this.tr("Reçue. Un gestionnaire la reliera à votre dossier.","Received. A manager will link it to your file."),
       send:this.submitAttestation,
       btnLabel: S.attSending ? this.tr("Envoi en cours…","Sending…") : this.tr("Enregistrer mon attestation","Save my certificate")
@@ -2954,9 +3135,46 @@ class Component extends DCLogic {
     // ===== Installation de l'app (PWA) =====
     var standalone=false;
     try { standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; } catch(e){}
-    base.showInstall = !standalone;
+    base.showInstall = !standalone && !IS_NATIVE;
     base.installApp = this.installApp;
     base.showInstallHelp = S.showInstallHelp;
+    // Carte « Hors ligne » (Documents) : l'opérateur voit quand il peut descendre sous terre.
+    const dl=S.dl||{};
+    const dlPret=!!dl.connu && !dl.sansSW && dl.total>0 && dl.prets>=dl.total;
+    const dlEnCours=!!dl.connu && !!dl.enCours;
+    const dlAFaire=!!dl.connu && !dl.sansSW && !dlPret && !dlEnCours;
+    let dlHors=false; try { dlHors=!navigator.onLine; } catch(e){}
+    base.dl={
+      web:!IS_NATIVE, natif:IS_NATIVE,
+      pret:dlPret, enCours:dlEnCours,
+      aFaire:!IS_NATIVE && dlAFaire && !dlHors,
+      offre3d:!IS_NATIVE && dlPret && !dl.tout && !dlHors,
+      pct:dl.total ? Math.round(dl.prets/dl.total*100) : 0,
+      count:dl.connu && !dl.sansSW ? (dl.prets+" / "+dl.total) : "…",
+      unite:this.tr("fichiers","files"),
+      picto:(IS_NATIVE || dlPret) ? "✅" : dlEnCours ? "⏳" : dl.sansSW ? "⚠️" : "⬇️",
+      couleur:(IS_NATIVE || dlPret) ? "#2F7D48" : dlEnCours ? "#E8A33A" : "#D92624",
+      titre:IS_NATIVE ? this.tr("Tout est dans l'application","Everything is in the app")
+           : dl.sansSW ? this.tr("Hors ligne indisponible ici","Offline not available here")
+           : dlPret ? this.tr("Prêt pour le terrain","Ready for the field")
+           : dlEnCours ? this.tr("Téléchargement en cours…","Downloading…")
+           : !dl.connu ? this.tr("Vérification du contenu…","Checking content…")
+           : dlHors ? this.tr("Téléchargement incomplet","Download incomplete")
+           : this.tr("Contenu à télécharger","Content to download"),
+      detail:IS_NATIVE ? this.tr("Leçons, manuel, quiz et modèle 3D : aucun réseau requis. Les attestations partent au retour du réseau.",
+                                 "Lessons, manual, quizzes and 3D model: no network needed. Certificates are sent when the network returns.")
+            : dl.sansSW ? this.tr("Ouvrez le site dans Chrome ou Safari, hors navigation privée, pour l'utiliser sans réseau.",
+                                  "Open the site in Chrome or Safari, outside private browsing, to use it without network.")
+            : dlPret ? this.tr("Leçons, manuel, images et PDF sont sur l'appareil. Vous pouvez descendre sous terre.",
+                               "Lessons, manual, images and PDFs are on the device. You can go underground.")
+            : dlEnCours ? this.tr("Gardez la page ouverte avec du réseau. Le téléchargement reprend tout seul s'il est coupé.",
+                                  "Keep the page open with network. The download resumes by itself if it is cut.")
+            : dlHors ? this.tr("Il manque des fichiers. Revenez avec du réseau : le téléchargement reprendra.",
+                               "Some files are missing. Come back with network: the download will resume.")
+            : this.tr("Téléchargez tout avant de descendre sous terre. Environ 95 Mo, une seule fois.",
+                      "Download everything before going underground. About 95 MB, once."),
+      relancer:this.dlRelancer, ajouter3d:this.dlAjouter3d
+    };
     base.closeInstallHelp = this.closeInstallHelp;
     base.isIOS = /iP(hone|ad|od)/.test(navigator.userAgent||"");
     // Bascule de langue FR / EN (dans l'en-tête)
@@ -2967,7 +3185,7 @@ class Component extends DCLogic {
     base.langFrStyle = (S.lang==="en") ? _inS : _actS;
     base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 13, 2026");
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 14, 2026");
     base.tourReplay = this.tourReplay;
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
@@ -3459,7 +3677,8 @@ function bootRodbot() {
   // service worker s'installe puis prend le contrôle, on recharge alors la page
   // une seule fois pour afficher la dernière version (fini le cache figé sur tablette).
   try {
-    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    // Dans l'application Android (APK), tout est déjà sur l'appareil : aucun service worker.
+    if (!IS_NATIVE && 'serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
       // On ne recharge que si un ancien SW contrôlait déjà la page (= vraie mise à jour),
       // jamais lors de la toute première visite (aucun contrôleur au départ).
       var __hadController = !!navigator.serviceWorker.controller;
@@ -3477,17 +3696,50 @@ function bootRodbot() {
       // Téléchargement complet du contenu pour le hors-ligne : demandé à chaque
       // ouverture et au retour du réseau. Le SW ne reprend que ce qui manque,
       // donc un premier téléchargement interrompu se termine tout seul.
-      var __precache = function () {
-        try {
-          navigator.serviceWorker.ready.then(function (r) {
-            if (r.active) r.active.postMessage({ type: 'PRECACHE' });
-          });
-        } catch (e) {}
-      };
-      __precache();
-      window.addEventListener('online', __precache);
+      // Avancement du téléchargement (PRECACHE_ETAT) : carte « Hors ligne » de l'accueil.
+      navigator.serviceWorker.addEventListener('message', function (e) {
+        if (e.data && e.data.type === 'PRECACHE_ETAT') dlMaj(e.data);
+      });
+      // Stockage persistant : Android ne purge pas le contenu téléchargé quand la place manque.
+      try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
+      dlDemander(false);
+      window.addEventListener('online', function () { dlDemander(false); });
+    } else if (COMP && !IS_NATIVE) {
+      // Ni service worker (navigation privée, fichier local) : la carte « Hors ligne » le dit.
+      COMP.setState({ dl: { prets: 0, total: 0, enCours: false, tout: false, connu: true, sansSW: true } });
     }
   } catch (e) {}
+  // File d'attente hors ligne : envoi au démarrage et au retour du réseau.
+  // Un envoi accepté ferme l'attente ; un envoi refusé redonne le bouton.
+  var __apresVidage = function (res) {
+    if (!COMP || !COMP.state.attQueued || !res) return;
+    if (res.envoyes > 0) COMP.setState({ attQueued: false, attLinked: false });
+    else if (res.refuses > 0) COMP.setState({ attQueued: false, attDone: false, attError: COMP.tr("Envoi refusé par le registre. Réessayez.", "Refused by the registry. Try again.") });
+  };
+  try { obVider().then(__apresVidage); } catch (e) {}
+  // La carte « Hors ligne » est redessinée quand le réseau change : sur l'accueil
+  // seulement, et pas en rafale (réseau instable pendant qu'on tape son nom).
+  var __reseauMaj = null;
+  var __surReseau = function () {
+    clearTimeout(__reseauMaj);
+    __reseauMaj = setTimeout(function () { if (COMP && COMP.state.view === 'home') COMP.setState({}); }, 800);
+  };
+  window.addEventListener('online', function () { try { obVider().then(__apresVidage); } catch (e) {} __surReseau(); });
+  window.addEventListener('offline', __surReseau);
+  if (IS_NATIVE) {
+    setTimeout(pdfNatifPurger, 5000);
+    // APK : les liens vers un PDF (manuel, analyse de risques) s'ouvrent avec le
+    // lecteur du téléphone. Le fragment #page=N n'est pas transmis au lecteur.
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      if (!/\.pdf(#.*)?$/i.test(href)) return;
+      e.preventDefault(); e.stopPropagation();
+      var page = parseInt((href.split('#page=')[1] || ''), 10) || 1;
+      ouvrirPdfNatif(href.split('#')[0], page);
+    }, true);
+  }
   // La visite reste disponible sur demande, sans masquer le premier écran.
   // Clavier pour le visionneur du manuel : Échap ferme, ← / → naviguent
   document.addEventListener('keydown', function(e){

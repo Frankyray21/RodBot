@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Formation opérateur, RodBot LP</title>
 <meta name="description" content="Formation a l exploitation du systeme robotise Borterra RodBot LP, basee sur le manuel de l operateur OM 10667.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.88.0">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.87.0">
+<link rel="stylesheet" href="interface.css?v=1.88.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -484,6 +482,25 @@
             </span>
           </button>
           </sc-if>
+          <!-- Carte « Hors ligne » : l'opérateur voit quand tout est sur l'appareil -->
+          <div data-rb-dl="card" style="grid-column:1/-1;display:flex;gap:18px;align-items:flex-start;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px;color:#1D1E1B">
+            <span style="width:46px;height:56px;flex:none;background:{{ dl.couleur }};display:flex;align-items:center;justify-content:center;font-size:22px;border-bottom:4px solid #141413">{{ dl.picto }}</span>
+            <span style="min-width:0;flex:1">
+              <span style="display:block;font-weight:800;font-size:16.5px;text-transform:uppercase;margin-bottom:4px;color:#1D1E1B">{{ dl.titre }}</span>
+              <sc-if value="{{ dl.web }}" hint-placeholder-val="{{ true }}"><span style="display:block;font-weight:700;font-size:10.5px;letter-spacing:.1em;color:#989898;margin-bottom:8px">HORS LIGNE · <span data-rb-dl="count">{{ dl.count }}</span> {{ dl.unite }}</span></sc-if>
+              <sc-if value="{{ dl.natif }}" hint-placeholder-val="{{ false }}"><span style="display:block;font-weight:700;font-size:10.5px;letter-spacing:.1em;color:#989898;margin-bottom:8px">APPLICATION ANDROID · VERSION {{ appVersion }}</span></sc-if>
+              <sc-if value="{{ dl.web }}" hint-placeholder-val="{{ true }}">
+              <span style="display:block;height:8px;background:rgba(29,30,27,.1);margin:0 0 10px;overflow:hidden"><span data-rb-dl="bar" style="display:block;height:100%;width: {{ dl.pct }}%;background: {{ dl.couleur }};transition:width .3s ease"></span></span>
+              </sc-if>
+              <span style="display:block;font-size:13.5px;line-height:1.5;color:#535252">{{ dl.detail }}</span>
+              <sc-if value="{{ dl.aFaire }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ dl.relancer }}" style="margin-top:12px;font-family:inherit;background:#D92624;color:#FFFFFF;border:none;padding:11px 18px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">Tout télécharger ↓</button>
+              </sc-if>
+              <sc-if value="{{ dl.offre3d }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ dl.ajouter3d }}" style="margin-top:12px;font-family:inherit;background:transparent;color:#1D1E1B;border:1px solid rgba(29,30,27,.35);padding:11px 18px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#D92624">Ajouter le modèle 3D (27 Mo)</button>
+              </sc-if>
+            </span>
+          </div>
         </div>
       </section>
 
@@ -862,7 +879,7 @@
                 <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
               </sc-if>
               <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
-                <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                <div style="font-weight:800;font-size:14px;color:#2F7D48">{{ modAtt.donePicto }} {{ modAtt.doneMsg }}</div>
                 <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
               </sc-if>
               <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
@@ -915,7 +932,7 @@
                   <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
                 </sc-if>
                 <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
-                  <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                  <div style="font-weight:800;font-size:14px;color:#2F7D48">{{ modAtt.donePicto }} {{ modAtt.doneMsg }}</div>
                   <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
                 </sc-if>
                 <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
@@ -1131,7 +1148,7 @@
           <div style="font-weight:800;font-size:13px;color:#E8A33A">⏳ {{ attest.btnLabel }}</div>
         </sc-if>
         <sc-if value="{{ attest.done }}" hint-placeholder-val="{{ false }}">
-          <div style="font-weight:800;font-size:14px;color:#5FCE7B;margin-bottom:4px">✓ Attestation enregistrée au registre.</div>
+          <div style="font-weight:800;font-size:14px;color:#5FCE7B;margin-bottom:4px">{{ attest.doneMsg }}</div>
           <div style="font-size:12.5px;color:#B8B7B2">{{ attest.linkedMsg }}</div>
         </sc-if>
         <sc-if value="{{ attest.hasError }}" hint-placeholder-val="{{ false }}">
@@ -1344,7 +1361,7 @@
               <div>2. Choisissez <strong>« Installer l'application »</strong> (ou « Ajouter à l'écran d'accueil »).</div>
             </div>
           </div>
-          <div style="margin-top:16px;background:rgba(55,99,168,.09);border-left:5px solid #3763A8;padding:12px 14px;font-size:13px;color:#2F4F83">ℹ️ Les leçons restent accessibles <strong>hors ligne</strong> après un premier chargement complet. Consultez les images et PDF en ligne avant de les utiliser hors ligne. L'envoi des résultats nécessite une connexion.</div>
+          <div style="margin-top:16px;background:rgba(55,99,168,.09);border-left:5px solid #3763A8;padding:12px 14px;font-size:13px;color:#2F4F83">ℹ️ Quand la carte <strong>« Hors ligne »</strong> (section Documents) dit <strong>« Prêt pour le terrain »</strong>, tout fonctionne sans réseau. Les attestations faites sans réseau partent toutes seules au retour du réseau.</div>
         </div>
       </div>
     </div>
@@ -1786,6 +1803,25 @@
             </span>
           </button>
           </sc-if>
+          <!-- Carte « Hors ligne » : l'opérateur voit quand tout est sur l'appareil -->
+          <div data-rb-dl="card" style="grid-column:1/-1;display:flex;gap:18px;align-items:flex-start;background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:22px;color:#1D1E1B">
+            <span style="width:46px;height:56px;flex:none;background:{{ dl.couleur }};display:flex;align-items:center;justify-content:center;font-size:22px;border-bottom:4px solid #141413">{{ dl.picto }}</span>
+            <span style="min-width:0;flex:1">
+              <span style="display:block;font-weight:800;font-size:16.5px;text-transform:uppercase;margin-bottom:4px;color:#1D1E1B">{{ dl.titre }}</span>
+              <sc-if value="{{ dl.web }}" hint-placeholder-val="{{ true }}"><span style="display:block;font-weight:700;font-size:10.5px;letter-spacing:.1em;color:#989898;margin-bottom:8px">OFFLINE · <span data-rb-dl="count">{{ dl.count }}</span> {{ dl.unite }}</span></sc-if>
+              <sc-if value="{{ dl.natif }}" hint-placeholder-val="{{ false }}"><span style="display:block;font-weight:700;font-size:10.5px;letter-spacing:.1em;color:#989898;margin-bottom:8px">ANDROID APP · VERSION {{ appVersion }}</span></sc-if>
+              <sc-if value="{{ dl.web }}" hint-placeholder-val="{{ true }}">
+              <span style="display:block;height:8px;background:rgba(29,30,27,.1);margin:0 0 10px;overflow:hidden"><span data-rb-dl="bar" style="display:block;height:100%;width: {{ dl.pct }}%;background: {{ dl.couleur }};transition:width .3s ease"></span></span>
+              </sc-if>
+              <span style="display:block;font-size:13.5px;line-height:1.5;color:#535252">{{ dl.detail }}</span>
+              <sc-if value="{{ dl.aFaire }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ dl.relancer }}" style="margin-top:12px;font-family:inherit;background:#D92624;color:#FFFFFF;border:none;padding:11px 18px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:#B71F1D">Download everything ↓</button>
+              </sc-if>
+              <sc-if value="{{ dl.offre3d }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ dl.ajouter3d }}" style="margin-top:12px;font-family:inherit;background:transparent;color:#1D1E1B;border:1px solid rgba(29,30,27,.35);padding:11px 18px;font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:#D92624;color:#D92624">Add the 3D model (27 MB)</button>
+              </sc-if>
+            </span>
+          </div>
         </div>
       </section>
 
@@ -2164,7 +2200,7 @@
                 <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
               </sc-if>
               <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
-                <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                <div style="font-weight:800;font-size:14px;color:#2F7D48">{{ modAtt.donePicto }} {{ modAtt.doneMsg }}</div>
                 <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
               </sc-if>
               <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
@@ -2217,7 +2253,7 @@
                   <div style="font-weight:800;font-size:13px;color:#B8860B">⏳ {{ modAtt.btnLabel }}</div>
                 </sc-if>
                 <sc-if value="{{ modAtt.done }}" hint-placeholder-val="{{ false }}">
-                  <div style="font-weight:800;font-size:14px;color:#2F7D48">✅ {{ modAtt.doneMsg }}</div>
+                  <div style="font-weight:800;font-size:14px;color:#2F7D48">{{ modAtt.donePicto }} {{ modAtt.doneMsg }}</div>
                   <div style="margin-top:4px;font-size:12.5px;color:#989898">{{ modAtt.linkedMsg }}</div>
                 </sc-if>
                 <sc-if value="{{ modAtt.hasError }}" hint-placeholder-val="{{ false }}">
@@ -2433,7 +2469,7 @@
           <div style="font-weight:800;font-size:13px;color:#E8A33A">⏳ {{ attest.btnLabel }}</div>
         </sc-if>
         <sc-if value="{{ attest.done }}" hint-placeholder-val="{{ false }}">
-          <div style="font-weight:800;font-size:14px;color:#5FCE7B;margin-bottom:4px">✓ Certificate saved to the registry.</div>
+          <div style="font-weight:800;font-size:14px;color:#5FCE7B;margin-bottom:4px">{{ attest.doneMsg }}</div>
           <div style="font-size:12.5px;color:#B8B7B2">{{ attest.linkedMsg }}</div>
         </sc-if>
         <sc-if value="{{ attest.hasError }}" hint-placeholder-val="{{ false }}">
@@ -2646,7 +2682,7 @@
               <div>2. Choose <strong>"Install app"</strong> (or "Add to Home Screen").</div>
             </div>
           </div>
-          <div style="margin-top:16px;background:rgba(55,99,168,.09);border-left:5px solid #3763A8;padding:12px 14px;font-size:13px;color:#2F4F83">ℹ️ Lessons remain available <strong>offline</strong> after a complete first load. Open images and PDFs online before using them offline. Sending results requires a connection.</div>
+          <div style="margin-top:16px;background:rgba(55,99,168,.09);border-left:5px solid #3763A8;padding:12px 14px;font-size:13px;color:#2F4F83">ℹ️ When the <strong>"Offline"</strong> card (Documents section) says <strong>"Ready for the field"</strong>, everything works without network. Certificates made without network go out by themselves when the network returns.</div>
         </div>
       </div>
     </div>
@@ -2656,9 +2692,9 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.87.0"></script>
-<script src="pdf.js?v=1.87.0"></script>
-<script src="scene3d.js?v=1.87.0"></script>
-<script src="app.js?v=1.87.0"></script>
+<script src="interface.js?v=1.88.0"></script>
+<script src="pdf.js?v=1.88.0"></script>
+<script src="scene3d.js?v=1.88.0"></script>
+<script src="app.js?v=1.88.0"></script>
 </body>
 </html>

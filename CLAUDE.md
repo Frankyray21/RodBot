@@ -44,6 +44,18 @@ redéployé à chaque push) relie le site à Airtable (base « Formations »).
 6. Difficulté : impossible de réussir sans avoir lu le manuel, mais pensé
    pour des opérateurs, pas des ingénieurs. Seuil 70 %, 5 questions/module.
 
+## Application Android (APK)
+
+- Dossier `apk/` (Capacitor). GitHub Actions (`.github/workflows/android-apk.yml`)
+  construit l'APK à chaque push sur `main` et le publie dans la Release
+  `apk-latest`. Le bac à sable ne peut pas compiler l'APK (SDK Android
+  inaccessible) : vérifier le workflow via les outils GitHub Actions.
+- `APP_VERSION` donne le `versionCode` Android (1.88.0 → 1088000) : incrémenter
+  la version, sinon Android refuse la mise à jour.
+- Dans l'app (`IS_NATIVE` dans app.js) : pas de service worker, PDF ouverts
+  par le lecteur du téléphone. Tester ces chemins dans le code, pas seulement
+  en navigateur.
+
 ## Pièges connus
 
 - Une session parallèle peut pousser sur la même branche : `git fetch` +

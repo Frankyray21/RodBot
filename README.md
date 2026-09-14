@@ -72,9 +72,51 @@ Validation : `node --test tests/*.test.cjs`.
 - Tour guidé à la demande, sans interruption à la première visite.
 - Cache hors ligne isolé des autres sites du même domaine.
 
-Les images et PDF doivent être consultés en ligne avant utilisation hors ligne.
-L'envoi des résultats et leur récupération nécessitent une connexion.
-Les procédures, les questions et le seuil de réussite sont conservés.
+Voir la section « Hors ligne » ci-dessous pour ce qui fonctionne sans réseau.
+
+## Hors ligne (version 1.88.0)
+
+Le site est conçu pour la mine, sans réseau :
+
+- Le service worker (`sw.js`) télécharge tout le contenu en arrière-plan à la
+  première visite : leçons, images du manuel FR et EN, figures, PDF (environ
+  95 Mo). Le modèle 3D (27 Mo) s'ajoute sur demande.
+- La carte **« Hors ligne »** (accueil, section Documents) montre l'avancement
+  (fichiers prêts / total) et dit **« Prêt pour le terrain »** quand tout est
+  sur l'appareil. Bouton « Tout télécharger » pour relancer.
+- Le stockage persistant est demandé au navigateur : Android ne purge pas le
+  contenu quand la place manque.
+- Les polices (Heebo, Barlow) sont dans `fonts/` : aucune ressource externe.
+- Les attestations et les avis envoyés sans réseau sont gardés sur l'appareil
+  (`rodbot_outbox_v1`) et partent tout seuls au retour du réseau.
+- L'attestation PDF est générée sur l'appareil (`pdf.js` maison, sans réseau).
+
+Seuls l'envoi vers Airtable, les suggestions de noms et l'historique de suivi
+demandent une connexion.
+
+## Application Android (APK)
+
+Le dossier `apk/` contient une enveloppe [Capacitor](https://capacitorjs.com)
+qui embarque **tout le site et tout son contenu** (environ 125 Mo) dans une
+application Android. Elle fonctionne à 100 % sans réseau dès l'installation.
+
+- **Téléchargement** : à chaque push sur `main`, GitHub Actions
+  (`.github/workflows/android-apk.yml`) construit et signe l'APK, puis le
+  publie dans la Release `apk-latest`. Lien stable :
+  `https://github.com/Frankyray21/RodBot/releases/download/apk-latest/RodBot-LP.apk`
+- **Installation** : ouvrir le fichier sur la tablette, accepter les « sources
+  inconnues ». Une nouvelle version s'installe par-dessus l'ancienne, sans
+  désinstaller (le `versionCode` suit `APP_VERSION`).
+- **Dans l'app** : pas de service worker ni de téléchargement ; les PDF
+  s'ouvrent avec le lecteur du téléphone ; l'attestation PDF aussi.
+- **Signature** : clé de développement publique dans `apk/android/keystore/`
+  (voir son README pour passer à une clé privée via les secrets du dépôt).
+- **Construire soi-même** (Android SDK requis) :
+
+```bash
+cd apk && npm ci && npm run apk
+# -> apk/android/app/build/outputs/apk/release/app-release-signed.apk
+```
 
 ## Tests locaux
 

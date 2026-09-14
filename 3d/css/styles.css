@@ -11,7 +11,7 @@
    - La pastille est centrée par décalage négatif sur .hs-dot.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
+/* Polices : chargées par 3d/index.html (fonts/fonts.css), pas ici : une seule fois. */
 
 /* ============ 1. RESET + VARIABLES ============ */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}

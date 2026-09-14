@@ -1,0 +1,153 @@
+# Construit l'application Android (APK) à chaque changement du site, puis la
+# publie dans la « Release » GitHub apk-latest. Lien stable de téléchargement :
+#   https://github.com/Frankyray21/RodBot/releases/download/apk-latest/RodBot-LP.apk
+name: APK Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-android
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    name: Construire et publier l'APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dépôt
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apk/package-lock.json
+
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Gradle (cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Dépendances Capacitor
+        working-directory: apk
+        run: npm ci --no-audit --no-fund
+
+      - name: Assembler le site dans apk/dist
+        working-directory: apk
+        run: node scripts/build-web.mjs
+
+      - name: Copier le site dans le projet Android
+        working-directory: apk
+        run: npx cap sync android
+
+      - name: Clé de signature
+        id: cle
+        working-directory: apk
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "chemin=$RUNNER_TEMP/release.keystore" >> "$GITHUB_OUTPUT"
+            echo "motdepasse=$KEYSTORE_PASSWORD" >> "$GITHUB_OUTPUT"
+            echo "alias=$KEY_ALIAS" >> "$GITHUB_OUTPUT"
+            echo "motdepassecle=$KEY_PASSWORD" >> "$GITHUB_OUTPUT"
+            echo "Clé privée des secrets du dépôt."
+          else
+            echo "chemin=$PWD/android/keystore/rodbot-dev.keystore" >> "$GITHUB_OUTPUT"
+            echo "motdepasse=rodbot-lp-dev" >> "$GITHUB_OUTPUT"
+            echo "alias=rodbot" >> "$GITHUB_OUTPUT"
+            echo "motdepassecle=rodbot-lp-dev" >> "$GITHUB_OUTPUT"
+            echo "Clé de développement du dépôt (voir apk/android/keystore/README.md)."
+          fi
+
+      - name: Outils de signature Android sur le PATH
+        run: |
+          OUTILS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          test -x "$OUTILS/apksigner" || { echo "apksigner introuvable dans $OUTILS"; ls "$ANDROID_HOME/build-tools"; exit 1; }
+          echo "$OUTILS" >> "$GITHUB_PATH"
+          echo "apksigner : $OUTILS"
+
+      - name: Compiler et signer l'APK
+        working-directory: apk
+        run: |
+          npx cap build android \
+            --androidreleasetype APK \
+            --signing-type apksigner \
+            --keystorepath "${{ steps.cle.outputs.chemin }}" \
+            --keystorepass "${{ steps.cle.outputs.motdepasse }}" \
+            --keystorealias "${{ steps.cle.outputs.alias }}" \
+            --keystorealiaspass "${{ steps.cle.outputs.motdepassecle }}"
+
+      - name: Nommer l'APK
+        id: apk
+        working-directory: apk
+        run: |
+          VERSION=$(node -e "process.stdout.write(require('./dist/apk-version.json').version)")
+          SRC=$(ls android/app/build/outputs/apk/release/*-signed.apk | head -1)
+          test -n "$SRC" || { echo "APK signé introuvable"; ls -R android/app/build/outputs/apk; exit 1; }
+          mkdir -p sortie
+          cp "$SRC" "sortie/RodBot-LP.apk"
+          cp "$SRC" "sortie/RodBot-LP-$VERSION.apk"
+          ls -lh sortie
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Artefact du build
+        uses: actions/upload-artifact@v4
+        with:
+          name: RodBot-LP-${{ steps.apk.outputs.version }}
+          path: apk/sortie/RodBot-LP-${{ steps.apk.outputs.version }}.apk
+          retention-days: 30
+
+      - name: Publier dans la Release apk-latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.apk.outputs.version }}
+        working-directory: apk
+        run: |
+          cat > notes.md <<EOF_NOTES
+          Application Android de la formation RodBot LP, version **$VERSION** ($(date -u +%Y-%m-%d)).
+
+          - Fonctionne à 100 % sans réseau : leçons, manuel, quiz, modèle 3D, attestation PDF.
+          - Les attestations faites sans réseau partent toutes seules au retour du réseau.
+          - Installer : ouvrir le fichier sur la tablette et accepter les sources inconnues.
+          - Mise à jour : installer le nouveau fichier par-dessus, sans désinstaller.
+
+          Lien stable : https://github.com/${GITHUB_REPOSITORY}/releases/download/apk-latest/RodBot-LP.apk
+          EOF_NOTES
+          # Le tag apk-latest suit toujours le dernier commit construit.
+          git tag -f apk-latest "$GITHUB_SHA"
+          git push -f origin apk-latest
+          if gh release view apk-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Release conservée : le lien stable n'est coupé que le temps de remplacer le fichier.
+            gh release edit apk-latest --repo "$GITHUB_REPOSITORY" --title "RodBot LP $VERSION (APK Android)" --notes-file notes.md --latest
+            for ancien in $(gh release view apk-latest --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -E '^RodBot-LP-.*\.apk
+ | grep -v "RodBot-LP-$VERSION.apk" || true); do
+              gh release delete-asset apk-latest "$ancien" --repo "$GITHUB_REPOSITORY" --yes || true
+            done
+            gh release upload apk-latest --repo "$GITHUB_REPOSITORY" --clobber \
+              "sortie/RodBot-LP-$VERSION.apk#RodBot-LP-$VERSION.apk" \
+              "sortie/RodBot-LP.apk#RodBot-LP.apk (lien stable)"
+          else
+            gh release create apk-latest \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "RodBot LP $VERSION (APK Android)" \
+              --notes-file notes.md \
+              --latest \
+              "sortie/RodBot-LP.apk#RodBot-LP.apk (lien stable)" \
+              "sortie/RodBot-LP-$VERSION.apk#RodBot-LP-$VERSION.apk"
+          fi
