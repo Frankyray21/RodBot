@@ -375,10 +375,17 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
     }
     updateProgress();
   });
-  function activate(id) {
+  /* `ouvrirCoffret` : la porte du coffret s'ouvre toute seule a l'arrivee.
+     Sert aux liens qui promettent deja l'ouverture, comme la carte
+     « Ouvrir le coffret IHM » de l'app de formation. Depuis la page, le
+     choix d'exercice ne l'active pas : ouvrir la porte EST l'exercice. */
+  function activate(id,{ouvrirCoffret=false}={}) {
     active=true;container.hidden=false;onActivate();
     if(id&&EXERCISES.some(x=>x.id===id)){exercise=EXERCISES.find(x=>x.id===id);$('simExercise').value=id;}
     restart();last=0;if(!frame)frame=requestAnimationFrame(frameTick);
+    // Apres restart, qui remet la porte a zero. Jamais d'appel croise :
+    // setPanel ne rappelle activate que si l'exercice courant n'est pas panel.
+    if(ouvrirCoffret&&exercise.id==='panel')setPanel(1);
   }
   function deactivate() {
     closeInfo();releaseAll();active=false;container.hidden=true;if(frame)cancelAnimationFrame(frame);frame=0;last=0;

@@ -74,3 +74,28 @@ test('the electrical component card exposes a direct entry into the cabinet exer
   vm.runInContext(html.slice(start,end),context);click();
   assert.deepEqual(calls,['panel','scroll']);
 });
+
+test('un lien direct vers le coffret ouvre la porte, les autres exercices non', () => {
+  const start = html.indexOf('      const requestedExercise = new URLSearchParams');
+  const end = html.indexOf('      window.rodbotTraining = training;', start);
+  assert(start >= 0 && end > start);
+  const code = html.slice(start, end);
+  for (const [demande, ouverture] of [['panel', true], ['grip', false], ['emergency-points', false]]) {
+    const appels = [];
+    vm.runInNewContext(code, {
+      location: { search: '?exercise=' + demande },
+      URLSearchParams,
+      training: { activate: (id, opts) => appels.push([id, !!(opts && opts.ouvrirCoffret)]) },
+      document: { getElementById: () => ({ scrollIntoView() {} }) }
+    });
+    assert.deepEqual(appels, [[demande, ouverture]],
+      demande === 'panel' ? 'la carte « Ouvrir le coffret » promet une porte qui s’ouvre'
+                          : demande + ' ne doit pas ouvrir la porte');
+  }
+});
+
+test('le logo ramène à l’accueil de la formation, pas à la page 3D', () => {
+  const logo = /<a class="brand-logo" href="([^"]+)"/.exec(html);
+  assert(logo, 'logo introuvable');
+  assert.equal(logo[1], '../', 'le logo doit remonter à la racine du site, où vit l’écran des deux chemins');
+});
