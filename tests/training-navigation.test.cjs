@@ -99,3 +99,22 @@ test('le logo ramène à l’accueil de la formation, pas à la page 3D', () => 
   assert(logo, 'logo introuvable');
   assert.equal(logo[1], '../', 'le logo doit remonter à la racine du site, où vit l’écran des deux chemins');
 });
+
+test("l'atelier n'offre plus que les exercices de repérage", () => {
+  const src = fs.readFileSync(path.join(__dirname, '../3d/js/training-ui.js'), 'utf8');
+  const bloc = /export const EXERCISES = \[([\s\S]*?)\n\];/.exec(src);
+  assert(bloc, 'liste des exercices introuvable');
+  const ids = [...bloc[1].matchAll(/id:'([a-z-]+)'/g)].map(m => m[1]);
+  assert.deepEqual(ids, ['emergency-points', 'radio-points', 'panel', 'manual-levers']);
+  // Chaque exercice restant a des cibles à toucher : aucun ne fait manipuler
+  // les manettes. Le bloc de commandes est donc toujours masqué.
+  const sansCible = [...bloc[1].matchAll(/id:'([a-z-]+)'[\s\S]*?targets:\[([^\]]*)\]/g)]
+    .filter(m => m[2].trim() === '').map(m => m[1]);
+  assert.deepEqual(sansCible, [], 'un exercice sans cible ferait réapparaître le simulateur de commandes');
+
+  // Les cartes de l'app ne doivent mener qu'à des exercices qui existent.
+  const app = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+  const liens = [...app.matchAll(/3d\/\?exercise=([a-z-]+)/g)].map(m => m[1]);
+  assert(liens.length > 0, 'aucune carte vers un exercice');
+  for (const l of liens) assert.ok(ids.includes(l), 'carte vers un exercice retiré : ' + l);
+});

@@ -1,16 +1,14 @@
 import { createSimulation } from './simulation-state.js';
 
+/* Les exercices de repérage seulement : l'opérateur tourne autour de la
+   machine et touche des repères. Les six simulations de commandes (bras,
+   pince, arrêt, réarmement, LOCAL/REMOTE, essais libres) ont été retirées.
+   Leur moteur reste en place, simplement plus personne ne l'atteint. */
 export const EXERCISES = [
   { id:'emergency-points', title:'1 · Trouver les quatre arrêts', page:12, prompt:'Tourne autour du RodBot. Touche les quatre repères d’arrêt d’urgence.', targets:['u1','u2','u3','u4'] },
   { id:'radio-points', title:'2 · Repérer les commandes radio', page:21, prompt:'Trouve JS1, la bascule centrale JS2, JS3 et le bouton vert PINCE.', targets:['js1','js2','js3','grip-enable'] },
   { id:'panel', title:'Explorer le coffret IHM', page:14, prompt:'Ouvre le coffret. Repère le récepteur radio, le PPU, les borniers et l’arrière de l’écran.', targets:['panel-door','receiver','ppu','panel-terminals','rear-hmi'] },
-  { id:'manual-levers', title:'Observer les leviers manuels', page:15, prompt:'Repère les deux postes. Observe le débattement et le retour au neutre de chaque levier.', targets:['front-levers','side-levers'] },
-  { id:'direct', title:'3 · Faire bouger le bras', page:22, prompt:'Prépare l’exercice. En DIRECT, maintiens JS1 vers le haut, puis relâche.', targets:[] },
-  { id:'grip', title:'4 · Ouvrir et fermer la pince', page:55, prompt:'Maintiens PINCE et JS2 ensemble. L’ouverture demande au moins une seconde.', targets:[] },
-  { id:'stop', title:'5 · Arrêter un mouvement', page:12, prompt:'Lance la démonstration lente. Enfonce ensuite un arrêt d’urgence dans le modèle.', targets:[] },
-  { id:'rearm', title:'6 · Déverrouiller puis réarmer', page:49, prompt:'Déverrouiller un arrêt ne redémarre pas la machine. Observe les étapes séparées.', targets:[] },
-  { id:'source', title:'7 · Comparer LOCAL et REMOTE', page:14, prompt:'En LOCAL, essaie JS1. Passe ensuite en REMOTE et compare.', targets:[] },
-  { id:'free', title:'Essais libres · Mode DIRECT', page:22, prompt:'Explore les commandes disponibles. Le bras s’arrête au relâchement des manettes.', targets:[] }
+  { id:'manual-levers', title:'Observer les leviers manuels', page:15, prompt:'Repère les deux postes. Observe le débattement et le retour au neutre de chaque levier.', targets:['front-levers','side-levers'] }
 ];
 const CONTROL_INFO = {
   'panel-door':{title:'Porte du panneau IHM',text:'Ouvre et referme la porte pour observer l’intérieur du coffret virtuel.',page:14},
