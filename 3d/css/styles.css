@@ -751,11 +751,25 @@ h3.sub-h::before{content:'';width:5px;height:1.3rem;background:var(--brand);bord
 .hs-urgence .hs-n{font-size:.72rem}
 .hs-urgence .hs-lb{border-color:rgba(245,158,11,.55)}
 /* carte « manuel de l'opérateur » dans la fiche */
-.fiche-manuel{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:rgba(210,35,37,.07);border:1px solid rgba(210,35,37,.25);border-radius:14px;padding:1rem 1.2rem;margin-top:1.2rem}
+.fiche-manuel{display:flex;flex-direction:column;align-items:stretch;gap:.8rem;background:rgba(210,35,37,.07);border:1px solid rgba(210,35,37,.25);border-radius:14px;padding:1rem 1.2rem;margin-top:1.2rem}
 .fm-info{display:flex;gap:.8rem;align-items:center}
 .fm-ic{font-size:1.6rem}
 .fm-titre{font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.9rem}
 .fm-ref{color:var(--muted);font-size:.85rem}
+/* La page du manuel s'affiche en vignette cliquable : on voit ou l'on va.
+   « contain » sur fond blanc : la page entiere rentre dans le cadre, rien
+   n'est rogne. Un tapotement ouvre la vraie page, zoomable. */
+.fm-vignette{position:relative;display:block;width:100%;padding:0;border:1px solid rgba(210,35,37,.35);border-radius:10px;background:#fff;cursor:zoom-in;overflow:hidden;transition:border-color .2s,transform .16s,box-shadow .16s}
+.fm-vignette img{display:block;width:100%;height:clamp(170px,30vh,250px);object-fit:contain;background:#fff}
+.fm-vignette:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.4)}
+.fm-vignette:active{transform:translateY(0)}
+.fm-vignette:focus-visible{outline:3px solid #f6c85b;outline-offset:3px}
+.fm-loupe{position:absolute;right:8px;bottom:8px;display:inline-block;background:rgba(10,14,23,.85);color:#fff;font-family:var(--font-display);font-size:.7rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:.3rem .6rem;border-radius:6px;pointer-events:none}
+/* Repli quand la page n'est pas disponible : on retrouve un bouton ecrit. */
+.fm-repli{display:none;padding:.85rem 1rem;color:#fff;background:var(--brand);font-family:var(--font-display);font-weight:800;letter-spacing:.05em;text-transform:uppercase;font-size:.9rem}
+.fm-vignette.sans-image img,.fm-vignette.sans-image .fm-loupe{display:none}
+.fm-vignette.sans-image{background:var(--brand);border-color:var(--brand)}
+.fm-vignette.sans-image .fm-repli{display:block}
 /* ============ 21. ANNEAUX D'URGENCE + BARRE DE MODES ============ */
 /* anneau qui ENCERCLE l'arrêt d'urgence (centre transparent : on voit le bouton) */
 .hs-ring{position:absolute;left:-27px;top:-27px;width:54px;height:54px;border-radius:50%;border:3px solid #f59e0b;background:rgba(245,158,11,.07);animation:ringPulse 1.6s ease-out infinite;transition:transform .2s}

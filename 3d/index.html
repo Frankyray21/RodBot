@@ -20,10 +20,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="./css/styles.css?v=1.80.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.80.0">
-  <link rel="stylesheet" href="./css/training.css?v=1.80.0">
-  <link rel="stylesheet" href="./css/component-popup.css?v=1.80.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.81.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.81.0">
+  <link rel="stylesheet" href="./css/training.css?v=1.81.0">
+  <link rel="stylesheet" href="./css/component-popup.css?v=1.81.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -139,7 +139,11 @@
             <div class="fm-ref" id="ficheManuelRef"></div>
           </div>
         </div>
-        <button class="btn sm" id="ficheManuelBtn" type="button">Voir la page</button>
+        <button class="fm-vignette" id="ficheManuelBtn" type="button">
+          <img id="ficheManuelImg" src="" alt="" decoding="async">
+          <span class="fm-loupe" aria-hidden="true">🔍 Agrandir</span>
+          <span class="fm-repli">Voir la page</span>
+        </button>
       </div>
     </div>
     <div class="fiche-nav">
@@ -182,7 +186,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.80.0</span>
+        <span id="rbSiteVer">Version 1.81.0</span>
         <span>Réplique de formation. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -329,7 +333,7 @@
     let heroPresentation = null;
     let atelierCharge;
     const atelierPret = new Promise((resoudre) => { atelierCharge = resoudre; });
-    import('./js/hero-v6.js?v=1.80.0').then(({createHero}) => {
+    import('./js/hero-v6.js?v=1.81.0').then(({createHero}) => {
       heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'), atelierPret);
     }).catch(() => { document.getElementById('heroPause').hidden = true; });
     const scrollCue = document.getElementById('scrollCue');
@@ -662,7 +666,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.80.0';
+      const VER = '1.81.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, CONTROLS, VUES, hotspotById }, { createTour }] = await Promise.all([
         import('./js/viewer-v5.js?v=' + VER),
@@ -771,6 +775,7 @@
       const ficheDesc = document.getElementById('ficheDesc');
       const ficheManuelRef = document.getElementById('ficheManuelRef');
       const ficheManuelBtn = document.getElementById('ficheManuelBtn');
+      const ficheManuelImg = document.getElementById('ficheManuelImg');
       const ficheKicker = document.querySelector('.fiche-kicker');
       const ficheClose = document.getElementById('ficheClose');
       const overlay = document.getElementById('hsOverlay');
@@ -809,8 +814,18 @@
         ficheDesc.textContent = data.resume;
         document.getElementById('fichePanel').hidden = id !== 'elec';
         ficheManuelRef.textContent = data.manuel.ref + ' · page ' + data.manuel.page;
+        // La vignette montre la page elle-meme : l'operateur reconnait d'un
+        // coup d'oeil ou il va, au lieu de lire « Voir la page ».
+        const _srcPage = 'assets/manuel/p' + data.manuel.page + '.jpg';
+        if (ficheManuelImg) {
+          ficheManuelBtn.classList.remove('sans-image');
+          ficheManuelImg.onerror = () => ficheManuelBtn.classList.add('sans-image');
+          ficheManuelImg.src = _srcPage;
+          ficheManuelImg.alt = 'Page ' + data.manuel.page + ' du manuel de l\'opérateur';
+        }
+        ficheManuelBtn.setAttribute('aria-label', 'Agrandir la page ' + data.manuel.page + ' du manuel de l\'opérateur');
         ficheManuelBtn.onclick = () => {
-          const _src = 'assets/manuel/p' + data.manuel.page + '.jpg';
+          const _src = _srcPage;
           try {
             ouvrirPhoto({
               titre: 'Manuel : ' + data.titre,

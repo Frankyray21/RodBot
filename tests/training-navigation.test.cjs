@@ -118,3 +118,22 @@ test("l'atelier n'offre plus que les exercices de repérage", () => {
   assert(liens.length > 0, 'aucune carte vers un exercice');
   for (const l of liens) assert.ok(ids.includes(l), 'carte vers un exercice retiré : ' + l);
 });
+
+test('le renvoi au manuel montre la page en vignette cliquable', () => {
+  // La vignette remplace le bouton « Voir la page » : l'opérateur voit où il va.
+  assert.match(html, /<button class="fm-vignette" id="ficheManuelBtn" type="button">/);
+  assert.match(html, /<img id="ficheManuelImg"/);
+  assert.ok(!/id="ficheManuelBtn"[^>]*>Voir la page</.test(html), 'le bouton texte ne doit plus exister');
+  // Un repli reste prévu si l'image de la page manque.
+  assert.match(html, /class="fm-repli">Voir la page</);
+  assert.match(html, /ficheManuelImg\.onerror[\s\S]{0,80}sans-image/);
+
+  // Chaque page citée par une fiche doit avoir son image dans le dépôt,
+  // sinon la vignette tombe en repli sans que personne ne le voie.
+  const pages = [...html.matchAll(/"manuel"\s*:\s*\{[^}]*?"page"\s*:\s*(\d+)/g)].map(m => m[1]);
+  assert.ok(pages.length >= 5, 'trop peu de renvois au manuel : ' + pages.length);
+  for (const n of new Set(pages)) {
+    const f = path.join(__dirname, '..', '3d', 'assets', 'manuel', 'p' + n + '.jpg');
+    assert.ok(fs.existsSync(f), 'page ' + n + ' citée par une fiche mais absente de 3d/assets/manuel/');
+  }
+});
