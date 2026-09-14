@@ -1,12 +1,16 @@
-/* The component sheet lives in the native modal layer, centered on every screen. */
+/* La fiche vit dans la couche modale native. Elle ne se met PLUS au centre :
+   centree, elle masquait la machine, qui est justement ce qu'elle decrit.
+   Grand ecran : rangee a droite, la machine reste visible a gauche.
+   Ecran etroit : posee en bas, la machine reste visible au-dessus.
+   Le voile s'allege pour la meme raison. */
 #fiche.component-popup {
   display: none;
   position: fixed;
   inset: 0;
-  width: min(560px, calc(100vw - 32px));
+  width: min(400px, 42vw, calc(100vw - 32px));
   height: fit-content;
   max-height: calc(100dvh - 32px);
-  margin: auto;
+  margin: auto 16px auto auto;
   padding: 0;
   flex-direction: column;
   overflow: hidden;
@@ -21,7 +25,8 @@
   backdrop-filter: none;
 }
 #fiche.component-popup[open] { display: flex; }
-#fiche::backdrop { background: rgb(4 8 14 / 64%); }
+/* Voile leger : il signale la fiche sans effacer la machine derriere. */
+#fiche::backdrop { background: rgb(4 8 14 / 26%); }
 #fiche .fiche-head { padding: 24px 70px 18px 24px; }
 #fiche .fiche-title {
   padding-right: 0;
@@ -65,8 +70,18 @@
 #fiche .tour-info { min-width: 100px; }
 #fiche .tour-etat { font-size: .9rem; }
 #fiche :focus-visible { outline: 3px solid #f6c85b; outline-offset: 3px; }
+/* Sous 700 px la fiche passe en bas : il n'y a plus de place a cote.
+   Au-dessus, elle reste sur le cote : une feuille basse assez haute pour
+   contenir le lecteur de visite masquerait les deux tiers de la machine. */
+@media (max-width: 700px) {
+  #fiche.component-popup {
+    width: calc(100vw - 20px);
+    max-height: min(62dvh, 440px);
+    margin: auto auto 10px auto;
+  }
+}
 @media (max-width: 480px) {
-  #fiche.component-popup { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 12px; }
+  #fiche.component-popup { width: calc(100vw - 16px); max-height: min(62dvh, 430px); margin: auto auto 8px auto; border-radius: 12px; }
   #fiche .fiche-head { padding: 20px 62px 16px 18px; }
   #fiche .fiche-title { font-size: 1.45rem; }
   #fiche .fiche-body { padding: 16px 18px; }
