@@ -8,9 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="img/hero-machine-photo.webp?v=1.8.11" type="image/webp">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.75.0">
+<link rel="stylesheet" href="interface.css?v=1.76.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -251,10 +250,9 @@
           <span class="rb-retour-titre">BASE DE CONNAISSANCES</span>
         </div>
         <section class="rb-savoir-visuel" data-rb-scroll-section="equipment">
-            <figure class="rb-home-visual">
-              <img src="img/hero-machine-photo.webp?v=1.8.11" alt="Système de manutention de tiges Borterra RodBot LP" fetchpriority="high" width="960" height="640">
-              <figcaption><span>RODBOT LP</span><a href="3d/">Explorer la machine en 3D ↗</a></figcaption>
-            </figure>
+          <!-- La scène 3D vit hors du gabarit (scene3d.js). Un seul exemplaire
+               existe : il est redéposé ici ou sur l'accueil, selon l'écran ouvert. -->
+          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="La machine en 3D, en mouvement"></div>
         </section>
 
       <!-- LA MACHINE EN 3D : chaque fonctionnalité de l'atelier devient une porte nommée -->
@@ -1600,10 +1598,9 @@
           <span class="rb-retour-titre">KNOWLEDGE BASE</span>
         </div>
         <section class="rb-savoir-visuel" data-rb-scroll-section="equipment">
-            <figure class="rb-home-visual">
-              <img src="img/hero-machine-photo.webp?v=1.8.11" alt="Borterra RodBot LP rod handler" fetchpriority="high" width="960" height="640">
-              <figcaption><span>RODBOT LP</span><a href="3d/">Explore the machine in 3D ↗</a></figcaption>
-            </figure>
+          <!-- La scène 3D vit hors du gabarit (scene3d.js). Un seul exemplaire
+               existe : il est redéposé ici ou sur l'accueil, selon l'écran ouvert. -->
+          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="The machine in 3D, moving"></div>
         </section>
 
       <!-- LA MACHINE EN 3D : chaque fonctionnalité de l'atelier devient une porte nommée -->
@@ -2753,9 +2750,9 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.75.0"></script>
-<script src="pdf.js?v=1.75.0"></script>
-<script src="scene3d.js?v=1.75.0"></script>
-<script src="app.js?v=1.75.0"></script>
+<script src="interface.js?v=1.76.0"></script>
+<script src="pdf.js?v=1.76.0"></script>
+<script src="scene3d.js?v=1.76.0"></script>
+<script src="app.js?v=1.76.0"></script>
 </body>
 </html>

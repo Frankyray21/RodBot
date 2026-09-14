@@ -241,7 +241,11 @@ html, body { overflow-x: clip; }
 .rb-retour-titre { font-weight: 800; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: #8a8985; }
 .rb-souspage { padding-bottom: 40px; }
 .rb-savoir-visuel { max-width: 1180px; margin: 0 auto; padding: 22px 28px 0; }
-.rb-savoir-visuel .rb-home-visual { border-color: rgba(29,30,27,.18); background: #141413; }
+.rb-savoir-visuel .rb-scene3d-slot { margin: 0; }
+.rb-savoir-visuel .rb-scene3d { border-color: rgba(29,30,27,.22); }
+.rb-savoir-visuel .rb-scene3d-etat { color: #535252; }
+.rb-savoir-visuel .rb-scene3d-lien { color: #1d1e1b; }
+.rb-savoir-visuel .rb-scene3d-lien:hover { color: #d92624; }
 
 
 /* ===== La machine en 3D sur l'accueil =================================

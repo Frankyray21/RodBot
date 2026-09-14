@@ -66,8 +66,12 @@ test('la scène est précachée et chargée par la page', () => {
   const html = lireF('index.html'), sw = lireF('sw.js');
   assert.ok(html.includes('scene3d.js?v=' + version), 'scene3d.js versionné');
   assert.ok(sw.includes("'./scene3d.js'"), 'scene3d.js précaché');
-  // Deux gabarits, donc deux emplacements : un par langue.
-  assert.equal((html.match(/data-rb-scene3d/g) || []).length, 2);
+  // Deux gabarits (FR et EN), et dans chacun DEUX emplacements : l'écran de
+  // choix et la base de connaissances. Les deux vivent dans des sc-if
+  // exclusifs, donc un seul existe à la fois et la scène, unique, s'y dépose.
+  assert.equal((html.match(/data-rb-scene3d/g) || []).length, 4);
+  assert.equal((html.match(/homeChoix/g) || []).length, 2, 'un écran de choix par langue');
+  assert.equal((html.match(/homeSavoir/g) || []).length, 2, 'une base de connaissances par langue');
   assert.ok(sw.includes("'./3d/vendor/model-viewer-4.3.1.min.js'"), 'moteur 3D précaché');
 });
 

@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.75.0';
+const CACHE = 'rodbot-formation-v1.76.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -14,7 +14,6 @@ const APP_ROOT = new URL('./', self.location.href);
 const CORE = [
   './', './index.html', './app.js', './pdf.js', './scene3d.js', './styles.css', './interface.css', './interface.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
-  './img/hero-machine-photo.webp?v=1.8.11',
   './3d/index.html', './3d/css/styles.css', './3d/css/viewer.css',
   './3d/css/training.css', './3d/css/component-popup.css', './3d/js/viewer-v5.js', './3d/js/motion.js', './3d/js/tour.js',
   './3d/js/hotspots-v6.js', './3d/js/hero-v6.js', './3d/js/model-assets.js',
