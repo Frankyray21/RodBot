@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.91.0';
+var APP_VERSION = '1.92.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -1246,6 +1246,8 @@ class Component extends DCLogic {
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
       canInstall:false, showInstallHelp:false, apkQr:false,
+      // Bannière « Installer l'app » : fermée une fois, elle ne revient plus.
+      pwaFermee:(function(){ try { return localStorage.getItem('rodbot_pwa_ferme')==='1'; } catch(e){ return false; } })(),
       attSending:false, attDone:false, attQueued:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
       pdfError:"", pdfOk:false,
       // Contenu hors ligne (compteur « Prêt pour le terrain », voir dlMaj)
@@ -1523,6 +1525,11 @@ class Component extends DCLogic {
     } else { this.setState({ showInstallHelp:true }); }
   };
   closeInstallHelp = ()=> this.setState({ showInstallHelp:false });
+  /* Bannière d'installation : l'opérateur la ferme, elle ne revient plus. */
+  pwaFermer = ()=>{
+    try { localStorage.setItem('rodbot_pwa_ferme','1'); } catch(e){}
+    this.setState({ pwaFermee:true });
+  };
   /* Fenêtre du code QR : installer l'app Android en scannant avec la tablette. */
   openApkQr = ()=> this.setState({ apkQr:true });
   closeApkQr = ()=> this.setState({ apkQr:false });
@@ -3151,6 +3158,17 @@ class Component extends DCLogic {
     base.showInstall = !standalone && !IS_NATIVE;
     base.installApp = this.installApp;
     base.showInstallHelp = S.showInstallHelp;
+    /* Bannière d'installation, en haut de l'accueil. Disparaît quand l'app est
+       installée (mode plein écran), dans l'APK, et si l'opérateur la ferme. */
+    base.pwa = {
+      montrer:base.showInstall && !S.pwaFermee,
+      titre:this.tr("Installez l'app sur cet appareil","Install the app on this device"),
+      texte:this.tr("Une icône sur l'écran d'accueil. La formation marche ensuite sans réseau.",
+                    "An icon on the home screen. The training then works without network."),
+      bouton:this.tr("Installer maintenant","Install now"),
+      fermerTitre:this.tr("Masquer ce message","Hide this message"),
+      installer:this.installApp, fermer:this.pwaFermer
+    };
     /* Carte « App Android » (Documents) et fenêtre du code QR.
        Cachée dans l'application elle-même : on y est déjà. */
     base.apk = {

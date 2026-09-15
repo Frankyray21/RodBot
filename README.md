@@ -94,6 +94,19 @@ Le site est conçu pour la mine, sans réseau :
 Seuls l'envoi vers Airtable, les suggestions de noms et l'historique de suivi
 demandent une connexion.
 
+## Installer l'app sur l'appareil (PWA)
+
+Une bannière rouge et noire s'affiche en haut de l'accueil : **« Installez
+l'app sur cet appareil »**, avec le bouton **Installer maintenant**. Elle
+déclenche l'invite du navigateur, ou explique la marche à suivre si le
+navigateur ne la propose pas.
+
+La bannière disparaît d'elle-même une fois l'app installée (mode plein
+écran), dans l'APK Android, et quand l'opérateur la ferme avec le ✕ (son
+choix est gardé dans `rodbot_pwa_ferme`).
+
+Rien à télécharger : l'adresse du site est le lien d'installation.
+
 ## Application Android (APK)
 
 Le dossier `apk/` contient une enveloppe [Capacitor](https://capacitorjs.com)

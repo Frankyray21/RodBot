@@ -133,3 +133,28 @@ test("la fenêtre dit quoi faire quand Android refuse l'installation", () => {
     assert.ok(f.indexOf('apk.blocTitre') < f.indexOf('apk.reseau'), 'le déblocage vient avant la note réseau');
   }
 });
+
+test("la bannière d'installation est en haut de l'accueil, dans les deux langues", () => {
+  assert.equal(HTML.split('data-rb-pwa="banniere"').length - 1, 2, 'une bannière par langue');
+  for (const m of ['{{ pwa.montrer }}', '{{ pwa.titre }}', '{{ pwa.texte }}',
+                   '{{ pwa.bouton }}', '{{ pwa.installer }}', '{{ pwa.fermer }}']) {
+    assert.equal(HTML.split(m).length - 1, 2, m + ' doit apparaître en FR et en EN');
+  }
+  // Elle se lit avant le premier écran, pas après.
+  for (const vue of HTML.match(/<sc-if value="\{\{ isHome \}\}"[\s\S]{0,4000}/g) || []) {
+    assert.ok(vue.indexOf('data-rb-pwa') < vue.indexOf('rb-home-hero'),
+      'la bannière vient avant le premier écran');
+  }
+});
+
+test("la bannière disparaît quand elle n'a plus lieu d'être", () => {
+  // Déjà installée (plein écran), dans l'APK, ou fermée par l'opérateur.
+  assert.ok(APP.includes('montrer:base.showInstall && !S.pwaFermee,'),
+    'liée à showInstall, qui exclut le mode plein écran et l\'APK');
+  assert.ok(APP.includes("localStorage.setItem('rodbot_pwa_ferme','1')"),
+    'la fermeture est gardée sur l\'appareil');
+  assert.ok(APP.includes("localStorage.getItem('rodbot_pwa_ferme')==='1'"),
+    'et relue au démarrage suivant');
+  assert.ok(APP.includes('installer:this.installApp'),
+    'le bouton lance la vraie invite d\'installation du navigateur');
+});
