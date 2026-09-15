@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.90.0';
+var APP_VERSION = '1.91.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -3190,6 +3190,16 @@ class Component extends DCLogic {
       ],
       reseau:this.tr("⚠️ Le téléchargement demande du réseau. Faites-le avant de descendre.",
                      "⚠️ The download needs network. Do it before going underground."),
+      // Cas vécu sur le terrain : Samsung bloque même quand Play Protect est éteint.
+      blocTitre:this.tr("🛑 Si Android refuse d'installer","🛑 If Android refuses to install"),
+      blocSamsung:this.tr("Samsung : le « Bloqueur automatique » bloque, même si Play Protect est éteint.",
+                          "Samsung: the « Auto Blocker » blocks, even with Play Protect off."),
+      blocChemin:this.tr("Paramètres → Sécurité et confidentialité → Bloqueur automatique.",
+                         "Settings → Security and privacy → Auto Blocker."),
+      blocEtapes:this.tr("Éteignez-le, installez l'app, puis rallumez-le.",
+                         "Turn it off, install the app, then turn it back on."),
+      blocAutres:this.tr("Autres marques : autorisez les « sources inconnues » pour votre navigateur.",
+                         "Other brands: allow « unknown sources » for your browser."),
       ios:/iP(hone|ad|od)/.test(navigator.userAgent||""),
       iosNote:this.tr("ℹ️ Sur iPhone et iPad, ce fichier ne fonctionne pas. Utilisez « Installer l'app ».",
                       "ℹ️ On iPhone and iPad this file does not work. Use « Install the app »."),

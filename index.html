@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Formation opérateur, RodBot LP</title>
 <meta name="description" content="Formation a l exploitation du systeme robotise Borterra RodBot LP, basee sur le manuel de l operateur OM 10667.">
-<link rel="stylesheet" href="fonts/fonts.css?v=1.90.0">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.91.0">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.90.0">
+<link rel="stylesheet" href="interface.css?v=1.91.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1392,6 +1392,14 @@
           <div style="font-weight:800;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:#989898;margin-bottom:5px">{{ apk.lienTitre }}</div>
           <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:10px 12px;font-size:11.5px;line-height:1.5;color:#535252;word-break:break-all;margin-bottom:16px">{{ apk.url }}</div>
 
+          <!-- Blocage à l'installation : cas Samsung en premier, c'est le plus courant -->
+          <div style="background:rgba(217,38,36,.09);border-left:5px solid #D92624;padding:13px 15px;margin-bottom:12px">
+            <div style="font-weight:800;color:#1D1E1B;margin-bottom:7px">{{ apk.blocTitre }}</div>
+            <div style="font-size:13px;line-height:1.5;color:#535252;margin-bottom:6px">{{ apk.blocSamsung }}</div>
+            <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:9px 11px;font-weight:700;font-size:12.5px;color:#1D1E1B;margin-bottom:6px">{{ apk.blocChemin }}</div>
+            <div style="font-size:13px;line-height:1.5;color:#535252;margin-bottom:6px">{{ apk.blocEtapes }}</div>
+            <div style="font-size:13px;line-height:1.5;color:#535252">{{ apk.blocAutres }}</div>
+          </div>
           <div style="background:rgba(232,163,58,.16);border-left:5px solid #E8A33A;padding:12px 14px;font-size:13px;color:#7A5410">{{ apk.reseau }}</div>
           <sc-if value="{{ apk.ios }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:10px;background:rgba(55,99,168,.09);border-left:5px solid #3763A8;padding:12px 14px;font-size:13px;color:#2F4F83">{{ apk.iosNote }}</div>
@@ -2779,6 +2787,14 @@
           <div style="font-weight:800;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:#989898;margin-bottom:5px">{{ apk.lienTitre }}</div>
           <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:10px 12px;font-size:11.5px;line-height:1.5;color:#535252;word-break:break-all;margin-bottom:16px">{{ apk.url }}</div>
 
+          <!-- Blocage à l'installation : cas Samsung en premier, c'est le plus courant -->
+          <div style="background:rgba(217,38,36,.09);border-left:5px solid #D92624;padding:13px 15px;margin-bottom:12px">
+            <div style="font-weight:800;color:#1D1E1B;margin-bottom:7px">{{ apk.blocTitre }}</div>
+            <div style="font-size:13px;line-height:1.5;color:#535252;margin-bottom:6px">{{ apk.blocSamsung }}</div>
+            <div style="background:#FFFFFF;border:1px solid rgba(29,30,27,.15);padding:9px 11px;font-weight:700;font-size:12.5px;color:#1D1E1B;margin-bottom:6px">{{ apk.blocChemin }}</div>
+            <div style="font-size:13px;line-height:1.5;color:#535252;margin-bottom:6px">{{ apk.blocEtapes }}</div>
+            <div style="font-size:13px;line-height:1.5;color:#535252">{{ apk.blocAutres }}</div>
+          </div>
           <div style="background:rgba(232,163,58,.16);border-left:5px solid #E8A33A;padding:12px 14px;font-size:13px;color:#7A5410">{{ apk.reseau }}</div>
           <sc-if value="{{ apk.ios }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:10px;background:rgba(55,99,168,.09);border-left:5px solid #3763A8;padding:12px 14px;font-size:13px;color:#2F4F83">{{ apk.iosNote }}</div>
@@ -2824,9 +2840,9 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.90.0"></script>
-<script src="pdf.js?v=1.90.0"></script>
-<script src="scene3d.js?v=1.90.0"></script>
-<script src="app.js?v=1.90.0"></script>
+<script src="interface.js?v=1.91.0"></script>
+<script src="pdf.js?v=1.91.0"></script>
+<script src="scene3d.js?v=1.91.0"></script>
+<script src="app.js?v=1.91.0"></script>
 </body>
 </html>

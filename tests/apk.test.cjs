@@ -46,7 +46,7 @@ test('le code QR et son image restent lisibles hors ligne', () => {
 
 test("la carte et la fenêtre de l'app Android sont dans les deux gabarits", () => {
   // Deux gabarits : rb-template (FR) et rb-template-en (EN).
-  for (const marque of ['{{ apk.ouvert }}', '{{ apk.qr }}',
+  for (const marque of ['{{ apk.ouvert }}', '{{ apk.qr }}', '{{ apk.blocChemin }}', '{{ apk.blocSamsung }}',
                         '{{ apk.btnQr }}', '{{ apk.etapes }}',
                         '{{ apk.quoi1 }}', '{{ apk.reseau }}', '{{ apk.iosNote }}']) {
     assert.equal(HTML.split(marque).length - 1, 2, marque + ' doit apparaître en FR et en EN');
@@ -117,4 +117,19 @@ test("la barre de navigation garde des colonnes égales avec 4 ou 5 entrées", (
   assert.ok(!/repeat\(4/.test(bloc), 'plus de grille figée à quatre colonnes');
   // Sur téléphone, cinq entrées tiennent grâce à un texte plus serré.
   assert.ok(css.includes('.rb-quick-nav:has(.rb-nav-apk) button'), 'règle téléphone pour cinq entrées');
+});
+
+test("la fenêtre dit quoi faire quand Android refuse l'installation", () => {
+  // Cas vécu sur un Samsung : Play Protect éteint, mais le « Bloqueur automatique » bloque.
+  assert.ok(APP.includes('Bloqueur automatique'), 'le blocage Samsung doit être nommé');
+  assert.ok(APP.includes('Auto Blocker'), 'et sa version anglaise');
+  assert.ok(APP.includes('Paramètres → Sécurité et confidentialité → Bloqueur automatique.'),
+    'le chemin exact des réglages doit être donné');
+  assert.ok(/Play Protect est éteint/.test(APP),
+    'préciser que désactiver Play Protect ne suffit pas');
+  assert.equal(HTML.split('{{ apk.blocTitre }}').length - 1, 2, 'affiché en FR et en EN');
+  // Le bloc se lit avant l'avertissement réseau, plus bas dans la fenêtre.
+  for (const f of HTML.match(/<div data-rb-dialog="apkqr"[\s\S]*?<\/sc-if>/g) || []) {
+    assert.ok(f.indexOf('apk.blocTitre') < f.indexOf('apk.reseau'), 'le déblocage vient avant la note réseau');
+  }
 });
