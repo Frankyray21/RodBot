@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.89.0';
+var APP_VERSION = '1.90.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -3163,6 +3163,9 @@ class Component extends DCLogic {
                      "The whole training in one app. Nothing to download afterwards."),
       btnDl:this.tr("Télécharger ↓","Download ↓"),
       btnQr:this.tr("Code QR","QR code"),
+      // Libellé court : barre de navigation du haut, à côté de Rechercher.
+      nav:this.tr("Android ↓","Android ↓"),
+      navTitre:this.tr("Télécharger l'app Android (APK)","Download the Android app (APK)"),
       // Fenêtre
       fenetreTitre:this.tr("Installer l'app Android","Install the Android app"),
       fermer:this.tr("Fermer","Close"),

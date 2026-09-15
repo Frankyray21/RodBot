@@ -34,14 +34,15 @@ html, body { overflow-x: clip; }
 #app .rb-topbar-inner > div > button {
   min-height: 44px; padding: 5px 4px !important; color: #c5c3bc !important;
 }
+/* Largeurs égales, quel que soit le nombre d'entrées : le bouton Android
+   disparaît dans l'application Android elle-même. */
 .rb-quick-nav {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: 1180px; margin: 0 auto; padding: 0 28px;
+  display: flex; max-width: 1180px; margin: 0 auto; padding: 0 28px;
   border-top: 1px solid #363631; gap: 0;
 }
 .rb-quick-nav button {
   display: flex; align-items: center; justify-content: center; gap: 7px;
-  min-height: 46px; min-width: 0; padding: 8px 12px;
+  flex: 1 1 0; min-height: 46px; min-width: 0; padding: 8px 12px;
   background: transparent; color: #f4f3ee; border: 0; border-bottom: 3px solid transparent;
   font: inherit; font-size: 12px; font-weight: 800;
   cursor: pointer; line-height: 1.25;
@@ -380,7 +381,9 @@ html, body { overflow-x: clip; }
   #app .rb-manual-link { grid-column: 3; grid-row: 1; gap: 4px !important; padding: 7px 6px !important; font-size: 9px !important; letter-spacing: 0 !important; }
   #app .rb-manual-link span { padding: 2px 3px !important; font-size: 8px !important; }
   .rb-quick-nav { max-width: none; padding: 0 4px; }
-  .rb-quick-nav button { min-height: 46px; padding: 8px 4px; font-size: 11px; gap: 4px; }
+  .rb-quick-nav button { min-height: 46px; padding: 8px 3px; font-size: 11px; gap: 4px; }
+  /* Cinq entrées sur un téléphone : on serre le texte plutôt que de le couper. */
+  .rb-quick-nav:has(.rb-nav-apk) button { font-size: 10px; padding: 8px 2px; letter-spacing: -.01em; }
   .rb-home-grid { grid-template-columns: 1fr; gap: 24px; padding: 28px 20px; }
   .rb-home-kicker { margin-bottom: 16px; font-size: 10px; gap: 8px; }
   .rb-home-title { font-size: 42px; max-width: 14ch; margin-bottom: 14px; }
@@ -400,6 +403,7 @@ html, body { overflow-x: clip; }
 }
 @media (max-width: 380px) {
   #app .rb-topbar-inner { padding-left: 8px !important; padding-right: 8px !important; gap: 0 6px !important; }
+  .rb-quick-nav:has(.rb-nav-apk) button { font-size: 9.5px; padding: 8px 1px; }
   .rb-home-grid { padding: 24px 16px; }
   .rb-home-title { font-size: 38px; }
   .rb-home-tools { padding-left: 16px; padding-right: 16px; }

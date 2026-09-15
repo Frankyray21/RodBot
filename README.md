@@ -104,7 +104,8 @@ application Android. Elle fonctionne à 100 % sans réseau dès l'installation.
   (`.github/workflows/android-apk.yml`) construit et signe l'APK, puis le
   publie dans la Release `apk-latest`. Lien stable :
   `https://github.com/Frankyray21/RodBot/releases/download/apk-latest/RodBot-LP.apk`
-- **Depuis le site** : section *Documents* → carte **« App Android (APK) »**.
+- **Depuis le site** : bouton **« Android ↓ »** dans le menu du haut, ou
+  section *Documents* → carte **« App Android (APK) »**.
   Bouton **Télécharger** (lien direct) et bouton **Code QR**, qui ouvre une
   fenêtre expliquant ce qu'est un APK, avec les 4 étapes d'installation et le
   code à scanner avec la tablette. Le code QR (`qr-apk-android.svg`) pointe

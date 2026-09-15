@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Formation opérateur, RodBot LP</title>
 <meta name="description" content="Formation a l exploitation du systeme robotise Borterra RodBot LP, basee sur le manuel de l operateur OM 10667.">
-<link rel="stylesheet" href="fonts/fonts.css?v=1.89.0">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.90.0">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.89.0">
+<link rel="stylesheet" href="interface.css?v=1.90.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -96,7 +96,7 @@
       </div>
     </div>
     <nav class="rb-quick-nav" aria-label="Navigation principale">
-      <button onClick="{{ goHome }}">{{ navHome }}</button><button onClick="{{ openPath }}">{{ navModules }}</button><button onClick="{{ openPractice }}">{{ navPractice }}</button><button onClick="{{ openSearch }}" data-rb-search-trigger>{{ navSearch }} ⌕</button>
+      <button onClick="{{ goHome }}">{{ navHome }}</button><button onClick="{{ openPath }}">{{ navModules }}</button><button onClick="{{ openPractice }}">{{ navPractice }}</button><button onClick="{{ openSearch }}" data-rb-search-trigger>{{ navSearch }} ⌕</button><sc-if value="{{ apk.montrer }}" hint-placeholder-val="{{ true }}"><button class="rb-nav-apk" onClick="{{ apk.open }}" title="{{ apk.navTitre }}">{{ apk.nav }}</button></sc-if>
     </nav>
   </header>
 
@@ -1482,7 +1482,7 @@
       </div>
     </div>
     <nav class="rb-quick-nav" aria-label="Main navigation">
-      <button onClick="{{ goHome }}">{{ navHome }}</button><button onClick="{{ openPath }}">{{ navModules }}</button><button onClick="{{ openPractice }}">{{ navPractice }}</button><button onClick="{{ openSearch }}" data-rb-search-trigger>{{ navSearch }} ⌕</button>
+      <button onClick="{{ goHome }}">{{ navHome }}</button><button onClick="{{ openPath }}">{{ navModules }}</button><button onClick="{{ openPractice }}">{{ navPractice }}</button><button onClick="{{ openSearch }}" data-rb-search-trigger>{{ navSearch }} ⌕</button><sc-if value="{{ apk.montrer }}" hint-placeholder-val="{{ true }}"><button class="rb-nav-apk" onClick="{{ apk.open }}" title="{{ apk.navTitre }}">{{ apk.nav }}</button></sc-if>
     </nav>
   </header>
 
@@ -2824,9 +2824,9 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.89.0"></script>
-<script src="pdf.js?v=1.89.0"></script>
-<script src="scene3d.js?v=1.89.0"></script>
-<script src="app.js?v=1.89.0"></script>
+<script src="interface.js?v=1.90.0"></script>
+<script src="pdf.js?v=1.90.0"></script>
+<script src="scene3d.js?v=1.90.0"></script>
+<script src="app.js?v=1.90.0"></script>
 </body>
 </html>

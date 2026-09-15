@@ -46,11 +46,13 @@ test('le code QR et son image restent lisibles hors ligne', () => {
 
 test("la carte et la fenêtre de l'app Android sont dans les deux gabarits", () => {
   // Deux gabarits : rb-template (FR) et rb-template-en (EN).
-  for (const marque of ['{{ apk.montrer }}', '{{ apk.ouvert }}', '{{ apk.qr }}',
+  for (const marque of ['{{ apk.ouvert }}', '{{ apk.qr }}',
                         '{{ apk.btnQr }}', '{{ apk.etapes }}',
                         '{{ apk.quoi1 }}', '{{ apk.reseau }}', '{{ apk.iosNote }}']) {
     assert.equal(HTML.split(marque).length - 1, 2, marque + ' doit apparaître en FR et en EN');
   }
+  // La visibilité pilote la carte ET le bouton du menu, dans les deux langues.
+  assert.equal(HTML.split('{{ apk.montrer }}').length - 1, 4, 'carte et bouton du menu, en FR et en EN');
   // Bouton de téléchargement : sur la carte ET dans la fenêtre, donc deux fois par langue.
   assert.equal(HTML.split('{{ apk.btnDl }}').length - 1, 4, 'carte et fenêtre, dans les deux langues');
   // Le même lien mène toujours au fichier : carte, fenêtre et adresse écrite en clair.
@@ -92,4 +94,27 @@ test('les quatre étapes sont numérotées et jumelles FR / EN', () => {
   const numeros = [...bloc.matchAll(/\{ n:"(\d)"/g)].map((m) => m[1]);
   assert.deepEqual(numeros, ['1', '2', '3', '4']);
   assert.equal([...bloc.matchAll(/this\.tr\(/g)].length, 4, 'chaque étape a sa version anglaise');
+});
+
+test("le menu du haut donne accès à l'app Android", () => {
+  // Cinquième entrée de la barre de navigation, après « Rechercher ».
+  assert.equal(HTML.split('class="rb-nav-apk"').length - 1, 2, 'un bouton par langue');
+  for (const nav of HTML.match(/<nav class="rb-quick-nav"[\s\S]*?<\/nav>/g) || []) {
+    assert.ok(nav.includes('rb-nav-apk'), 'le bouton doit être dans la barre de navigation');
+    assert.ok(nav.indexOf('data-rb-search-trigger') < nav.indexOf('rb-nav-apk'),
+      'il vient après « Rechercher »');
+    assert.ok(nav.includes('{{ apk.open }}'), 'il ouvre la fenêtre du code QR');
+    assert.ok(nav.includes('{{ apk.navTitre }}'), 'une infobulle dit ce que fait le bouton');
+  }
+  assert.ok(APP.includes('nav:this.tr("Android ↓","Android ↓"),'), 'libellé court et bilingue');
+});
+
+test("la barre de navigation garde des colonnes égales avec 4 ou 5 entrées", () => {
+  const css = lire('interface.css');
+  const bloc = css.slice(css.indexOf('.rb-quick-nav {'), css.indexOf('.rb-quick-nav button:hover'));
+  assert.ok(/display: flex/.test(bloc), 'flex : la largeur suit le nombre de boutons');
+  assert.ok(/flex: 1 1 0/.test(bloc), 'chaque bouton prend la même largeur');
+  assert.ok(!/repeat\(4/.test(bloc), 'plus de grille figée à quatre colonnes');
+  // Sur téléphone, cinq entrées tiennent grâce à un texte plus serré.
+  assert.ok(css.includes('.rb-quick-nav:has(.rb-nav-apk) button'), 'règle téléphone pour cinq entrées');
 });
