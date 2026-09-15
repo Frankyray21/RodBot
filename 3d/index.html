@@ -17,11 +17,11 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="./assets/rodbot-v6-c9499d45-poster.jpg">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0e17'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23d22325' stroke='%23ffffff' stroke-width='4'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="../fonts/fonts.css?v=1.93.0">
-  <link rel="stylesheet" href="./css/styles.css?v=1.93.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.93.0">
-  <link rel="stylesheet" href="./css/training.css?v=1.93.0">
-  <link rel="stylesheet" href="./css/component-popup.css?v=1.93.0">
+  <link rel="stylesheet" href="../fonts/fonts.css?v=1.94.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.94.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.94.0">
+  <link rel="stylesheet" href="./css/training.css?v=1.94.0">
+  <link rel="stylesheet" href="./css/component-popup.css?v=1.94.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -184,7 +184,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.93.0</span>
+        <span id="rbSiteVer">Version 1.94.0</span>
         <span>Réplique de formation. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -331,7 +331,7 @@
     let heroPresentation = null;
     let atelierCharge;
     const atelierPret = new Promise((resoudre) => { atelierCharge = resoudre; });
-    import('./js/hero-v6.js?v=1.93.0').then(({createHero}) => {
+    import('./js/hero-v6.js?v=1.94.0').then(({createHero}) => {
       heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'), atelierPret);
     }).catch(() => { document.getElementById('heroPause').hidden = true; });
     const scrollCue = document.getElementById('scrollCue');
@@ -346,13 +346,45 @@
     const fallback = document.getElementById('viewerFallback');
     const canvas = document.getElementById('canvas3d');
     document.getElementById('retryViewer').addEventListener('click', () => location.reload());
+    /* Plein ecran, sur TOUS les appareils.
+       L'API du navigateur (requestFullscreen) masque en plus les barres du
+       telephone, mais elle manque sur iPhone et certains navigateurs la
+       refusent. Le bouton ne depend donc plus d'elle : si elle echoue, la
+       page passe quand meme en plein ecran par la mise en page (classe
+       viewer-fullscreen). L'operateur voit la machine en grand dans les
+       deux cas. */
     const fullButton = document.getElementById('btnFullscreen');
-    fullButton.hidden = !document.fullscreenEnabled;
+    let pleinCss = false;   // plein ecran obtenu sans l'API du navigateur
+    function pleinActif() { return !!document.fullscreenElement || pleinCss; }
+    function appliquerPlein(actif) {
+      document.documentElement.classList.toggle('viewer-fullscreen', actif);
+      fullButton.setAttribute('aria-label', actif ? 'Quitter le plein écran' : 'Afficher en plein écran');
+      fullButton.setAttribute('aria-pressed', String(actif));
+      if (actif) document.getElementById('explorer').scrollIntoView({ block: 'start', behavior: 'instant' });
+      orienterPaysage(actif);
+    }
     fullButton.addEventListener('click', async () => {
+      if (pleinActif()) {
+        pleinCss = false;
+        try { if (document.fullscreenElement) await document.exitFullscreen(); } catch (_) {}
+        if (!document.fullscreenElement) appliquerPlein(false);
+        return;
+      }
       try {
-        if (document.fullscreenElement) await document.exitFullscreen();
-        else await document.documentElement.requestFullscreen();
-      } catch (_) { document.getElementById('renderStatus').textContent = 'Plein écran indisponible sur cet appareil.'; }
+        if (document.fullscreenEnabled && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+          return;   // la suite est faite par l'evenement fullscreenchange
+        }
+        throw new Error('api absente');
+      } catch (_) {
+        // Refus ou API absente : plein ecran par la mise en page seule.
+        pleinCss = true;
+        appliquerPlein(true);
+      }
+    });
+    /* Echap ferme aussi le plein ecran obtenu sans l'API. */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && pleinCss) { pleinCss = false; appliquerPlein(false); }
     });
     /* Sur un telephone tenu debout, la machine est large : elle recule pour tenir
        dans l'ecran et parait petite. Couchee, elle remplit l'ecran (mesure :
@@ -379,11 +411,8 @@
     }
     document.addEventListener('fullscreenchange', () => {
       const active = !!document.fullscreenElement;
-      document.documentElement.classList.toggle('viewer-fullscreen', active);
-      fullButton.setAttribute('aria-label', active ? 'Quitter le plein écran' : 'Afficher en plein écran');
-      fullButton.setAttribute('aria-pressed', String(active));
-      if (active) document.getElementById('explorer').scrollIntoView({ block: 'start', behavior: 'instant' });
-      orienterPaysage(active);
+      if (active) pleinCss = false;
+      appliquerPlein(active);
     });
 
     function montrerRepli() {
@@ -688,7 +717,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.93.0';
+      const VER = '1.94.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, CONTROLS, VUES, hotspotById }, { createTour }] = await Promise.all([
         import('./js/viewer-v5.js?v=' + VER),

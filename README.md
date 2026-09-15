@@ -78,6 +78,12 @@ et la barre de modes au-dessus.
   (`screen.orientation.lock`) : la machine est large, elle y paraît deux fois
   plus grande. L'appareil qui refuse garde son orientation, sans erreur.
 - On sort par le bouton ⛶ ou par la touche Échap.
+- **Le bouton ne dépend plus de l'API du navigateur** (1.94.0). Quand
+  `requestFullscreen` manque (iPhone) ou est refusée, la page passe en plein
+  écran par la seule mise en page. Le modèle occupe l'écran dans les deux cas ;
+  seules les barres du téléphone restent visibles dans ce mode de repli.
+- Les hauteurs ont un repli `100vh` avant `100svh`, pour les navigateurs
+  d'avant 2022.
 
 ## Interface v1.60.0
 

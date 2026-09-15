@@ -81,11 +81,11 @@ body::before{display:none}
 .viewer-fullscreen main{padding:0}
 .viewer-fullscreen .viewer-section{padding:0}
 .viewer-fullscreen .viewer-section>.wrap{padding:0;max-width:none;width:100%}
-.viewer-fullscreen .viewer-wrap{height:100svh;border:0;border-radius:0}
+.viewer-fullscreen .viewer-wrap{height:100vh;height:100svh;border:0;border-radius:0}
 /* Exercice en cours : le panneau garde sa place à côté, sur toute la hauteur. */
-.viewer-fullscreen .training-active .training-workbench{height:100svh;gap:0}
+.viewer-fullscreen .training-active .training-workbench{height:100vh;height:100svh;gap:0}
 .viewer-fullscreen .training-active .viewer-wrap{height:100%}
-.viewer-fullscreen .training-panel{max-height:100svh;overflow:auto;border-radius:0}
+.viewer-fullscreen .training-panel{max-height:100vh;max-height:100svh;overflow:auto;border-radius:0}
 /* Rien ne défile plus : le modèle est le seul écran. */
 .viewer-fullscreen,.viewer-fullscreen body{overflow:hidden;height:100%}
 /* La visite guidée se pose par-dessus le bas du modèle, les commandes remontent. */
