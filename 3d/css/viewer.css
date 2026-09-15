@@ -63,10 +63,35 @@ body::before{display:none}
 .viewer-section .fm-titre{font-size:.85rem}
 .viewer-section .fm-ref{font-size:.76rem}
 .viewer-section .fiche-manuel .btn{padding:.5rem .8rem;font-size:.8rem;white-space:nowrap;border-radius:5px;box-shadow:none}
-.viewer-fullscreen .hero,.viewer-fullscreen .foot{display:none}
-.viewer-fullscreen .viewer-section{padding:calc(var(--header-h) + 16px) 0 20px}
-.viewer-fullscreen .viewer-section .eyebrow,.viewer-fullscreen .viewer-section .lead{display:none}
-.viewer-fullscreen .viewer-wrap{height:62svh}
+/* ---- Plein écran : la réplique occupe TOUT l'écran ----
+   Avant la 1.93.0 le modèle gardait 62 % de la hauteur, avec le titre et la
+   barre de modes au-dessus. Sous terre, sur une tablette, on veut voir la
+   machine en grand. Tout le reste s'efface ; les commandes et les puces
+   restent, elles sont posées par-dessus le modèle. On sort par le bouton ⛶
+   ou par la touche Échap. */
+.viewer-fullscreen .site-header,
+.viewer-fullscreen .hero,
+.viewer-fullscreen .foot,
+.viewer-fullscreen .scroll-cue,
+.viewer-fullscreen .viewer-section .eyebrow,
+.viewer-fullscreen .viewer-section .title,
+.viewer-fullscreen .viewer-section .lead,
+.viewer-fullscreen .training-title-note,
+.viewer-fullscreen .mode-bar{display:none}
+.viewer-fullscreen main{padding:0}
+.viewer-fullscreen .viewer-section{padding:0}
+.viewer-fullscreen .viewer-section>.wrap{padding:0;max-width:none;width:100%}
+.viewer-fullscreen .viewer-wrap{height:100svh;border:0;border-radius:0}
+/* Exercice en cours : le panneau garde sa place à côté, sur toute la hauteur. */
+.viewer-fullscreen .training-active .training-workbench{height:100svh;gap:0}
+.viewer-fullscreen .training-active .viewer-wrap{height:100%}
+.viewer-fullscreen .training-panel{max-height:100svh;overflow:auto;border-radius:0}
+/* Rien ne défile plus : le modèle est le seul écran. */
+.viewer-fullscreen,.viewer-fullscreen body{overflow:hidden;height:100%}
+/* La visite guidée se pose par-dessus le bas du modèle, les commandes remontent. */
+.viewer-fullscreen .viewer-hint{display:none}
+.viewer-fullscreen .tour-player{position:fixed;left:0;right:0;bottom:0;z-index:20;margin:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(12,16,20,.93);border-top:1px solid var(--border);border-bottom:0;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.viewer-fullscreen .viewer-controls{bottom:calc(var(--tour-h,82px) + 10px)}
 @media(max-width:700px){
   .viewer-section .wrap{padding:0 16px}
   .viewer-section{padding-top:2rem}

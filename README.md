@@ -63,6 +63,22 @@ en place pendant la saisie continue (curseurs), pour un glissement fluide.
 
 Validation : `node --test tests/*.test.cjs`.
 
+## Plein écran de l'atelier 3D (1.93.0)
+
+Le bouton ⛶ du visualiseur passe en plein écran natif. Depuis la 1.93.0 le
+modèle occupe **toute** la hauteur de l'écran, au lieu de 62 % avec le titre
+et la barre de modes au-dessus.
+
+- L'en-tête, le titre, la barre de modes et le pied de page s'effacent.
+- Les commandes et les repères restent, posés par-dessus le modèle.
+- La visite guidée se superpose en bas ; les commandes se placent au-dessus
+  d'elle, quelle que soit sa hauteur (variable `--tour-h`).
+- Plus rien ne défile : le modèle est le seul écran.
+- Sur un téléphone tenu debout, la rotation en paysage est demandée
+  (`screen.orientation.lock`) : la machine est large, elle y paraît deux fois
+  plus grande. L'appareil qui refuse garde son orientation, sans erreur.
+- On sort par le bouton ⛶ ou par la touche Échap.
+
 ## Interface v1.60.0
 
 - Accès direct aux modules, à la pratique, au suivi et aux documents.
