@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.88.0';
+const CACHE = 'rodbot-formation-v1.89.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -126,7 +126,7 @@ const PRECACHE = [
   './img/manual/p82.jpg', './img/manual/p83.jpg', './img/manual/p84.jpg', './img/manual/p85.jpg', './img/manual/p86.jpg', './img/manual/p87.jpg',
   './img/mat-annote.png', './img/p13-0.png', './img/p21-0.png', './img/portee.webp', './img/ra/p1.jpg', './img/ra/p2.jpg',
   './img/ra/p3.jpg', './img/ra/p4.jpg', './img/telecommande-annotee.png', './manual-en.pdf', './manuel-operateur.pdf', './qr-formation-rodbot.png',
-  './qr-formation-rodbot.svg'
+  './qr-formation-rodbot.svg', './qr-apk-android.svg', './qr-apk-android.png'
 ].concat(POLICES);
 
 /* Télécharge tout ce qui manque encore dans le cache de contenu.

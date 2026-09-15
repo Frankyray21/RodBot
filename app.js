@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.88.0';
+var APP_VERSION = '1.89.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -28,6 +28,14 @@ var ATTEST_ENDPOINT = "https://attestations-rodbot.frankyray-21.workers.dev";
    Tout le contenu est déjà sur l'appareil : pas de service worker, pas de
    téléchargement. Les PDF s'ouvrent avec le lecteur du téléphone, car la
    WebView Android n'affiche pas les PDF. */
+/* ---------- Application Android (APK) ----------
+   GitHub Actions publie l'APK à chaque changement du site, toujours à la même
+   adresse. Le code QR (qr-apk-android.svg) pointe dessus et reste donc valable. */
+var APK_URL = "https://github.com/Frankyray21/RodBot/releases/download/apk-latest/RodBot-LP.apk";
+var APK_PAGE_URL = "https://github.com/Frankyray21/RodBot/releases/tag/apk-latest";
+var APK_QR = "qr-apk-android.svg";
+var APK_TAILLE = "122 Mo";
+
 var IS_NATIVE = false;
 try { IS_NATIVE = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform()); } catch (e) {}
 
@@ -164,7 +172,7 @@ function pdfNatifPurger(){
 /* Correspondance des numéros de page manuel FR(87p) → EN(82p), les deux manuels ayant
    des paginations différentes. Générée par appariement des titres de sections. */
 var PAGE_MAP_EN = {1:1,2:2,3:3,4:4,5:4,6:6,7:7,8:8,9:9,10:10,11:11,12:11,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:20,22:21,23:22,24:23,25:24,26:25,27:26,28:27,29:28,30:29,31:30,32:31,33:32,34:33,35:34,36:35,37:36,38:36,39:37,40:38,41:39,42:40,43:40,44:41,45:42,46:43,47:44,48:45,49:46,50:46,51:47,52:48,53:49,54:50,55:52,56:53,57:53,58:54,59:55,60:57,61:58,62:59,63:59,64:60,65:61,66:62,67:63,68:64,69:65,70:65,71:66,72:67,73:68,74:69,75:70,76:71,77:72,78:73,79:74,80:75,81:76,82:77,83:78,84:79,85:80,86:81,87:82};
-var APP_VERSION_DATE = '14 SEPT. 2026';
+var APP_VERSION_DATE = '15 SEPT. 2026';
 
 /* ---------- Tour guidé à la demande ----------
    Depuis l'accueil ou le pied de page, le travailleur peut ouvrir un tour
@@ -1237,7 +1245,7 @@ class Component extends DCLogic {
       answers:{}, graded:false, lastScore:0, lastPassed:false,
       qIdx:0, qSel:null, qChecked:false, qResults:[], mpage:null, manualDetailKey:null,
       imgView:null,
-      canInstall:false, showInstallHelp:false,
+      canInstall:false, showInstallHelp:false, apkQr:false,
       attSending:false, attDone:false, attQueued:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
       pdfError:"", pdfOk:false,
       // Contenu hors ligne (compteur « Prêt pour le terrain », voir dlMaj)
@@ -1515,6 +1523,9 @@ class Component extends DCLogic {
     } else { this.setState({ showInstallHelp:true }); }
   };
   closeInstallHelp = ()=> this.setState({ showInstallHelp:false });
+  /* Fenêtre du code QR : installer l'app Android en scannant avec la tablette. */
+  openApkQr = ()=> this.setState({ apkQr:true });
+  closeApkQr = ()=> this.setState({ apkQr:false });
   /* Carte « Hors ligne » (accueil, Documents) : relance le téléchargement, ou
      ajoute le modèle 3D (27 Mo) au contenu gardé sur l'appareil. */
   dlRelancer = ()=>{
@@ -1536,6 +1547,7 @@ class Component extends DCLogic {
     var S=this.state, d=0;
     if(S.view!=='home') d += (S.view==='quiz' ? 2 : 1);
     if(S.showInstallHelp) d += 1;
+    if(S.apkQr) d += 1;
     if(S.mpage!=null) d += 1;
     if(S.imgView) d += 1;
     if(S.rrcInfoOpen) d += 1;
@@ -1548,6 +1560,7 @@ class Component extends DCLogic {
     if(S.imgView){ this.setState({ imgView:null }); return; }
     if(S.mpage!=null){ this.setState({ mpage:null }); return; }
     if(S.rrcInfoOpen){ this.setState({ rrcInfoOpen:false }); return; }
+    if(S.apkQr){ this.setState({ apkQr:false }); return; }
     if(S.showInstallHelp){ this.setState({ showInstallHelp:false }); return; }
     if(S.view==='quiz'){
       // Résultat affiché mais attestation pas enregistrée : rappel avant de quitter
@@ -3138,6 +3151,49 @@ class Component extends DCLogic {
     base.showInstall = !standalone && !IS_NATIVE;
     base.installApp = this.installApp;
     base.showInstallHelp = S.showInstallHelp;
+    /* Carte « App Android » (Documents) et fenêtre du code QR.
+       Cachée dans l'application elle-même : on y est déjà. */
+    base.apk = {
+      montrer:!IS_NATIVE,
+      ouvert:S.apkQr,
+      url:APK_URL, pageUrl:APK_PAGE_URL, qr:APK_QR,
+      titre:this.tr("App Android (APK)","Android app (APK)"),
+      sousTitre:this.tr("TOUT HORS LIGNE · "+APK_TAILLE, "FULLY OFFLINE · "+APK_TAILLE.replace("Mo","MB")),
+      resume:this.tr("Toute la formation dans une application. Rien à télécharger après.",
+                     "The whole training in one app. Nothing to download afterwards."),
+      btnDl:this.tr("Télécharger ↓","Download ↓"),
+      btnQr:this.tr("Code QR","QR code"),
+      // Fenêtre
+      fenetreTitre:this.tr("Installer l'app Android","Install the Android app"),
+      fermer:this.tr("Fermer","Close"),
+      quoiTitre:this.tr("C'est quoi un APK ?","What is an APK?"),
+      quoi1:this.tr("Un APK est le fichier d'installation d'une application Android.",
+                    "An APK is the install file of an Android app."),
+      quoi2:this.tr("Celui-ci contient toute la formation : leçons, manuel, quiz, modèle 3D, attestations.",
+                    "This one holds the whole training: lessons, manual, quizzes, 3D model, certificates."),
+      quoi3:this.tr("Une fois installée, l'app marche sans réseau. Même sous terre.",
+                    "Once installed, the app works without network. Even underground."),
+      qrTitre:this.tr("Scanner avec la tablette","Scan with the tablet"),
+      qrAlt:this.tr("Code QR vers le fichier d'installation Android","QR code to the Android install file"),
+      qrAide:this.tr("Ouvrez l'appareil photo et visez le code. Le téléchargement part tout seul.",
+                     "Open the camera and point at the code. The download starts by itself."),
+      lienTitre:this.tr("Ou copier l'adresse","Or copy the address"),
+      etapesTitre:this.tr("Les 4 étapes","The 4 steps"),
+      etapes:[
+        { n:"1", t:this.tr("Téléchargez le fichier sur la tablette ("+APK_TAILLE+").","Download the file on the tablet ("+APK_TAILLE.replace("Mo","MB")+").") },
+        { n:"2", t:this.tr("Ouvrez le fichier. Android demande d'accepter les « sources inconnues ».","Open the file. Android asks you to allow « unknown sources ».") },
+        { n:"3", t:this.tr("Touchez « Installer ». L'icône RodBot LP apparaît.","Tap « Install ». The RodBot LP icon appears.") },
+        { n:"4", t:this.tr("Pour une mise à jour : réinstallez par-dessus. Rien à effacer.","To update: install over it. Nothing to erase.") }
+      ],
+      reseau:this.tr("⚠️ Le téléchargement demande du réseau. Faites-le avant de descendre.",
+                     "⚠️ The download needs network. Do it before going underground."),
+      ios:/iP(hone|ad|od)/.test(navigator.userAgent||""),
+      iosNote:this.tr("ℹ️ Sur iPhone et iPad, ce fichier ne fonctionne pas. Utilisez « Installer l'app ».",
+                      "ℹ️ On iPhone and iPad this file does not work. Use « Install the app »."),
+      version:this.tr("Version "+APP_VERSION+" · signée · mise à jour à chaque changement du site",
+                      "Version "+APP_VERSION+" · signed · rebuilt on every site change"),
+      open:this.openApkQr, close:this.closeApkQr
+    };
     // Carte « Hors ligne » (Documents) : l'opérateur voit quand il peut descendre sous terre.
     const dl=S.dl||{};
     const dlPret=!!dl.connu && !dl.sansSW && dl.total>0 && dl.prets>=dl.total;
@@ -3185,7 +3241,7 @@ class Component extends DCLogic {
     base.langFrStyle = (S.lang==="en") ? _inS : _actS;
     base.langEnStyle = (S.lang==="en") ? _actS : _inS;
     base.appVersion = APP_VERSION;
-    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 14, 2026");
+    base.appVersionDate = this.tr(APP_VERSION_DATE, "SEP 15, 2026");
     base.tourReplay = this.tourReplay;
 
     base.certModules=M.map((m,i)=>({ num:m.num, short:m.short, score:this.moduleScore(i) }));
@@ -3745,6 +3801,7 @@ function bootRodbot() {
   document.addEventListener('keydown', function(e){
     if(!COMP) return;
     if(COMP._tourStep!=null){ if(e.key==='Escape') COMP.tourClose(true); return; }
+    if(COMP.state.apkQr){ if(e.key==='Escape') COMP.closeApkQr(); return; }
     if(COMP.state.preQuiz){ if(e.key==='Escape') COMP.closePreQuiz(); return; }
     if(COMP.state.imgView){ if(e.key==='Escape') COMP.closeImg(); return; }
     if(COMP.state.mpage==null) return;
