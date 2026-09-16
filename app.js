@@ -17,7 +17,7 @@
 
 /* Version de l'application, affichée dans le pied de page et utilisée pour
    nommer le cache du service worker. À incrémenter à CHAQUE changement. */
-var APP_VERSION = '1.94.0';
+var APP_VERSION = '1.95.0';
 /* Attestations -> Airtable via le Worker Cloudflare « attestations-rodbot »
    (même mécanique que les sites Prévention TMS et Procédures de forage).
    Tant que le Worker n'est pas déployé, le site fonctionne : l'envoi
@@ -89,12 +89,11 @@ function obVider(){
    Le service worker annonce son avancement (message PRECACHE_ETAT). Le compteur
    est mis à jour directement dans la page, sans re-rendu complet à chaque lot ;
    un re-rendu seulement quand la phase change (à faire / en cours / prêt). */
-function dlVeut3d(){ try { return localStorage.getItem('rodbot_dl_3d') === '1'; } catch (e) { return false; } }
-function dlDemander(tout){
+function dlDemander(){
   if (IS_NATIVE || !('serviceWorker' in navigator)) return;
   try {
     navigator.serviceWorker.ready.then(function (r) {
-      if (r.active) r.active.postMessage({ type: 'PRECACHE', tout: !!(tout || dlVeut3d()) });
+      if (r.active) r.active.postMessage({ type: 'PRECACHE' });
     });
   } catch (e) {}
 }
@@ -102,9 +101,9 @@ function dlPhase(d){ return !d.connu ? 'inconnu' : d.enCours ? 'encours' : (d.to
 function dlMaj(etat){
   if (!COMP) return;
   var avant = COMP.state.dl || {};
-  var apres = { prets: etat.prets|0, total: etat.total|0, enCours: !!etat.enCours, tout: !!etat.tout, connu: true, sansSW: false };
+  var apres = { prets: etat.prets|0, total: etat.total|0, enCours: !!etat.enCours, connu: true, sansSW: false };
   COMP.state.dl = apres;
-  if (dlPhase(avant) !== dlPhase(apres) || !!avant.tout !== apres.tout) { COMP.setState({ dl: apres }); return; }
+  if (dlPhase(avant) !== dlPhase(apres)) { COMP.setState({ dl: apres }); return; }
   // Même phase : mise à jour douce du compteur et de la barre, sans re-rendu.
   try {
     var pct = apres.total ? Math.round(apres.prets / apres.total * 100) : 0;
@@ -1251,7 +1250,7 @@ class Component extends DCLogic {
       attSending:false, attDone:false, attQueued:false, attLinked:false, attError:"", attSug:[], attEmpId: saved.attEmpId || "", progRestoredMsg:"",
       pdfError:"", pdfOk:false,
       // Contenu hors ligne (compteur « Prêt pour le terrain », voir dlMaj)
-      dl:{ prets:0, total:0, enCours:false, tout:false, connu:false, sansSW:false },
+      dl:{ prets:0, total:0, enCours:false, connu:false, sansSW:false },
       suiviHist:null, suiviHistState:"",
       qbFb:{}, qbCommentKey:null, qbComment:"",   // retours pouce haut/bas sur les questions (bêta)
       completed: saved.completed || {}, attempts: saved.attempts || {}, name: saved.name || "",
@@ -1537,12 +1536,7 @@ class Component extends DCLogic {
      ajoute le modèle 3D (27 Mo) au contenu gardé sur l'appareil. */
   dlRelancer = ()=>{
     const dl=Object.assign({}, this.state.dl||{}, { enCours:true, connu:true });
-    this.setState({ dl }, ()=>dlDemander(false));
-  };
-  dlAjouter3d = ()=>{
-    try { localStorage.setItem('rodbot_dl_3d','1'); } catch(e){}
-    const dl=Object.assign({}, this.state.dl||{}, { tout:true, enCours:true, connu:true });
-    this.setState({ dl }, ()=>dlDemander(true));
+    this.setState({ dl }, ()=>dlDemander());
   };
   manualPrev = ()=> this.setState(s=>({ mpage: Math.max(1, (s.mpage||1)-1) }));
   manualNext = ()=> this.setState(s=>({ mpage: Math.min(this.manualTotal(), (s.mpage||1)+1) }));
@@ -3235,7 +3229,6 @@ class Component extends DCLogic {
       web:!IS_NATIVE, natif:IS_NATIVE,
       pret:dlPret, enCours:dlEnCours,
       aFaire:!IS_NATIVE && dlAFaire && !dlHors,
-      offre3d:!IS_NATIVE && dlPret && !dl.tout && !dlHors,
       pct:dl.total ? Math.round(dl.prets/dl.total*100) : 0,
       count:dl.connu && !dl.sansSW ? (dl.prets+" / "+dl.total) : "…",
       unite:this.tr("fichiers","files"),
@@ -3252,15 +3245,15 @@ class Component extends DCLogic {
                                  "Lessons, manual, quizzes and 3D model: no network needed. Certificates are sent when the network returns.")
             : dl.sansSW ? this.tr("Ouvrez le site dans Chrome ou Safari, hors navigation privée, pour l'utiliser sans réseau.",
                                   "Open the site in Chrome or Safari, outside private browsing, to use it without network.")
-            : dlPret ? this.tr("Leçons, manuel, images et PDF sont sur l'appareil. Vous pouvez descendre sous terre.",
-                               "Lessons, manual, images and PDFs are on the device. You can go underground.")
+            : dlPret ? this.tr("Leçons, manuel, PDF et modèle 3D sont sur l'appareil. Vous pouvez descendre sous terre.",
+                               "Lessons, manual, PDFs and 3D model are on the device. You can go underground.")
             : dlEnCours ? this.tr("Gardez la page ouverte avec du réseau. Le téléchargement reprend tout seul s'il est coupé.",
                                   "Keep the page open with network. The download resumes by itself if it is cut.")
             : dlHors ? this.tr("Il manque des fichiers. Revenez avec du réseau : le téléchargement reprendra.",
                                "Some files are missing. Come back with network: the download will resume.")
-            : this.tr("Téléchargez tout avant de descendre sous terre. Environ 95 Mo, une seule fois.",
-                      "Download everything before going underground. About 95 MB, once."),
-      relancer:this.dlRelancer, ajouter3d:this.dlAjouter3d
+            : this.tr("Téléchargez tout avant de descendre sous terre. Environ 122 Mo, une seule fois.",
+                      "Download everything before going underground. About 122 MB, once."),
+      relancer:this.dlRelancer
     };
     base.closeInstallHelp = this.closeInstallHelp;
     base.isIOS = /iP(hone|ad|od)/.test(navigator.userAgent||"");
@@ -3789,11 +3782,11 @@ function bootRodbot() {
       });
       // Stockage persistant : Android ne purge pas le contenu téléchargé quand la place manque.
       try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
-      dlDemander(false);
-      window.addEventListener('online', function () { dlDemander(false); });
+      dlDemander();
+      window.addEventListener('online', function () { dlDemander(); });
     } else if (COMP && !IS_NATIVE) {
       // Ni service worker (navigation privée, fichier local) : la carte « Hors ligne » le dit.
-      COMP.setState({ dl: { prets: 0, total: 0, enCours: false, tout: false, connu: true, sansSW: true } });
+      COMP.setState({ dl: { prets: 0, total: 0, enCours: false, connu: true, sansSW: true } });
     }
   } catch (e) {}
   // File d'attente hors ligne : envoi au démarrage et au retour du réseau.

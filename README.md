@@ -101,8 +101,10 @@ Voir la section « Hors ligne » ci-dessous pour ce qui fonctionne sans réseau.
 Le site est conçu pour la mine, sans réseau :
 
 - Le service worker (`sw.js`) télécharge tout le contenu en arrière-plan à la
-  première visite : leçons, images du manuel FR et EN, figures, PDF (environ
-  95 Mo). Le modèle 3D (27 Mo) s'ajoute sur demande.
+  première visite : leçons, images du manuel FR et EN, figures, PDF **et le
+  modèle 3D articulé** (environ 122 Mo au total). Depuis la 1.95.0 il n'y a
+  plus rien à demander séparément : l'atelier 3D marche sous terre comme le
+  reste.
 - La carte **« Hors ligne »** (accueil, section Documents) montre l'avancement
   (fichiers prêts / total) et dit **« Prêt pour le terrain »** quand tout est
   sur l'appareil. Bouton « Tout télécharger » pour relancer.

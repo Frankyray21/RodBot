@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.94.0';
+const CACHE = 'rodbot-formation-v1.95.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -56,10 +56,10 @@ const POLICES = [
   './fonts/heebo-900-latin.woff2'
 ];
 
-/* Contenu OPTIONNEL, lourd (27 Mo) : la réplique 3D articulée et son éclairage.
-   Téléchargé seulement si l'opérateur le demande (bouton « Ajouter le modèle 3D »),
-   ou dès la première ouverture de la page 3D. */
-const OPTIONNEL = ['./3d/assets/rodbot-v6-c9499d45.glb', './3d/assets/warehouse-v5.hdr'];
+/* La réplique 3D articulée (27 Mo) et son éclairage font partie du contenu
+   téléchargé par défaut depuis la 1.95.0 : l'atelier 3D doit marcher sous terre
+   comme le reste, sans que l'opérateur ait à demander quoi que ce soit. */
+const MODELE_3D = ['./3d/assets/rodbot-v6-c9499d45.glb', './3d/assets/warehouse-v5.hdr'];
 
 /* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
    La réplique articulée et son éclairage sont chargés à la demande, puis conservés
@@ -127,7 +127,7 @@ const PRECACHE = [
   './img/mat-annote.png', './img/p13-0.png', './img/p21-0.png', './img/portee.webp', './img/ra/p1.jpg', './img/ra/p2.jpg',
   './img/ra/p3.jpg', './img/ra/p4.jpg', './img/telecommande-annotee.png', './manual-en.pdf', './manuel-operateur.pdf', './qr-formation-rodbot.png',
   './qr-formation-rodbot.svg', './qr-apk-android.svg', './qr-apk-android.png'
-].concat(POLICES);
+].concat(POLICES).concat(MODELE_3D);
 
 /* Télécharge tout ce qui manque encore dans le cache de contenu.
    - par lots de 5 pour ne pas saturer la connexion ;
@@ -136,8 +136,7 @@ const PRECACHE = [
      donc un téléchargement interrompu reprend là où il était rendu ;
    - l'avancement (fichiers prêts / total) est envoyé aux pages ouvertes
      (message PRECACHE_ETAT) : l'opérateur voit quand il peut descendre sous terre.
-   « tout » ajoute le modèle 3D (OPTIONNEL) à la liste. */
-function listeContenu(tout) { return tout ? PRECACHE.concat(OPTIONNEL) : PRECACHE; }
+   Depuis la 1.95.0 la liste est complète : le modèle 3D en fait partie. */
 
 async function diffuser(message) {
   try {
@@ -147,34 +146,30 @@ async function diffuser(message) {
   } catch (e) {}
 }
 
-async function etatContenu(tout) {
+async function etatContenu() {
   const c = await caches.open(ASSETS);
-  const liste = listeContenu(tout);
   let prets = 0;
-  for (const url of liste) if (await c.match(url)) prets++;
-  return { type: 'PRECACHE_ETAT', prets, total: liste.length, enCours: !!precacheEnCours, tout: !!tout };
+  for (const url of PRECACHE) if (await c.match(url)) prets++;
+  return { type: 'PRECACHE_ETAT', prets, total: PRECACHE.length, enCours: !!precacheEnCours };
 }
 
 let precacheEnCours = null;
-let toutDemande = false;
-function precacherTout(tout) {
-  if (tout) toutDemande = true;
+function precacherTout() {
   if (precacheEnCours) return precacheEnCours;
-  const avecTout = toutDemande;
   precacheEnCours = (async () => {
     const c = await caches.open(ASSETS);
-    const liste = listeContenu(avecTout);
-    const total = liste.length;
+    const total = PRECACHE.length;
     const manquants = [];
-    for (const url of liste) {
+    for (const url of PRECACHE) {
       if (!(await c.match(url))) manquants.push(url);
     }
     let prets = total - manquants.length;
     if (!manquants.length) {
-      await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: false, tout: avecTout });
+      await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: false });
       return;
     }
-    await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: true, tout: avecTout });
+    await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: true });
+    // Le modèle 3D pèse 27 Mo : seul dans son lot, il ne bloque pas le reste.
     const LOT = 5;
     for (let i = 0; i < manquants.length; i += LOT) {
       const resultats = await Promise.allSettled(manquants.slice(i, i + LOT).map(async (url) => {
@@ -183,13 +178,9 @@ function precacherTout(tout) {
         return false;
       }));
       prets += resultats.filter((x) => x.status === 'fulfilled' && x.value).length;
-      await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: i + LOT < manquants.length, tout: avecTout });
+      await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: i + LOT < manquants.length });
     }
-  })().catch(() => {}).finally(() => {
-    precacheEnCours = null;
-    // Le modèle 3D a été demandé pendant un téléchargement sans lui : on enchaîne.
-    if (toutDemande && !avecTout) precacherTout(true);
-  });
+  })().catch(() => {}).finally(() => { precacheEnCours = null; });
   return precacheEnCours;
 }
 
@@ -213,11 +204,11 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('message', (e) => {
   const d = e.data || {};
   if (d.type === 'PRECACHE') {
-    const p = precacherTout(!!d.tout);
+    const p = precacherTout();
     if (e.waitUntil) e.waitUntil(p);
   } else if (d.type === 'ETAT') {
     // Réponse au demandeur seul si possible, sinon à toutes les pages.
-    const p = etatContenu(!!d.tout).then((etat) => {
+    const p = etatContenu().then((etat) => {
       if (e.source && typeof e.source.postMessage === 'function') e.source.postMessage(etat);
       else return diffuser(etat);
     }).catch(() => {});

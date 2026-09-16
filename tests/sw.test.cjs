@@ -264,26 +264,26 @@ test('replica language URLs share their own visited document offline', async () 
   }
 });
 
-test('the articulated model and HDR load on demand and survive activation', async () => {
+test('le modèle articulé et son éclairage sont gardés sur l\'appareil', async () => {
   const h = harness();
   const assets = ['3d/assets/' + assetName('MODEL_URL'), '3d/assets/' + assetName('ENVIRONMENT_URL')];
   // L'accueil de l'app doit citer EXACTEMENT le même modèle que la page 3D,
   // sinon le travailleur télécharge deux fois 26 Mo sans le savoir.
   for (const f of assets) assert.ok(SCENE_SRC.includes('./' + f), 'scene3d.js doit citer ' + f);
+  for (const f of assets) h.network.set(BASE + f, new Response('asset:' + f));
   await h.lifecycle('install');
   await h.lifecycle('activate');
+  // Téléchargés d'office : l'atelier 3D marche sous terre sans rien demander.
   for (const file of assets) {
-    assert.equal(h.precached.includes(BASE + file), false);
-    assert.equal(h.networkCalls.includes(BASE + file), false);
-    h.network.set(BASE + file, new Response('asset:' + file));
-    assert.equal(await (await h.request(file)).text(), 'asset:' + file);
-    assert.equal(h.stores.get(ASSETS).has(BASE + file), true);
+    assert.equal(h.networkCalls.includes(BASE + file), true, file + ' doit être téléchargé');
+    assert.equal(h.stores.get(ASSETS).has(BASE + file), true, file + ' doit être gardé');
   }
+  // Une nouvelle version du code ne les retélécharge pas : 27 Mo épargnés.
   h.network.clear();
   await h.lifecycle('activate');
   for (const file of assets) {
     assert.equal(await (await h.request(file)).text(), 'asset:' + file);
-    assert.equal(h.networkCalls.filter(url => url === BASE + file).length, 1);
+    assert.equal(h.networkCalls.filter((url) => url === BASE + file).length, 1);
   }
 });
 
@@ -341,34 +341,45 @@ test('le téléchargement annonce son avancement aux pages et ETAT répond au de
   const h = harness();
   const glb = '3d/assets/' + assetName('MODEL_URL');
   const hdr = '3d/assets/' + assetName('ENVIRONMENT_URL');
-  // Deux fichiers seulement sont joignables : le reste échoue, le compteur reste honnête.
+  // Trois fichiers seulement sont joignables : le reste échoue, le compteur reste honnête.
   h.network.set(BASE + 'manuel-operateur.pdf', new Response('FR manual'));
   h.network.set(BASE + 'manual-en.pdf', new Response('EN manual'));
+  h.network.set(BASE + glb, new Response('glb'));
   await h.message({ type: 'PRECACHE' });
   const etats = h.messages.filter((m) => m.type === 'PRECACHE_ETAT');
   assert.ok(etats.length >= 2, 'au moins un message de début et un de fin');
   const premier = etats[0], dernier = etats[etats.length - 1];
   assert.equal(premier.prets, 0);
   assert.equal(premier.enCours, true);
-  assert.equal(dernier.prets, 2);
+  assert.equal(dernier.prets, 3);
   assert.equal(dernier.enCours, false);
-  assert.equal(dernier.tout, false);
   assert.ok(dernier.total > 300, 'tout le contenu est compté');
-  // Sans « tout », le modèle 3D n'est ni compté ni téléchargé.
-  assert.ok(!h.networkCalls.includes(BASE + glb));
   // ETAT répond au demandeur (e.source) avec le même compteur.
   const recu = [];
   await h.message({ type: 'ETAT' }, { postMessage(m) { recu.push(m); } });
   assert.equal(recu.length, 1);
-  assert.equal(recu[0].prets, 2);
+  assert.equal(recu[0].prets, 3);
   assert.equal(recu[0].total, dernier.total);
-  // « tout » ajoute les deux fichiers 3D au total et tente de les télécharger.
-  h.network.set(BASE + glb, new Response('glb'));
-  h.network.set(BASE + hdr, new Response('hdr'));
-  await h.message({ type: 'PRECACHE', tout: true });
-  const complet = h.messages.filter((m) => m.type === 'PRECACHE_ETAT').pop();
-  assert.equal(complet.tout, true);
-  assert.equal(complet.total, dernier.total + 2);
-  assert.equal(complet.prets, 4);
+  // Le modèle 3D est servi depuis le cache, sans nouvelle descente.
   assert.equal(await (await h.request(glb)).text(), 'glb');
+  assert.equal(h.networkCalls.filter((u) => u === BASE + glb).length, 1);
+  assert.ok(h.networkCalls.includes(BASE + hdr), 'son éclairage est tenté aussi');
+});
+
+test('le modèle 3D fait partie du contenu téléchargé par défaut', async () => {
+  // Sous terre, l'atelier 3D doit marcher comme le reste : rien à demander.
+  const glb = './3d/assets/' + assetName('MODEL_URL');
+  const hdr = './3d/assets/' + assetName('ENVIRONMENT_URL');
+  assert.ok(source.includes("const MODELE_3D = ['" + glb + "', '" + hdr + "'];"),
+    'le modèle et son éclairage sont déclarés');
+  assert.ok(source.includes('.concat(POLICES).concat(MODELE_3D);'),
+    'et ajoutés à la liste téléchargée par défaut');
+  assert.ok(!/OPTIONNEL|listeContenu|toutDemande/.test(source),
+    'plus de contenu optionnel ni de demande séparée');
+  const h = harness();
+  h.network.set(BASE + glb.slice(2), new Response('glb'));
+  h.network.set(BASE + hdr.slice(2), new Response('hdr'));
+  await h.lifecycle('activate');
+  assert.equal(await (await h.request(glb.slice(2))).text(), 'glb', 'servi hors ligne après activation');
+  assert.equal(await (await h.request(hdr.slice(2))).text(), 'hdr');
 });
