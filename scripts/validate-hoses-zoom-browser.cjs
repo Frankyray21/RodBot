@@ -6,6 +6,8 @@ const root=path.join(__dirname,'..'),out=path.join(root,'validation');fs.mkdirSy
 const server=cp.spawn('python3',['-m','http.server','8765','--bind','127.0.0.1'],{cwd:root,stdio:'ignore'});
 const results={version:'1.101.0',errors:[],stage:'starting'};
 const save=()=>{fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify(results,null,2));console.log(new Date().toISOString(),results.stage);};
+const rate=r=>{const t=Math.max(0,Math.min(1,(r-.5)/4.5));return .025+.055*t*t*(3-2*t);};
+const expectedZoom=(radius,units,precise=false)=>radius*Math.exp(units*Math.log1p(rate(radius))*(precise?.25:1));
 (async()=>{
  let browser,context,page;
  try{
@@ -22,12 +24,15 @@ const save=()=>{fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stri
   };
   const pose=async(orbit,target)=>{
    await page.evaluate(async({orbit,target})=>{
-    // The public reset command cancels unfinished zoom easing before each test.
-    // Assigning raw camera properties alone would leave the earlier zoom goal active.
     document.querySelector('#resetView').click();
     const m=document.querySelector('#viewer');m.pause();m.cameraOrbit=orbit;m.cameraTarget=target;m.fieldOfView='30deg';await m.updateComplete;m.jumpCameraToGoal();
    },{orbit,target});
    await page.waitForTimeout(650);
+  };
+  // Low frame rates change how quickly easing is rendered, not its destination.
+  // Require convergence to the calculated radius, not an arbitrary frame count.
+  const settled=async(expected,selector='#viewer')=>{
+   await page.waitForFunction(({expected,selector})=>Math.abs(document.querySelector(selector).getCameraOrbit().radius-expected)<.00025,{expected,selector},{timeout:45000,polling:250});
   };
   const capture=async(file,type='png',selector='#viewer',jpegCopy=null)=>{
    const data=await page.evaluate(async({selector})=>{
@@ -54,23 +59,28 @@ const save=()=>{fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stri
   await pose('-15deg 72deg 1m','-0.45m 2.02m 0.27m');
   const box=await page.locator('#viewer').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
   const camera=()=>page.$eval('#viewer',m=>({r:m.getCameraOrbit().radius,fov:m.getFieldOfView(),target:m.getCameraTarget()}));
-  const before=await camera();await page.mouse.wheel(0,-100);await page.waitForTimeout(1600);const after=await camera();
+  const before=await camera();await page.mouse.wheel(0,-100);
+  await page.waitForFunction(()=>window.testWheels.length>=1);
+  const wheel=await page.evaluate(()=>window.testWheels.at(-1));const units=Math.max(-120,Math.min(120,wheel.y))/100;
+  await settled(expectedZoom(before.r,units));const after=await camera();
   Object.assign(results,{before,after});save();
   assert(after.r<before.r&&after.r/before.r>.94);assert(Math.abs(after.fov-before.fov)<1e-5);assert.deepEqual(after.target,before.target);
   await pose('-15deg 72deg 1m','-0.45m 2.02m 0.27m');results.fineStart=await camera();assert(Math.abs(results.fineStart.r-1)<.0001);
-  await page.keyboard.down('Shift');await page.mouse.wheel(0,-100);await page.waitForTimeout(1600);await page.keyboard.up('Shift');
+  await page.keyboard.down('Shift');await page.mouse.wheel(0,-100);
+  await settled(expectedZoom(1,units,true));await page.keyboard.up('Shift');
   const fine=await camera();results.fine=fine;results.wheels=await page.evaluate(()=>window.testWheels);save();
   assert(fine.r<.9999&&1-fine.r<(1-after.r)/3,'Shift must actually zoom by a finer step');
   await pose('-15deg 72deg 1m','-0.45m 2.02m 0.27m');
-  // Dispatch a burst in one browser task: no artificial pause between events.
   await page.evaluate(()=>{const m=document.querySelector('#viewer');for(let i=0;i<4;i++)m.dispatchEvent(new WheelEvent('wheel',{deltaY:-100,cancelable:true,bubbles:true}));});
-  await page.waitForTimeout(1600);const burst=await camera();results.burst=burst;save();assert(burst.r<after.r-.04);
+  let burstGoal=1;for(let i=0;i<4;i++)burstGoal=expectedZoom(burstGoal,-1);
+  await settled(burstGoal);const burst=await camera();results.burst=burst;save();assert(burst.r<after.r-.04);
   results.stage='guided';save();await fresh();
   await page.goto('http://127.0.0.1:8765/3d/?v=1.101.0#explorer',{waitUntil:'networkidle'});
   await page.waitForFunction(()=>window.v?.loaded&&window.rodbotTraining,null,{timeout:60000});
   assert.equal(await page.locator('#rbSiteVer').innerText(),'Version 1.101.0');
   await page.locator('#btnZoomIn').evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));await page.waitForTimeout(650);
-  const gBefore=await page.evaluate(()=>window.v.getView().dist);await page.locator('#btnZoomIn').evaluate(el=>el.click());await page.waitForTimeout(1600);const gAfter=await page.evaluate(()=>window.v.getView().dist);
+  const gBefore=await page.evaluate(()=>window.v.getView().dist);await page.locator('#btnZoomIn').evaluate(el=>el.click());
+  await settled(expectedZoom(gBefore,-1),'#canvas3d');const gAfter=await page.evaluate(()=>window.v.getView().dist);
   results.guided={before:gBefore,after:gAfter};save();assert(gAfter<gBefore&&gAfter/gBefore>.92);
   await page.locator('#modeSimulation').evaluate(el=>el.click());assert(await page.evaluate(()=>window.rodbotTraining.active));
   await capture(path.join(out,'guided-v1.101.0.png'),'png','#canvas3d');
