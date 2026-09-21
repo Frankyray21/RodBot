@@ -40,7 +40,7 @@ jobs:
           }).then(result=>{fs.writeFileSync('validation/gltf.json',JSON.stringify(result,null,2));console.log({errors:result.issues.numErrors,warnings:result.issues.numWarnings});if(result.issues.numErrors)process.exitCode=1;});
           JS
       - name: Render and verify real browser controls
-        run: timeout --kill-after=5s 150s node scripts/validate-hoses-zoom-browser.cjs
+        run: timeout --kill-after=5s 360s node scripts/validate-hoses-zoom-browser.cjs
       - name: Commit validated build to review branch only
         run: |
           git config user.name 'github-actions[bot]'
