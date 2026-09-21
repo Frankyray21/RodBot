@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const assets = path.join(__dirname, '../3d/assets');
-const model = JSON.parse(fs.readFileSync(path.join(assets, 'rodbot-v7-photo.gltf')));
+const assetSource = fs.readFileSync(path.join(__dirname, '../3d/js/model-assets.js'), 'utf8');
+const modelFile = assetSource.match(/MODEL_URL = new URL\('\.\.\/assets\/([^']+)'/)[1];
+const model = JSON.parse(fs.readFileSync(path.join(assets, modelFile)));
 const nodes = Object.fromEntries(model.nodes.map(n => [n.name, n]));
 const buffers = model.buffers.map(b => b.uri.startsWith('data:')
   ? Buffer.from(b.uri.split(',')[1], 'base64') : fs.readFileSync(path.join(assets, b.uri)));
