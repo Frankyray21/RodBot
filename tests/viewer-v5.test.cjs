@@ -16,6 +16,8 @@ const assetName = (nom) => {
 // Exercise the adapter against its public browser/model-viewer contract.
 const path = join(__dirname, '..', '3d', 'js', 'viewer-v5.js');
 const source = readFileSync(path, 'utf8')
+  .replace(/\?v=\d+\.\d+\.\d+/g, '')
+  .replace(/^import .*from '\.\/precision-zoom\.js';\n/m, '')
   .replace(/^import .*from '\.\/motion\.js';\n/m, '')
   .replace(/^import .*from '\.\/model-assets\.js';\n/m,
     "const MODEL_URL = 'https://example.github.io/RodBot/3d/assets/" + assetName('MODEL_URL') + "';\n"
@@ -79,7 +81,7 @@ async function harness(t, { controls = false, buttons = false, access = false, s
     requestAnimationFrame: fn => { frames.set(++next, fn); return next; }, cancelAnimationFrame: id => frames.delete(id),
     ResizeObserver: class { observe() {} disconnect() {} }, IntersectionObserver: class { observe() {} disconnect() {} }
   });
-  vm.runInContext(motion + '\n' + source + '\nglobalThis.adapter = RodbotViewer;', context);
+  vm.runInContext(readFileSync(join(__dirname, '..', '3d', 'js', 'precision-zoom.js'), 'utf8').replaceAll('export ', '') + '\n' + motion + '\n' + source + '\nglobalThis.adapter = RodbotViewer;', context);
   const viewer = await context.adapter.create({ canvas: model, overlay });
   await viewer.ready;
   const step = async (ms = 16) => { now += ms; const callbacks = [...frames.values()]; frames.clear(); callbacks.forEach(fn => fn(now)); await Promise.resolve(); };

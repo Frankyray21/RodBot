@@ -11,17 +11,17 @@
   <meta property="og:locale" content="fr_CA">
   <meta property="og:title" content="RodBot 3D : Manipulateur de tiges robotisé | Machines Roger International">
   <meta property="og:description" content="Explore la réplique du RodBot. Repère les commandes et pratique les gestes dans les simulations.">
-  <meta property="og:image" content="./assets/rodbot-v10-mast-poster.jpg">
+  <meta property="og:image" content="./assets/rodbot-v11-hydraulics-poster.jpg">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="960">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="./assets/rodbot-v10-mast-poster.jpg">
+  <meta name="twitter:image" content="./assets/rodbot-v11-hydraulics-poster.jpg">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0e17'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23d22325' stroke='%23ffffff' stroke-width='4'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="../fonts/fonts.css?v=1.100.0">
-  <link rel="stylesheet" href="./css/styles.css?v=1.100.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.100.0">
-  <link rel="stylesheet" href="./css/training.css?v=1.100.0">
-  <link rel="stylesheet" href="./css/component-popup.css?v=1.100.0">
+  <link rel="stylesheet" href="../fonts/fonts.css?v=1.101.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.101.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.101.0">
+  <link rel="stylesheet" href="./css/training.css?v=1.101.0">
+  <link rel="stylesheet" href="./css/component-popup.css?v=1.101.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -42,7 +42,7 @@
     <section class="hero" id="accueil">
       <div class="hero-video" aria-hidden="true">
         <model-viewer id="heroClip" class="hero-model" tabindex="-1"
-          poster="./assets/rodbot-v10-mast-poster.jpg" alt="Présentation animée de la réplique du RodBot"
+          poster="./assets/rodbot-v11-hydraulics-poster.jpg" alt="Présentation animée de la réplique du RodBot"
           camera-orbit="-50deg 70deg 100%" field-of-view="30deg"
           shadow-intensity="1" shadow-softness="0.8" exposure="1" tone-mapping="agx"
           animation-name="Presentation_360" interaction-prompt="none" loading="lazy">
@@ -79,7 +79,7 @@
 
         <div class="training-workbench">
         <div class="viewer-wrap" id="viewerStage" aria-busy="true">
-          <model-viewer id="canvas3d" tabindex="0" alt="Réplique articulée du LP RodBot" aria-describedby="viewerInstructions" poster="./assets/rodbot-v10-mast-poster.jpg"><span slot="progress-bar"></span></model-viewer>
+          <model-viewer id="canvas3d" tabindex="0" alt="Réplique articulée du LP RodBot" aria-describedby="viewerInstructions" poster="./assets/rodbot-v11-hydraulics-poster.jpg"><span slot="progress-bar"></span></model-viewer>
           <div class="hs-overlay" id="hsOverlay"></div>
           <div class="viewer-status"><span class="viewer-status-dot"></span><span id="renderStatus" role="status">Préparation du modèle</span></div>
           <div class="viewer-loader" id="viewerLoader">
@@ -111,7 +111,7 @@
           <div class="tour-info"><span class="tour-etat" id="tourEtat" role="status" aria-live="polite">7 composants à découvrir</span><div class="tour-track" aria-hidden="true"><span id="tourProgress"></span></div></div>
           <button class="vbtn" id="tourStop" type="button" hidden>Terminer</button>
         </div>
-        <p class="viewer-hint" id="viewerInstructions">Glisse pour tourner. Pince pour zoomer. Au clavier : flèches, +, − et Origine.</p>
+        <p class="viewer-hint" id="viewerInstructions">Glisse pour tourner. Clique sur un détail pour le centrer. Maj + molette pour affiner le zoom.</p>
         <div class="view-bar" id="viewBar" role="group" aria-label="Vues rapides"></div>
       </div>
     </section>
@@ -184,7 +184,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.100.0</span>
+        <span id="rbSiteVer">Version 1.101.0</span>
         <span>Réplique de formation. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -331,7 +331,7 @@
     let heroPresentation = null;
     let atelierCharge;
     const atelierPret = new Promise((resoudre) => { atelierCharge = resoudre; });
-    import('./js/hero-v6.js?v=1.100.0').then(({createHero}) => {
+    import('./js/hero-v6.js?v=1.101.0').then(({createHero}) => {
       heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'), atelierPret);
     }).catch(() => { document.getElementById('heroPause').hidden = true; });
     const scrollCue = document.getElementById('scrollCue');
@@ -724,7 +724,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.100.0';
+      const VER = '1.101.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, CONTROLS, VUES, hotspotById }, { createTour }] = await Promise.all([
         import('./js/viewer-v5.js?v=' + VER),
@@ -798,8 +798,8 @@
 
       const btnHome = document.getElementById('btnHome');
       if (btnHome) btnHome.addEventListener('click', () => { arreterVisite(); fermerFiche(); reglerRotation(false); v.home(FLY_HOME); });
-      document.getElementById('btnZoomIn').addEventListener('click', () => v.zoom(1 / 1.22));
-      document.getElementById('btnZoomOut').addEventListener('click', () => v.zoom(1.22));
+      document.getElementById('btnZoomIn').addEventListener('click', () => v.zoom(1 / 1.08));
+      document.getElementById('btnZoomOut').addEventListener('click', () => v.zoom(1.08));
       const btnHotspots = document.getElementById('btnHotspots');
       btnHotspots.addEventListener('click', () => {
         const active = btnHotspots.getAttribute('aria-pressed') !== 'true';
