@@ -370,8 +370,12 @@ test('le modèle 3D fait partie du contenu téléchargé par défaut', async () 
   // Sous terre, l'atelier 3D doit marcher comme le reste : rien à demander.
   const glb = './3d/assets/' + assetName('MODEL_URL');
   const hdr = './3d/assets/' + assetName('ENVIRONMENT_URL');
-  assert.ok(source.includes("const MODELE_3D = ['" + glb + "', '" + hdr + "'];"),
-    'le modèle et son éclairage sont déclarés');
+  const model = JSON.parse(readFileSync(join(__dirname, '..', glb), 'utf8'));
+  const binaries = model.buffers.filter(b => !b.uri.startsWith('data:')).map(b => './3d/assets/' + b.uri);
+  const declared = source.match(/const MODELE_3D = \[([^\]]+)\]/)[1];
+  for (const file of [glb, hdr, ...binaries]) {
+    assert.ok(declared.includes("'" + file + "'"), 'ressource 3D déclarée : ' + file);
+  }
   assert.ok(source.includes('.concat(POLICES).concat(MODELE_3D);'),
     'et ajoutés à la liste téléchargée par défaut');
   assert.ok(!/OPTIONNEL|listeContenu|toutDemande/.test(source),
@@ -379,7 +383,9 @@ test('le modèle 3D fait partie du contenu téléchargé par défaut', async () 
   const h = harness();
   h.network.set(BASE + glb.slice(2), new Response('glb'));
   h.network.set(BASE + hdr.slice(2), new Response('hdr'));
+  for (const file of binaries) h.network.set(BASE + file.slice(2), new Response('geometry'));
   await h.lifecycle('activate');
   assert.equal(await (await h.request(glb.slice(2))).text(), 'glb', 'servi hors ligne après activation');
   assert.equal(await (await h.request(hdr.slice(2))).text(), 'hdr');
+  for (const file of binaries) assert.equal(await (await h.request(file.slice(2))).text(), 'geometry');
 });
