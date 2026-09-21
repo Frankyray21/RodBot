@@ -36,6 +36,8 @@ patch('3d/js/replique.js',s=>{
  s=replace(s,"const model = $('viewer');","const model = $('viewer');\nlet precision = null;");
  s=replace(s,'function setView(index) {','function setView(index) {\n  precision?.cancel();');
  s=replace(s,'ModelViewerElement.dracoDecoderLocation = DRACO_URL;',`ModelViewerElement.dracoDecoderLocation = DRACO_URL;
+  model.minCameraOrbit = 'auto 5deg 0.35m';
+  model.maxCameraOrbit = 'auto 90deg 45m';
   precision = attachPrecisionZoom(model, {
     isReady: () => loaded,
     onInteraction() { if (playing) stop(); activeView = null; refreshState(); }
