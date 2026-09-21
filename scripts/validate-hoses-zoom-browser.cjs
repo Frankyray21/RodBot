@@ -21,7 +21,12 @@ const save=()=>{fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stri
    await page.waitForFunction(()=>document.querySelector('#viewer').loaded,null,{timeout:60000});
   };
   const pose=async(orbit,target)=>{
-   await page.evaluate(async({orbit,target})=>{const m=document.querySelector('#viewer');m.pause();m.cameraOrbit=orbit;m.cameraTarget=target;m.fieldOfView='30deg';await m.updateComplete;m.jumpCameraToGoal();},{orbit,target});
+   await page.evaluate(async({orbit,target})=>{
+    // The public reset command cancels unfinished zoom easing before each test.
+    // Assigning raw camera properties alone would leave the earlier zoom goal active.
+    document.querySelector('#resetView').click();
+    const m=document.querySelector('#viewer');m.pause();m.cameraOrbit=orbit;m.cameraTarget=target;m.fieldOfView='30deg';await m.updateComplete;m.jumpCameraToGoal();
+   },{orbit,target});
    await page.waitForTimeout(650);
   };
   const capture=async(file,type='png',selector='#viewer',jpegCopy=null)=>{
@@ -52,7 +57,7 @@ const save=()=>{fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stri
   const before=await camera();await page.mouse.wheel(0,-100);await page.waitForTimeout(1600);const after=await camera();
   Object.assign(results,{before,after});save();
   assert(after.r<before.r&&after.r/before.r>.94);assert(Math.abs(after.fov-before.fov)<1e-5);assert.deepEqual(after.target,before.target);
-  await pose('-15deg 72deg 1m','-0.45m 2.02m 0.27m');
+  await pose('-15deg 72deg 1m','-0.45m 2.02m 0.27m');results.fineStart=await camera();assert(Math.abs(results.fineStart.r-1)<.0001);
   await page.keyboard.down('Shift');await page.mouse.wheel(0,-100);await page.waitForTimeout(1600);await page.keyboard.up('Shift');
   const fine=await camera();results.fine=fine;results.wheels=await page.evaluate(()=>window.testWheels);save();
   assert(fine.r<.9999&&1-fine.r<(1-after.r)/3,'Shift must actually zoom by a finer step');
