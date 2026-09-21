@@ -6,7 +6,8 @@ const vm = require('node:vm');
 
 const source = readFileSync(join(__dirname, '..', 'sw.js'), 'utf8');
 const BASE = 'https://example.github.io/RodBot/';
-const CURRENT = 'rodbot-formation-v1.42.0';
+// La version suit sw.js : interface.test.cjs vérifie qu'elle colle à APP_VERSION.
+const CURRENT = source.match(/const CACHE = '([^']+)'/)[1];
 
 function harness() {
   const handlers = {};

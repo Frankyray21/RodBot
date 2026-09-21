@@ -104,7 +104,63 @@ html, body { overflow-x: clip; }
 .rb-home-progress progress::-webkit-progress-bar { background: #42423b; }
 .rb-home-progress progress::-webkit-progress-value { background: #d92624; }
 .rb-home-visual { margin: 0; border: 1px solid #494940; background: #24241f; }
-.rb-home-visual img { display: block; width: 100%; height: auto; aspect-ratio: 1.2; object-fit: cover; }
+.rb-home-visual img { display: block; width: 100%; height: 100%; object-fit: cover; transition: opacity .5s ease; }
+/* Scene 3D du heros : la photo reste visible tant que le modele n'est pas pret. */
+.rb-hero3d-stage { position: relative; overflow: hidden; aspect-ratio: 1.2; background: #24241f; }
+.rb-hero3d-stage.is-live > img { opacity: 0; }
+.rb-hero3d-layer { position: absolute; inset: 0; }
+.rb-hero3d-layer model-viewer {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  background: #1b1b18; opacity: 0; transition: opacity .6s ease;
+  --poster-color: transparent;
+}
+.rb-hero3d-layer.is-vivant model-viewer { opacity: 1; }
+.rb-hero3d-veil {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  padding: 26px 16px 14px;
+  background: linear-gradient(180deg, rgba(20, 20, 19, 0), rgba(20, 20, 19, .86));
+}
+.rb-hero3d-layer.is-vivant .rb-hero3d-veil { display: none; }
+.rb-hero3d-state {
+  margin: 0; color: #f6f5f0; font-size: 12.5px; font-weight: 800;
+  line-height: 1.4; text-align: center; text-shadow: 0 1px 3px rgba(0, 0, 0, .75);
+}
+.rb-hero3d-percent { margin-left: 4px; }
+.rb-hero3d-bar { width: min(260px, 80%); height: 6px; accent-color: #d92624; }
+.rb-hero3d-bar::-webkit-progress-bar { background: #42423b; }
+.rb-hero3d-bar::-webkit-progress-value { background: #d92624; }
+.rb-hero3d-retry {
+  display: none; min-height: 44px; padding: 10px 16px;
+  border: 1px solid #d92624; background: #d92624; color: #fff;
+  font: inherit; font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer;
+}
+.rb-hero3d-layer.is-panne .rb-hero3d-bar { display: none; }
+.rb-hero3d-layer.is-panne .rb-hero3d-retry { display: inline-flex; align-items: center; }
+.rb-hero3d-hint, .rb-hero3d-zoom, .rb-hero3d-reset {
+  opacity: 0; pointer-events: none; transition: opacity .4s ease;
+}
+.rb-hero3d-layer.is-vivant .rb-hero3d-hint { opacity: 1; }
+.rb-hero3d-layer.is-vivant .rb-hero3d-zoom,
+.rb-hero3d-layer.is-vivant .rb-hero3d-reset { opacity: 1; pointer-events: auto; }
+.rb-hero3d-layer.a-servi .rb-hero3d-hint { opacity: 0; }
+.rb-hero3d-hint {
+  position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 130px); margin: 0;
+  padding: 7px 11px; border: 1px solid rgba(255, 255, 255, .22); background: rgba(20, 20, 19, .74);
+  color: #f2f0ea; font-size: 12px; font-weight: 700; line-height: 1.3;
+}
+.rb-hero3d-reset {
+  position: absolute; right: 10px; bottom: 10px; min-height: 40px; padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, .28); background: rgba(20, 20, 19, .74); color: #faf9f5;
+  font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.rb-hero3d-zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.rb-hero3d-zoom-btn {
+  width: 44px; height: 44px; border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(20, 20, 19, .74); color: #faf9f5;
+  font: inherit; font-size: 22px; font-weight: 800; line-height: 1; cursor: pointer;
+}
+.rb-hero3d-reset:hover, .rb-hero3d-zoom-btn:hover { border-color: #d92624; background: rgba(20, 20, 19, .92); }
 .rb-home-visual figcaption {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
   padding: 12px 16px; gap: 8px; border-top: 1px solid #494940;
@@ -210,7 +266,11 @@ html, body { overflow-x: clip; }
   .rb-home-meta > * { font-size: 11px; padding: 5px 8px; }
   .rb-home-actions { flex-direction: column; gap: 9px; margin-bottom: 12px; }
   .rb-home-actions > button, .rb-home-actions > a { width: 100%; min-height: 52px; padding: 13px 12px; font-size: 13px; }
-  .rb-home-visual img { aspect-ratio: 1.8; max-height: 260px; object-position: center; }
+  .rb-home-visual img { object-position: center; }
+  /* Sur téléphone la machine a besoin de hauteur pour rester lisible. */
+  .rb-hero3d-stage { aspect-ratio: 1.15; max-height: 340px; }
+  .rb-hero3d-hint { font-size: 11.5px; padding: 6px 9px; max-width: calc(100% - 118px); }
+  .rb-hero3d-zoom-btn { width: 40px; height: 40px; }
   .rb-home-visual figcaption { padding: 7px 12px; }
   .rb-home-tools { padding: 16px 20px; gap: 8px; grid-template-columns: 1fr; }
   .rb-home-tools button, .rb-home-tools a { min-height: 60px; padding: 12px 15px; }

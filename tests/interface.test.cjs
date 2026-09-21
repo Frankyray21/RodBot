@@ -52,7 +52,7 @@ test('les ressources d’interface et la version sont cohérentes', () => {
   const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
   const version = read('app.js').match(/var APP_VERSION = '([^']+)'/)[1];
   const html = read('index.html'), sw = read('sw.js');
-  for (const file of ['app.js', 'interface.js', 'interface.css']) {
+  for (const file of ['app.js', 'interface.js', 'interface.css', 'hero3d.js']) {
     assert.ok(html.includes(file + '?v=' + version), file + ' versionné');
     assert.ok(sw.includes("'./" + file + "'"), file + ' précaché');
   }
