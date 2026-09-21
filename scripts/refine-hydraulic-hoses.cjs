@@ -14,7 +14,7 @@ if (!old || !Number.isInteger(old.mesh)) throw Error('V10 cylinder detail assemb
 delete old.mesh;
 old.extras.superseded_by = 'MAST_V11_Cylinder_hose_pair';
 const b = build(m, 'Hydraulics V11');
-const { MAT, group, box, cylinder, tube, bezier, screw, quad, add, mul } = b;
+const { MAT, group, box, cylinder, tube, bezier, screw, quad } = b;
 group('MAST_V11_Cylinder_hose_pair', 'HYD_LIFT_BASE');
 // Local +Y follows the black barrel; local -X is its photographed outer side.
 // A close pair on the dark mounting face, not two ports staggered up the barrel.
@@ -44,10 +44,17 @@ for (let i=0;i<2;i++) {
   // Visible flexible section: adjacent, close to the barrel, a broad open bend
   // into the space behind the mast. No hairpin return down to its own fitting.
   const start=[-.132,y+.121,z];
-  const mid=[-.126,.57,z-.008];
-  const end=[.09,.755,z+.13];
-  const p=bezier([start,[-.132,.39,z],[-.136,.49,z+.004],mid],34);
-  p.push(...bezier([mid,[-.124,.67,z+.005],[-.02,.755,z+.12],end],30).slice(1));
+  const mid=[-.132,.65,.034];
+  // Continue behind the existing mast-side bundle; no open end in the air.
+  const p=bezier([[-.132,y+.121,.074],[-.132,.39,.074],[-.143,.52,.061],mid],34);
+  const elbowStart=p.length-1;
+  p.push(...bezier([mid,[-.132,.88,-.066],[-.130,1.005,-.150],[.060,1.010,-.146]],40).slice(1));
+  // Rotate the pair's separation around the broad bend without pinching it.
+  for(let k=0;k<p.length;k++){
+    const t=Math.max(0,(k-elbowStart)/(p.length-1-elbowStart));
+    const angle=t*Math.PI/2;
+    p[k][0]-=i*.044*Math.sin(angle);p[k][2]+=i*.044*Math.cos(angle);
+  }
   tube(MAT.rubber,p,.0115,16);
   paths.push({fitting:port, ferrule_exit:start, points:p, radius:.0115});
 }

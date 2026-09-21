@@ -8,7 +8,9 @@ export function zoomRate(radius) {
   return .025 + .055 * t * t * (3 - 2 * t);
 }
 export function wheelUnits(event, height = 800) {
-  const delta = Number(event.deltaY);
+  const vertical = Number(event.deltaY);
+  // Some browsers expose Shift + vertical wheel as horizontal wheel input.
+  const delta = event.shiftKey && vertical === 0 ? Number(event.deltaX) : vertical;
   if (!Number.isFinite(delta)) return 0;
   const scale = event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? height : 1;
   return bound(delta * scale, -120, 120) / 100;
