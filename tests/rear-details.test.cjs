@@ -55,8 +55,9 @@ test('opening the service bay modifies whole panels without stretching nearby sh
     assert.deepEqual(mesh.weights,[1]);assert.equal(model.accessors[p.targets[0].POSITION].sparse.count,name==='MESH_EQUIPMENT_026'?768:384);
   }
 });
-test('every external model dependency is included in the offline cache',()=>{
-  const sw=fs.readFileSync(path.join(__dirname,'../sw.js'),'utf8');
-  for(const b of model.buffers)if(!b.uri.startsWith('data:'))assert.ok(sw.includes("'./3d/assets/"+b.uri+"'"));
+test('archived V9 rear geometry retains complete local buffer dependencies',()=>{
+  // Archives remain reproducible; only the active model needs offline caching.
+  // sw.test.cjs derives that model and its dependencies from model-assets.js.
   for(const [i,b]of model.buffers.entries())assert.equal(buffers[i].length,b.byteLength);
+  for(const v of model.bufferViews)assert.ok((v.byteOffset||0)+v.byteLength<=buffers[v.buffer].length);
 });

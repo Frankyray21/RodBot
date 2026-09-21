@@ -1,4 +1,4 @@
-/* GLB training renderer (V6, derived from V5). Public model-viewer 4.3.1 APIs only.
+/* Training renderer. Public model-viewer 4.3.1 APIs only.
    Existing page controls, component cards and camera tours keep their contract. */
 import { clamp, ease, nearestYaw, framingScale } from './motion.js';
 import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js';
@@ -48,6 +48,12 @@ export const RodbotViewer = {
     const model = typeof opts.canvas === 'string' ? document.querySelector(opts.canvas) : opts.canvas;
     const overlay = typeof opts.overlay === 'string' ? document.querySelector(opts.overlay) : opts.overlay;
     if (!model || model.localName !== 'model-viewer') throw new Error('Élément model-viewer absent');
+    const homeView = {
+      yaw: Number.isFinite(opts.home?.yaw) ? opts.home.yaw : HOME.yaw,
+      pitch: Number.isFinite(opts.home?.pitch) ? clamp(opts.home.pitch, LIMITS.minPitch, LIMITS.maxPitch) : HOME.pitch,
+      dist: Number.isFinite(opts.home?.dist) ? clamp(opts.home.dist, LIMITS.minDist, LIMITS.maxDist) : HOME.dist
+    };
+    const hasHomeTarget = Array.isArray(opts.home?.target) && opts.home.target.length === 3 && opts.home.target.every(Number.isFinite);
     const events = new Map(), cleanup = [], media = matchMedia('(prefers-reduced-motion: reduce)');
     let destroyed = false, loaded = false, visible = !document.hidden, intersecting = true;
     let reduced = media.matches, quality = chooseQuality(opts.quality), autoRotate = false;
@@ -56,14 +62,14 @@ export const RodbotViewer = {
     let availableAccessKeys = [], accessPose = initialAccess();
     let frame = null, lastFrame = 0, projectionUntil = 0, flight = null;
     let points = [], showPoints = true, framing = 1, width = 1, height = 1;
-    let homeTarget = [0, 1.25, 0], loadingReject = null;
+    let homeTarget = vector(opts.home?.target, [0, 1.25, 0]), loadingReject = null;
     const emit = (name, ...args) => events.get(name)?.forEach(fn => fn(...args));
     const listen = (node, name, fn, options) => {
       node.addEventListener(name, fn, options);
       cleanup.push(() => node.removeEventListener(name, fn, options));
     };
     function getView() {
-      if (!loaded) return { ...HOME, target: [...homeTarget] };
+      if (!loaded) return { ...homeView, target: [...homeTarget] };
       const orbit = model.getCameraOrbit();
       return { yaw: orbit.theta / radians, pitch: 90 - orbit.phi / radians,
         dist: orbit.radius / framing, target: components(model.getCameraTarget()) };
@@ -314,7 +320,12 @@ export const RodbotViewer = {
       if (!box.width || !box.height) return;
       const before = getView(); width = box.width; height = box.height;
       framing = framingScale(width, height) / 1.15;
-      if (loaded) { cancelFlight(); renderView(before); }
+      if (loaded) {
+        // Layout changes affect framing, not the flight's world-space target.
+        // Resend the final goal if a resize lands between Lit's camera updates.
+        if (flight) flight.finalSent = false;
+        renderView(before);
+      }
       queueProjection();
     }
     const resize = new ResizeObserver(fit); resize.observe(model);
@@ -334,7 +345,7 @@ export const RodbotViewer = {
     listen(model, 'wheel', interact, { passive: true });
     listen(model, 'keydown', event => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
-      if (event.key === 'Home') { event.preventDefault(); interact(); void flyTo({ ...HOME, target: homeTarget }, 900); }
+      if (event.key === 'Home') { event.preventDefault(); interact(); void flyTo({ ...homeView, target: homeTarget }, 900); }
       else if (['+', '=', '-', '_'].includes(event.key)) {
         event.preventDefault(); event.stopPropagation(); zoom(event.key === '-' || event.key === '_' ? 1.2 : 1 / 1.2);
       } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) interact();
@@ -354,7 +365,7 @@ export const RodbotViewer = {
       get availableButtonKeys() { return [...availableButtonKeys]; },
       get availableAccessKeys() { return [...availableAccessKeys]; },
       on(name, fn) { if (!events.has(name)) events.set(name, new Set()); events.get(name).add(fn); return api; },
-      flyTo, home: (duration = 900) => flyTo({ ...HOME, target: homeTarget }, duration), cancelFlight,
+      flyTo, home: (duration = 900) => flyTo({ ...homeView, target: homeTarget }, duration), cancelFlight,
       zoom, setAutoRotate, setQuality, setHotspots, updateHotspots,
       setHotspotsVisible(value) { showPoints = Boolean(value); queueProjection(); },
       getView, setPose, getPose: () => ({ ...pose }), resetPose,
@@ -382,8 +393,8 @@ export const RodbotViewer = {
       model.timeScale = 0; model.interpolationDecay = 50;
       model.interactionPrompt = 'none'; model.touchAction = 'pan-y';
       model.minCameraOrbit = 'auto 5deg 0.35m'; model.maxCameraOrbit = 'auto 90deg 45m';
-      model.fieldOfView = '30deg'; model.cameraTarget = 'auto auto auto';
-      model.cameraOrbit = `${HOME.yaw}deg ${90 - HOME.pitch}deg ${HOME.dist * framing}m`;
+      model.fieldOfView = '30deg'; model.cameraTarget = hasHomeTarget ? vectorString(homeTarget) : 'auto auto auto';
+      model.cameraOrbit = `${homeView.yaw}deg ${90 - homeView.pitch}deg ${homeView.dist * framing}m`;
       model.environmentImage = ENVIRONMENT_URL;
       model.setAttribute('tone-mapping', 'agx'); model.exposure = 1;
       model.poster = POSTER_URL;
@@ -396,7 +407,9 @@ export const RodbotViewer = {
         model.src = opts.src || MODEL_URL;
       });
       if (destroyed) return false;
-      loaded = true; homeTarget = components(model.getCameraTarget());
+      loaded = true;
+      if (hasHomeTarget) renderView({ ...homeView, target: homeTarget });
+      else homeTarget = components(model.getCameraTarget());
       canArticulate = V5_MOTIONS.every(motion => model.availableAnimations.includes(motion.clip));
       availableControlKeys = Object.keys(CONTROL_CLIPS).filter(key => model.availableAnimations.includes(CONTROL_CLIPS[key]));
       availableButtonKeys = Object.keys(BUTTON_CLIPS).filter(key => model.availableAnimations.includes(BUTTON_CLIPS[key]));

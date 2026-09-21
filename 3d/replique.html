@@ -7,7 +7,7 @@
   <meta name="description" content="Explore le modèle articulé du LP RodBot : télécommande, Machines Roger et détails mécaniques.">
   <title>LP RodBot | Réplique 3D</title>
   <link rel="icon" href="../icon-192.png">
-  <link rel="stylesheet" href="./css/replique.css?v=1.100.0">
+  <link rel="stylesheet" href="./css/replique.css?v=1.101.0">
 </head>
 <body>
   <a class="skip" href="#viewer" data-i18n="skip">Aller au modèle 3D</a>
@@ -33,9 +33,9 @@
       <section class="viewer-panel" aria-label="Modèle 3D interactif" data-i18n-aria="viewerLabel">
         <div class="viewer-topline"><span>LP RODBOT <span class="slash">/</span> <strong id="currentView">Vue d’ensemble</strong></span><button id="fullscreen" class="icon-button" type="button" hidden aria-label="Plein écran" data-i18n-aria="fullscreen">⛶</button></div>
         <model-viewer id="viewer"
-          poster="./assets/rodbot-v10-mast-poster.jpg"
+          poster="./assets/rodbot-v11-poster.jpg"
           alt="LP RodBot avec bras articulé, chenilles et télécommande noire sur un trépied jaune."
-          camera-controls camera-orbit="-35deg 70deg 110%" camera-target="auto auto auto"
+          camera-controls
           field-of-view="30deg" min-camera-orbit="auto 5deg 0.35m" max-camera-orbit="auto 90deg 240%"
           shadow-intensity="1" shadow-softness="0.8" exposure="1" tone-mapping="agx"
           interaction-prompt="none" touch-action="pan-y" animation-name="Presentation_360"
@@ -59,6 +59,8 @@
         <div class="focus-buttons">
           <button class="button primary" type="button" data-view="6" disabled aria-pressed="false"><span data-i18n="remote">Télécommande</span><span aria-hidden="true">↗</span></button>
           <button class="button" type="button" data-view="8" disabled aria-pressed="false"><span>Machines Roger</span><span aria-hidden="true">↗</span></button>
+          <button class="button" type="button" data-view="9" disabled aria-pressed="false"><span data-i18n="hydraulique">Vérin et raccords</span><span aria-hidden="true">↗</span></button>
+          <button class="button" type="button" data-view="10" disabled aria-pressed="false"><span data-i18n="distributeurs">Distributeurs</span><span aria-hidden="true">↗</span></button>
         </div>
         <div class="control-section"><h3 data-i18n="views">Angles de vue</h3><div id="viewButtons" class="view-grid"></div></div>
         <details class="control-section motions">
@@ -77,6 +79,6 @@
     <noscript><p class="noscript">Active JavaScript pour explorer la réplique. Enable JavaScript to explore the model.</p></noscript>
     <footer><p data-i18n="footer">Visualisation pour la formation. Les trajectoires de travail restent à valider.</p><p><span data-i18n="lighting">Éclairage :</span> <a href="https://polyhaven.com/a/empty_warehouse_01" target="_blank" rel="noreferrer">Empty Warehouse 01 · Sergej Majboroda / Poly Haven, CC0</a></p></footer>
   </main>
-  <script type="module" src="./js/replique.js?v=1.100.0"></script>
+  <script type="module" src="./js/replique.js?v=1.101.0"></script>
 </body>
 </html>

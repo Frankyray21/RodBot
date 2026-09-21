@@ -38,11 +38,11 @@ test('new mast meshes have finite geometry, unit normals and outward facing tria
   }
  }
 });
-test('mast geometry dependencies are complete and all external buffers are available offline',()=>{
- const sw=fs.readFileSync(path.join(__dirname,'../sw.js'),'utf8');
+test('archived V10 mast geometry retains complete local buffer dependencies',()=>{
+ // These files document the historical revision. Active offline coverage is
+ // checked from model-assets.js by sw.test.cjs, without precaching archives.
  for(const [i,b]of model.buffers.entries()){
   assert.equal(buffers[i].length,b.byteLength);
-  if(!b.uri.startsWith('data:'))assert.ok(sw.includes("'./3d/assets/"+b.uri+"'"));
  }
  for(const v of model.bufferViews)assert.ok((v.byteOffset||0)+v.byteLength<=buffers[v.buffer].length);
 });

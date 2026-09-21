@@ -134,7 +134,7 @@ test('activation deletes only old RodBot caches', async () => {
 test('3d controls and animations load offline immediately after installation', async () => {
   const h = harness();
   await h.lifecycle('install');
-  for (const file of ['3d/css/viewer.css', '3d/css/training.css', '3d/js/viewer-v5.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots-v6.js', '3d/js/training-ui.js', '3d/js/simulation-state.js', '3d/js/hero-v6.js', '3d/js/model-assets.js', '3d/vendor/model-viewer-4.3.1.min.js', '3d/vendor/draco/draco_wasm_wrapper.js']) {
+  for (const file of ['3d/css/viewer.css', '3d/css/training.css', '3d/js/viewer-v5.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots-v11.js', '3d/js/training-ui.js', '3d/js/simulation-state.js', '3d/js/hero-v6.js', '3d/js/model-assets.js', '3d/vendor/model-viewer-4.3.1.min.js', '3d/vendor/draco/draco_wasm_wrapper.js']) {
     assert.ok(h.precached.includes(BASE + file), `${file} must be precached`);
     const response = await h.request(`${file}?v=1.61.0`);
     assert.equal(await response.text(), `core:./${file}`);
@@ -366,26 +366,50 @@ test('le téléchargement annonce son avancement aux pages et ETAT répond au de
   assert.ok(h.networkCalls.includes(BASE + hdr), 'son éclairage est tenté aussi');
 });
 
-test('le modèle 3D fait partie du contenu téléchargé par défaut', async () => {
+test('le modèle actif GLB ou glTF et ses dépendances sont téléchargés par défaut', async () => {
   // Sous terre, l'atelier 3D doit marcher comme le reste : rien à demander.
-  const glb = './3d/assets/' + assetName('MODEL_URL');
+  const modelFile = './3d/assets/' + assetName('MODEL_URL');
   const hdr = './3d/assets/' + assetName('ENVIRONMENT_URL');
-  const model = JSON.parse(readFileSync(join(__dirname, '..', glb), 'utf8'));
-  const binaries = model.buffers.filter(b => !b.uri.startsWith('data:')).map(b => './3d/assets/' + b.uri);
+  const bytes = readFileSync(join(__dirname, '..', modelFile));
+  let model;
+  if (bytes.readUInt32LE(0) === 0x46546c67) {
+    assert.equal(bytes.readUInt32LE(4), 2, 'version du conteneur GLB');
+    assert.equal(bytes.readUInt32LE(8), bytes.length, 'conteneur GLB complet');
+    for (let offset = 12; offset < bytes.length;) {
+      const length = bytes.readUInt32LE(offset), type = bytes.readUInt32LE(offset + 4);
+      assert.ok(offset + 8 + length <= bytes.length, 'bloc GLB complet');
+      if (type === 0x4e4f534a) model = JSON.parse(bytes.subarray(offset + 8, offset + 8 + length).toString('utf8').trim());
+      offset += 8 + length;
+    }
+  } else model = JSON.parse(bytes.toString('utf8'));
+  assert.ok(model, 'document glTF du modèle actif');
+  // Embedded GLB buffers and data URIs need no extra requests. External
+  // geometry or textures must resolve beside the model, under /RodBot/.
+  const dependencies = [...new Set([...(model.buffers || []), ...(model.images || [])]
+    .map(item => item.uri).filter(uri => uri && !uri.startsWith('data:'))
+    .map(uri => {
+      const url = new URL(uri, new URL(modelFile, BASE));
+      assert.ok(url.href.startsWith(BASE), 'dépendance locale au projet : ' + uri);
+      return './' + url.href.slice(BASE.length);
+    }))];
   const declared = source.match(/const MODELE_3D = \[([^\]]+)\]/)[1];
-  for (const file of [glb, hdr, ...binaries]) {
+  const activeFiles = [modelFile, hdr, ...dependencies];
+  for (const file of activeFiles) {
     assert.ok(declared.includes("'" + file + "'"), 'ressource 3D déclarée : ' + file);
   }
+  const declaredFiles = [...declared.matchAll(/'([^']+)'/g)].map(match => match[1]);
+  assert.deepEqual(new Set(declaredFiles), new Set(activeFiles), 'aucune archive de modèle dans le téléchargement actif');
   assert.ok(source.includes('.concat(POLICES).concat(MODELE_3D);'),
     'et ajoutés à la liste téléchargée par défaut');
   assert.ok(!/OPTIONNEL|listeContenu|toutDemande/.test(source),
     'plus de contenu optionnel ni de demande séparée');
   const h = harness();
-  h.network.set(BASE + glb.slice(2), new Response('glb'));
+  h.network.set(BASE + modelFile.slice(2), new Response('model'));
   h.network.set(BASE + hdr.slice(2), new Response('hdr'));
-  for (const file of binaries) h.network.set(BASE + file.slice(2), new Response('geometry'));
+  for (const file of dependencies) h.network.set(BASE + file.slice(2), new Response('dependency'));
   await h.lifecycle('activate');
-  assert.equal(await (await h.request(glb.slice(2))).text(), 'glb', 'servi hors ligne après activation');
+  h.network.clear();
+  assert.equal(await (await h.request(modelFile.slice(2))).text(), 'model', 'servi hors ligne après activation');
   assert.equal(await (await h.request(hdr.slice(2))).text(), 'hdr');
-  for (const file of binaries) assert.equal(await (await h.request(file.slice(2))).text(), 'geometry');
+  for (const file of dependencies) assert.equal(await (await h.request(file.slice(2))).text(), 'dependency');
 });

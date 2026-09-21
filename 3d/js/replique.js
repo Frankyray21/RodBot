@@ -1,15 +1,30 @@
 /* Camera positions and independent clips match the shared training model. */
 import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js';
+import { VUES, hotspotById } from './hotspots-v11.js';
+const cameraView = (key, view) => ({
+  key,
+  orbit: `${view.yaw}deg ${90 - view.pitch}deg ${view.dist}m`,
+  target: view.target.map(value => `${value}m`).join(' ')
+});
+// The tripod view uses the same reference as the remote, with room for its legs.
+const tripodView = VUES.tripod || {
+  ...VUES.remote,
+  pitch: 20,
+  dist: Math.max(3.8, VUES.remote.dist),
+  target: VUES.remote.target.map((value, axis) => axis === 1 ? value - 0.62 : value)
+};
 export const VIEWS = [
-  { key: 'overview', orbit: '-35deg 70deg 110%' },
-  { key: 'profile', orbit: '0deg 80deg 110%' },
-  { key: 'basket', orbit: '140deg 64deg 110%' },
-  { key: 'screen', orbit: '210deg 75deg 55%', target: '-1.015m 1.217m -0.61m' },
-  { key: 'frontLevers', orbit: '-100deg 75deg 45%', target: '-1.45m 1.137m 0m' },
-  { key: 'sideLevers', orbit: '0deg 75deg 45%', target: '-1.02m 1.047m 0.66m' },
-  { key: 'remote', orbit: '-30deg 65deg 1.5m', target: '-2.30m 1.442m 1.464m' },
-  { key: 'tripod', orbit: '-30deg 70deg 3.8m', target: '-2.30m 0.822m 1.598m' },
-  { key: 'roger', orbit: '155deg 76deg 2.6m', target: '0.2692m 0.869m -0.727m' }
+  cameraView('overview', VUES.home),
+  cameraView('profile', VUES.profil),
+  cameraView('basket', VUES.arriere),
+  cameraView('screen', hotspotById('elec').view),
+  cameraView('frontLevers', hotspotById('front-levers').view),
+  cameraView('sideLevers', hotspotById('side-levers').view),
+  cameraView('remote', VUES.remote),
+  cameraView('tripod', tripodView),
+  cameraView('roger', VUES.roger),
+  cameraView('hydraulique', VUES.hydraulique),
+  cameraView('distributeurs', VUES.distributeurs)
 ];
 export const MOTIONS = [
   { id: 'turret', clip: 'Rotation_tourelle', min: -35, max: 35, initial: 0, unit: '°', reverse: false },
@@ -35,6 +50,7 @@ const TEXT = {
     errorModule: 'Recharge la page pour réessayer.', retry: 'Réessayer', controlsLabel: 'Commandes de visualisation',
     explore: 'Explore la machine', gesture: 'Glisse pour tourner. Pince ou utilise la molette pour zoomer.',
     views: 'Angles de vue', overview: 'Vue d’ensemble', profile: 'Profil', basket: 'Côté panier', screen: 'Écran opérateur', frontLevers: 'Leviers frontaux', sideLevers: 'Leviers latéraux', remote: 'Télécommande', tripod: 'Trépied', roger: 'Machines Roger', free: 'Vue libre',
+    hydraulique: 'Vérin et raccords', distributeurs: 'Distributeurs',
     articulate: 'Articuler le modèle', motionHelp: 'Déplace les curseurs pour observer les articulations.', motionsLabel: 'Mouvements du modèle',
     turret: 'Orientation de la tourelle', arm: 'Levée du bras', wrist: 'Inclinaison de la pince', tool: 'Rotation de la pince', grip: 'Ouverture de la pince', jacks: 'Déploiement des jacks',
     initialPose: 'Position initiale', motionNote: 'Amplitudes estimées pour la visualisation. Les mouvements peuvent être combinés.', motionUnavailable: 'Les mouvements sont indisponibles. Recharge la page pour réessayer.',
@@ -53,6 +69,7 @@ const TEXT = {
     errorModule: 'Reload the page to try again.', retry: 'Try again', controlsLabel: 'Viewing controls',
     explore: 'Explore the machine', gesture: 'Drag to rotate. Pinch or use the scroll wheel to zoom.',
     views: 'Camera views', overview: 'Overview', profile: 'Side view', basket: 'Rod basket', screen: 'Operator display', frontLevers: 'Front levers', sideLevers: 'Side levers', remote: 'Remote control', tripod: 'Tripod', roger: 'Machines Roger', free: 'Free view',
+    hydraulique: 'Cylinder and fittings', distributeurs: 'Valve banks',
     articulate: 'Move the model', motionHelp: 'Move the sliders to explore the joints.', motionsLabel: 'Model movements',
     turret: 'Turret orientation', arm: 'Arm elevation', wrist: 'Gripper tilt', tool: 'Gripper rotation', grip: 'Gripper opening', jacks: 'Jack extension',
     initialPose: 'Initial position', motionNote: 'Estimated ranges for visualization. Movements can be combined.', motionUnavailable: 'Movements are unavailable. Reload the page to try again.',
@@ -131,7 +148,7 @@ function applyPose(values) {
   model.timeScale = 0;
   model.animationCrossfadeDuration = 0;
   for (const motion of MOTIONS) {
-    model.appendAnimation(motion.clip, { time: motionTime(motion, values[motion.id]), timeScale: 0, weight: 1, fade: false });
+    model.appendAnimation(motion.clip, { time: motionTime(motion, values[motion.id]), timeScale: 0, weight: 1, fade: false, repetitions: '1' });
   }
   const generation = ++poseGeneration;
   requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -176,7 +193,7 @@ function fail(key) {
 
 // Build accessible controls once. Language changes preserve the current pose and focus.
 for (let index = 0; index < VIEWS.length; index++) {
-  if (index === 6 || index === 8) continue;
+  if (document.querySelector(`[data-view="${index}"]`)) continue;
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'button view-button';
@@ -228,7 +245,7 @@ $('play').addEventListener('click', () => {
   if (playing) model.pause();
   else {
     model.cameraOrbit = VIEWS[0].orbit;
-    model.cameraTarget = 'auto auto auto';
+    model.cameraTarget = VIEWS[0].target;
     activeView = 0;
     model.timeScale = 1;
     model.play();
@@ -254,8 +271,7 @@ model.addEventListener('load', () => {
   $('loadPercent').textContent = '100 %';
   hasAnimation = model.availableAnimations.includes('Presentation_360');
   canArticulate = MOTIONS.every(motion => model.availableAnimations.includes(motion.clip));
-  applyPose(pose);
-  refreshState();
+  setView(0);
 });
 model.addEventListener('progress', event => {
   const value = Math.max(0, Math.min(100, Math.round((event.detail?.totalProgress || 0) * 100)));

@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.100.0';
+const CACHE = 'rodbot-formation-v1.101.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -16,7 +16,7 @@ const CORE = [
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './3d/index.html', './3d/css/styles.css', './3d/css/viewer.css',
   './3d/css/training.css', './3d/css/component-popup.css', './3d/js/viewer-v5.js', './3d/js/motion.js', './3d/js/tour.js',
-  './3d/js/hotspots-v6.js', './3d/js/hero-v6.js', './3d/js/model-assets.js',
+  './3d/js/hotspots-v11.js', './3d/js/hero-v6.js', './3d/js/model-assets.js',
   './3d/js/training-ui.js', './3d/js/simulation-state.js',
   './3d/replique.html', './3d/fidelite.html', './3d/js/replique.js', './3d/css/replique.css',
   './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js',
@@ -56,20 +56,19 @@ const POLICES = [
   './fonts/heebo-900-latin.woff2'
 ];
 
-/* La réplique 3D articulée (27 Mo) et son éclairage font partie du contenu
+/* La réplique 3D articulée et son éclairage font partie du contenu
    téléchargé par défaut depuis la 1.95.0 : l'atelier 3D doit marcher sous terre
    comme le reste, sans que l'opérateur ait à demander quoi que ce soit. */
-const MODELE_3D = ['./3d/assets/rodbot-v10-mast-details.gltf', './3d/assets/rodbot-v10-mast-details.bin', './3d/assets/rodbot-v9-rear.bin', './3d/assets/rodbot-v6-c9499d45.glb', './3d/assets/warehouse-v5.hdr'];
+const MODELE_3D = ['./3d/assets/rodbot-v11-466c9f7f.glb', './3d/assets/warehouse-v5.hdr'];
 
 /* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
-   La réplique articulée et son éclairage sont chargés à la demande, puis conservés
-   par fetch. Le GLB n'alourdit pas l'installation initiale de la formation.
+   La réplique articulée et son éclairage sont aussi conservés pour le terrain.
    Tout est téléchargé en arrière-plan à l'installation, par petits lots,
    avec reprise automatique (voir precacherTout). */
 const PRECACHE = [
   './3d/assets/manuel/p12.jpg', './3d/assets/manuel/p13.jpg', './3d/assets/manuel/p14.jpg', './3d/assets/manuel/p21.jpg', './3d/assets/manuel/p47.jpg', './3d/assets/manuel/p51.jpg',
   './3d/assets/manuel/p52.jpg', './3d/assets/manuel/p55.jpg', './3d/assets/manuel/p65.jpg', './3d/assets/photos/manette.jpg',
-  './3d/vendor/draco/draco_decoder.wasm', './3d/vendor/draco/draco_decoder.js', './3d/assets/rodbot-v10-mast-poster.jpg', './evaluation-risques.pdf',
+  './3d/vendor/draco/draco_decoder.wasm', './3d/vendor/draco/draco_decoder.js', './3d/assets/rodbot-v11-poster.jpg', './evaluation-risques.pdf',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './img/directions-manettes.webp', './img/eq-hmi.png', './img/eq-labeled.png',
   './img/eq-machine-real.png', './img/eq-machine.png', './img/eq-panel.png', './img/eq-track.png', './img/eq-transport.png', './img/fig-en/p07.jpg',
   './img/fig-en/p10.jpg', './img/fig-en/p11.jpg', './img/fig-en/p13.jpg', './img/fig-en/p14.jpg', './img/fig-en/p15.jpg', './img/fig-en/p16.jpg',
@@ -169,7 +168,7 @@ function precacherTout() {
       return;
     }
     await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: true });
-    // Le modèle 3D pèse 27 Mo : seul dans son lot, il ne bloque pas le reste.
+    // Le modèle 3D est conservé avec les autres ressources de formation.
     const LOT = 5;
     for (let i = 0; i < manquants.length; i += LOT) {
       const resultats = await Promise.allSettled(manquants.slice(i, i + LOT).map(async (url) => {
@@ -260,7 +259,7 @@ async function offlineResponse(key, isHome) {
 }
 
 /* Requêtes de contenu déjà en vol, par URL. Deux lecteurs 3D peuvent demander
-   le même modèle de 27 Mo en même temps : sans ça, les deux ratent le cache et
+   le même modèle en même temps : sans ça, les deux ratent le cache et
    la tablette télécharge tout en double. */
 const EN_VOL = new Map();
 
