@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.99.0';
+const CACHE = 'rodbot-formation-v1.100.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -59,7 +59,7 @@ const POLICES = [
 /* La réplique 3D articulée (27 Mo) et son éclairage font partie du contenu
    téléchargé par défaut depuis la 1.95.0 : l'atelier 3D doit marcher sous terre
    comme le reste, sans que l'opérateur ait à demander quoi que ce soit. */
-const MODELE_3D = ['./3d/assets/rodbot-v9-rear.gltf', './3d/assets/rodbot-v9-rear.bin', './3d/assets/rodbot-v6-c9499d45.glb', './3d/assets/warehouse-v5.hdr'];
+const MODELE_3D = ['./3d/assets/rodbot-v10-mast-details.gltf', './3d/assets/rodbot-v10-mast-details.bin', './3d/assets/rodbot-v9-rear.bin', './3d/assets/rodbot-v6-c9499d45.glb', './3d/assets/warehouse-v5.hdr'];
 
 /* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
    La réplique articulée et son éclairage sont chargés à la demande, puis conservés
@@ -69,7 +69,7 @@ const MODELE_3D = ['./3d/assets/rodbot-v9-rear.gltf', './3d/assets/rodbot-v9-rea
 const PRECACHE = [
   './3d/assets/manuel/p12.jpg', './3d/assets/manuel/p13.jpg', './3d/assets/manuel/p14.jpg', './3d/assets/manuel/p21.jpg', './3d/assets/manuel/p47.jpg', './3d/assets/manuel/p51.jpg',
   './3d/assets/manuel/p52.jpg', './3d/assets/manuel/p55.jpg', './3d/assets/manuel/p65.jpg', './3d/assets/photos/manette.jpg',
-  './3d/vendor/draco/draco_decoder.wasm', './3d/vendor/draco/draco_decoder.js', './3d/assets/rodbot-v9-rear-poster.jpg', './evaluation-risques.pdf',
+  './3d/vendor/draco/draco_decoder.wasm', './3d/vendor/draco/draco_decoder.js', './3d/assets/rodbot-v10-mast-poster.jpg', './evaluation-risques.pdf',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './img/directions-manettes.webp', './img/eq-hmi.png', './img/eq-labeled.png',
   './img/eq-machine-real.png', './img/eq-machine.png', './img/eq-panel.png', './img/eq-track.png', './img/eq-transport.png', './img/fig-en/p07.jpg',
   './img/fig-en/p10.jpg', './img/fig-en/p11.jpg', './img/fig-en/p13.jpg', './img/fig-en/p14.jpg', './img/fig-en/p15.jpg', './img/fig-en/p16.jpg',
