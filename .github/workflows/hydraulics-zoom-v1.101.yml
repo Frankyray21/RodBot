@@ -7,11 +7,11 @@ permissions:
   contents: write
 concurrency:
   group: rodbot-hydraulics-zoom-v1.101
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,10 +37,10 @@ jobs:
           const dir='3d/assets';
           v.validateString(fs.readFileSync(path.join(dir,'rodbot-v11-hydraulics.gltf'),'utf8'),{
             externalResourceFunction:uri=>Promise.resolve(new Uint8Array(fs.readFileSync(path.join(dir,uri))))
-          }).then(result=>{fs.writeFileSync('validation/gltf.json',JSON.stringify(result,null,2));console.log(result.issues);if(result.issues.numErrors)process.exitCode=1;});
+          }).then(result=>{fs.writeFileSync('validation/gltf.json',JSON.stringify(result,null,2));console.log({errors:result.issues.numErrors,warnings:result.issues.numWarnings});if(result.issues.numErrors)process.exitCode=1;});
           JS
       - name: Render and verify real browser controls
-        run: node scripts/validate-hoses-zoom-browser.cjs
+        run: timeout --kill-after=5s 150s node scripts/validate-hoses-zoom-browser.cjs
       - name: Commit validated build to review branch only
         run: |
           git config user.name 'github-actions[bot]'
