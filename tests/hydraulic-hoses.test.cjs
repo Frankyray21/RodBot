@@ -74,8 +74,9 @@ test('active model, its external buffers and precision zoom are included in offl
  });
  for(const v of active.document.bufferViews)assert.ok((v.byteOffset||0)+v.byteLength<=active.document.buffers[v.buffer].byteLength);
 });
-test('active GLB preserves the exact new hose pair under the cylinder and all prior animation samples',()=>{
+test('active GLB preserves its hydraulic pair and independent animation contracts',async()=>{
  const active=activeAsset(),g=active.document;
+ if(path.basename(active.file).startsWith('rodbot-v16'))return validateV16Hydraulics(active);
  assert.match(active.file,/\.glb$/i,'the runtime uses the standalone GLB');
  const id=g.nodes.findIndex(n=>n.name==='MESH_LIFT_BASE_V11_HOSE_PAIR');assert.ok(id>=0,'new hydraulic pair is present in the actual runtime binary');
  const pair=g.nodes[id];assert.equal(pair.extras?.source_group,'MAST_V11_Cylinder_hose_pair');
@@ -99,3 +100,126 @@ test('active GLB preserves the exact new hose pair under the cylinder and all pr
  for(const a of g.animations)for(const s of a.samplers)for(const i of [s.input,s.output])hash.update(accessorBytes(g,active.data,i));
  assert.equal(hash.digest('hex'),'b033691055a046be07a102a27c13f94217895a09647c118e82abffdaf9957fcd','hose port leaves all animation metadata and binary samples unchanged');
 });
+
+// V16 is regrouped by parent/material and Draco reorders vertices. Check the
+// decoded geometry and semantic channel targets, never former mesh indices.
+async function validateV16Hydraulics(active){
+ const g=active.document;
+ assert.match(active.file,/\.glb$/i,'V16 is a standalone GLB');
+ const names=new Map();
+ g.nodes.forEach((n,i)=>{if(n.name){assert.ok(!names.has(n.name),'unique node name '+n.name);names.set(n.name,i);}});
+ const base=names.get('HYD_LIFT_BASE');assert.notEqual(base,undefined);
+ const pairs=g.nodes.map((n,i)=>({n,i})).filter(({n})=>n.extras?.source_group==='MAST_V11_Cylinder_hose_pair');
+ const reference=model.meshes[node.mesh].primitives;
+ const materialNames=reference.map(p=>model.materials[p.material].name);
+ assert.equal(pairs.length,3,'one V16 mesh for each of the three source materials');
+ assert.deepEqual(pairs.map(({n})=>n.extras.material_source_name).sort(),[...materialNames].sort());
+ const decoder=await require('../3d/vendor/draco/draco_decoder.js')();
+ for(const {n,i} of pairs){
+  assert.ok(g.nodes[base].children.includes(i),'hydraulic mesh directly follows HYD_LIFT_BASE');
+  assert.equal(n.matrix,undefined);
+  assert.deepEqual(n.translation||[0,0,0],[0,0,0]);
+  assert.deepEqual(n.rotation||[0,0,0,1],[0,0,0,1]);
+  assert.deepEqual(n.scale||[1,1,1],[1,1,1]);
+  assert.ok(Number.isInteger(n.mesh)&&g.meshes[n.mesh],'source-group marker has real geometry');
+  const primitives=g.meshes[n.mesh].primitives;
+  assert.equal(primitives.length,1,'export groups one material per mesh');
+  const p=primitives[0],expected=reference.find(q=>model.materials[q.material].name===n.extras.material_source_name);
+  assert.ok(expected,'known photographic source material');
+  assert.ok(g.materials[p.material],'runtime material remains assigned');
+  const geometry=decodeV16Primitive(decoder,g,active.data,p);
+  const original=read(expected.attributes.POSITION);
+  // The pair is imported in cylinder-local metres without rescaling. A 1 mm
+  // envelope tolerance allows the configured 16-bit positional quantization.
+  for(let axis=0;axis<3;axis++){
+   const expectedAxis=original.filter((_,j)=>j%3===axis),actualAxis=geometry.positions.filter((_,j)=>j%3===axis);
+   for(const extent of [Math.min,Math.max])assert.ok(Math.abs(extent(...actualAxis)-extent(...expectedAxis))<.001,n.extras.material_source_name+' retains its cylinder-local envelope');
+  }
+ }
+ validateV16Controls(g,active.data);
+}
+
+function decodeV16Primitive(d,g,data,p){
+ assert.equal(p.mode??4,4,'triangle primitive');
+ const ext=p.extensions?.KHR_draco_mesh_compression;assert.ok(ext,'V16 hydraulic geometry is actually Draco-compressed');
+ const view=g.bufferViews[ext.bufferView];assert.ok(view);
+ const raw=data[view.buffer].subarray(view.byteOffset||0,(view.byteOffset||0)+view.byteLength);
+ assert.equal(raw.length,view.byteLength,'complete compressed payload');
+ const decoder=new d.Decoder(),input=new d.DecoderBuffer(),mesh=new d.Mesh(),values=new d.DracoFloat32Array(),face=new d.DracoInt32Array();
+ let status;
+ try{
+  input.Init(new Int8Array(raw),raw.length);status=decoder.DecodeBufferToMesh(input,mesh);assert.ok(status.ok(),'Draco decode succeeds');
+  assert.ok(mesh.num_points()>0&&mesh.num_faces()>0,'non-empty hydraulic mesh');
+  const attributes={};
+  for(const key of ['POSITION','NORMAL']){
+   assert.ok(Number.isInteger(ext.attributes[key]),key+' Draco attribute');
+   const attribute=decoder.GetAttributeByUniqueId(mesh,ext.attributes[key]);
+   assert.equal(attribute.num_components(),3,key+' has three components');
+   assert.ok(decoder.GetAttributeFloatForAllPoints(mesh,attribute,values));
+   const result=Array.from({length:values.size()},(_,i)=>values.GetValue(i));
+   assert.equal(result.length,mesh.num_points()*3);
+   assert.ok(result.every(Number.isFinite),key+' finite after decoding');attributes[key]=result;
+  }
+  assert.equal(g.accessors[p.attributes.POSITION].count,mesh.num_points(),'accessor describes the decoded mesh');
+  assert.equal(g.accessors[p.indices].count,mesh.num_faces()*3);
+  const pos=attributes.POSITION,normals=attributes.NORMAL;let nondegenerate=0;
+  for(let i=0;i<normals.length;i+=3)assert.ok(Math.abs(Math.hypot(...normals.slice(i,i+3))-1)<.005,'decoded unit normal');
+  for(let i=0;i<mesh.num_faces();i++){
+   assert.ok(decoder.GetFaceFromMesh(mesh,i,face));
+   const ids=[0,1,2].map(j=>face.GetValue(j));assert.ok(ids.every(id=>id>=0&&id<mesh.num_points()),'decoded indices in range');
+   const [a,b,c]=ids.map(id=>pos.slice(id*3,id*3+3)),u=b.map((v,j)=>v-a[j]),v=c.map((x,j)=>x-a[j]);
+   if(Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])>1e-12)nondegenerate++;
+  }
+  assert.ok(nondegenerate>0,'decoded geometry contains actual surface triangles');
+  return {positions:pos};
+ }finally{if(status)d.destroy(status);d.destroy(face);d.destroy(values);d.destroy(mesh);d.destroy(input);d.destroy(decoder);}
+}
+
+function validateV16Controls(g,data){
+ // Names and paths below are the public rig contract used by the V16 sampled
+ // clip injector and viewer. Numeric node/accessor indices may change freely.
+ const tracks={
+  Presentation_360:['CTRL_EQUIPMENT:rotation'],
+  Rotation_tourelle:['CTRL_TURRET_Z:rotation'],
+  Elevation_bras:['CTRL_SHOULDER_Y:rotation','HYD_LIFT_BASE:rotation','HYD_LIFT_ROD:scale'],
+  Inclinaison_pince:['CTRL_WRIST_Y:rotation'],Rotation_pince:['CTRL_GRIPPER_Z:rotation'],
+  Ouverture_pince:['CTRL_JAW_LEFT_X:rotation','CTRL_JAW_RIGHT_X:rotation'],
+  Stabilisateurs:['AVD','AVG','ARD','ARG'].map(s=>'CTRL_JACK_'+s+':translation'),
+  Ouvrir_panneau:['CTRL_HMI_DOOR:rotation'],Selection_commande:['CTRL_HMI_SOURCE:rotation']
+ };
+ for(const [bank,count] of [['front',7],['side',5]])for(let i=1;i<=count;i++){
+  const number=String(i).padStart(2,'0');tracks['SIM_'+bank+number]=['CTRL_PANEL_'+bank.toUpperCase()+'_'+number+':rotation'];
+ }
+ for(const [key,target] of Object.entries({js1x:'SIM_JS1_ROLL',js1y:'SIM_JS1_PITCH',js2:'SIM_JS2',js3x:'SIM_JS3_ROLL',js3y:'SIM_JS3_PITCH'}))tracks['SIM_'+key]=[target+':rotation'];
+ for(const key of ['u1','u2','u3','u4','grip','rearm','start','mode_linear','mode_direct','mode_standby'])tracks['SIM_press_'+key]=['SIM_PRESS_'+key.toUpperCase()+':translation'];
+ const expectedControls=new Set([...Object.values(tracks).flat().map(s=>s.split(':')[0]),'CTRL_BASKET','HYD_LIFT_TIP','HYD_LIFT_SLEEVE','PROP_REMOTE_STATION',...Array.from({length:7},(_,i)=>'PROP_ROD_'+String(i+1).padStart(2,'0'))]);
+ assert.equal(expectedControls.size,53,'53 semantic control nodes in the pipeline');
+ const controls=g.nodes.filter(n=>/^(CTRL_|HYD_|SIM_|PROP_)/.test(n.name));
+ assert.deepEqual(controls.map(n=>n.name).sort(),[...expectedControls].sort(),'all 53 controls survive export');
+ for(const n of controls){assert.equal(n.mesh,undefined,n.name+' remains an independent pivot');assert.ok(Array.isArray(n.extras?.pivot_world_rest_m)&&n.extras.pivot_world_rest_m.length===3&&n.extras.pivot_world_rest_m.every(Number.isFinite),n.name+' retains rest-pivot metadata');}
+ assert.deepEqual(g.animations.map(a=>a.name).sort(),Object.keys(tracks).sort(),'all 36 named clips survive injection');
+ const occupied=new Set();
+ for(const animation of g.animations){
+  const actual=animation.channels.map(channel=>{
+   const target=g.nodes[channel.target.node];assert.ok(target,'animation target exists');
+   const key=target.name+':'+channel.target.path;assert.ok(!occupied.has(key),'independent animated property '+key);occupied.add(key);
+   const sampler=animation.samplers[channel.sampler];assert.ok(sampler);
+   const timesAcc=g.accessors[sampler.input],valuesAcc=g.accessors[sampler.output];
+   assert.equal(timesAcc.componentType,5126);assert.equal(timesAcc.type,'SCALAR');
+   assert.equal(valuesAcc.componentType,5126);assert.equal(valuesAcc.type,channel.target.path==='rotation'?'VEC4':'VEC3');
+   assert.equal(timesAcc.count,valuesAcc.count);assert.ok(timesAcc.count>=2);
+   const floats=index=>{const bytes=accessorBytes(g,data,index);return Array.from({length:bytes.length/4},(_,i)=>bytes.readFloatLE(i*4));};
+   const times=floats(sampler.input),values=floats(sampler.output),width=valuesAcc.type==='VEC4'?4:3;
+   assert.ok(times.every((t,i)=>Number.isFinite(t)&&(i===0||t>times[i-1])),'strict finite sample times');
+   assert.ok(values.every(Number.isFinite),'finite animation samples');
+   if(animation.name!=='Presentation_360'){
+    assert.equal(sampler.interpolation,'LINEAR');assert.equal(times[0],0);
+    assert.ok(Math.abs(times.at(-1)-1.05)<1e-6,'injected endpoint hold at 1.05 seconds');
+    assert.ok(Math.abs(times.at(-2)-1)<1e-6);
+    assert.deepEqual(values.slice(-width),values.slice(-2*width,-width),'hold repeats the full endpoint');
+   }
+   return key;
+  });
+  assert.deepEqual(actual.sort(),[...tracks[animation.name]].sort(),animation.name+' keeps its semantic targets');
+ }
+}
