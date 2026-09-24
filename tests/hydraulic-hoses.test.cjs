@@ -76,6 +76,7 @@ test('active model, its external buffers and precision zoom are included in offl
 });
 test('active GLB preserves its hydraulic pair and independent animation contracts',async()=>{
  const active=activeAsset(),g=active.document;
+ if(path.basename(active.file).startsWith('rodbot-v17'))return validateV17Hydraulics(active);
  if(path.basename(active.file).startsWith('rodbot-v16'))return validateV16Hydraulics(active);
  assert.match(active.file,/\.glb$/i,'the runtime uses the standalone GLB');
  const id=g.nodes.findIndex(n=>n.name==='MESH_LIFT_BASE_V11_HOSE_PAIR');assert.ok(id>=0,'new hydraulic pair is present in the actual runtime binary');
@@ -100,6 +101,37 @@ test('active GLB preserves its hydraulic pair and independent animation contract
  for(const a of g.animations)for(const s of a.samplers)for(const i of [s.input,s.output])hash.update(accessorBytes(g,active.data,i));
  assert.equal(hash.digest('hex'),'b033691055a046be07a102a27c13f94217895a09647c118e82abffdaf9957fcd','hose port leaves all animation metadata and binary samples unchanged');
 });
+
+// V17 changes the hose routing towards the cylinder foot. Keep the three
+// photographic material groups and rig contract, but do not compare positions
+// to the old upward loops. Additional V17 plastic spirals are separate meshes.
+async function validateV17Hydraulics(active){
+ const g=active.document;
+ assert.match(active.file,/\.glb$/i,'V17 is a standalone GLB');
+ const names=new Map();
+ g.nodes.forEach((n,i)=>{if(n.name){assert.ok(!names.has(n.name),'unique node name '+n.name);names.set(n.name,i);}});
+ const base=names.get('HYD_LIFT_BASE');assert.notEqual(base,undefined,'cylinder pivot remains available');
+ const pairs=g.nodes.map((n,i)=>({n,i})).filter(({n})=>n.extras?.source_group==='MAST_V11_Cylinder_hose_pair');
+ const materialNames=model.meshes[node.mesh].primitives.map(p=>model.materials[p.material].name);
+ assert.equal(pairs.length,3,'three revised hose groups, independent of the added plastic spirals');
+ assert.deepEqual(pairs.map(({n})=>n.extras.material_source_name).sort(),[...materialNames].sort(),'original hydraulic material identities remain');
+ const decoder=await require('../3d/vendor/draco/draco_decoder.js')();
+ for(const {n,i} of pairs){
+  assert.ok(g.nodes[base].children?.includes(i),'revised hydraulic mesh directly follows HYD_LIFT_BASE');
+  assert.equal(n.matrix,undefined);
+  assert.deepEqual(n.translation||[0,0,0],[0,0,0]);
+  assert.deepEqual(n.rotation||[0,0,0,1],[0,0,0,1]);
+  assert.deepEqual(n.scale||[1,1,1],[1,1,1]);
+  assert.ok(Number.isInteger(n.mesh)&&g.meshes[n.mesh],'source-group marker has real geometry');
+  const primitives=g.meshes[n.mesh].primitives;
+  assert.equal(primitives.length,1,'one source material per exported group');
+  assert.ok(g.materials[primitives[0].material],'revised mesh retains a runtime material');
+  // Shared reader verifies the actual compressed positions/normals/triangles,
+  // complete payload, finite coordinates, index bounds and nonempty surfaces.
+  decodeV16Primitive(decoder,g,active.data,primitives[0]);
+ }
+ validateV16Controls(g,active.data);
+}
 
 // V16 is regrouped by parent/material and Draco reorders vertices. Check the
 // decoded geometry and semantic channel targets, never former mesh indices.

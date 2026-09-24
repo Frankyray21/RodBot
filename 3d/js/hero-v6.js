@@ -1,5 +1,5 @@
 import { ModelViewerElement } from '../vendor/model-viewer-4.3.1.min.js';
-import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js?v=1.103.0';
+import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js?v=1.104.0';
 
 // A live presentation of the same articulated model used in the exercises.
 // Its camera moves; the machine never slides relative to the workshop floor.
