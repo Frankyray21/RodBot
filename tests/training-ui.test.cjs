@@ -10,7 +10,7 @@ const uiSource = fs.readFileSync(path.join(__dirname, '../3d/js/training-ui.js')
 const stateSource = fs.readFileSync(path.join(__dirname, '../3d/js/simulation-state.js'), 'utf8').replaceAll('export ', '');
 const event = (type, values = {}) => Object.assign(new Event(type, { cancelable: true }), values);
 
-function harness() {
+function harness({visible=true}={}) {
   const elements = [], callbacks = new Map(), viewerEvents = new Map();
   let now = 0, sequence = 0, focused = null;
   class Element extends EventTarget {
@@ -45,8 +45,9 @@ function harness() {
   document.hidden = false; document.createElement = () => new Element();
   Object.defineProperty(document,'activeElement',{get:()=>focused});
   const poseCalls = [], controlCalls = [], buttonCalls = [], accessCalls=[], hotspotCalls=[];
-  const accessPose={panel:0,source:0}, flyCalls=[];
+  const accessPose={panel:0,source:0}, flyCalls=[], flyAttempts=[];
   const viewer = {
+    get visible() {return visible;},
     on: (name, callback) => viewerEvents.set(name, callback),
     setPose: pose => poseCalls.push({ ...pose }), setControlPose: pose => controlCalls.push({ ...pose }),
     availableControlKeys:['front01','front02','front03','front04','front05','front06','front07','side01','side02','side03','side04','side05','js1x','js1y','js2','js3x','js3y'],
@@ -54,7 +55,11 @@ function harness() {
     setButtonPose:pose=>buttonCalls.push({...pose}),
     availableAccessKeys:['panel','source'],setAccessPose:pose=>{Object.assign(accessPose,pose);accessCalls.push({...accessPose});},
     resetPose() {}, setAutoRotate() {}, setHotspots:points=>hotspotCalls.push(Array.from(points,h=>h.id)), setHotspotsVisible() {},
-    home: () => Promise.resolve(true), flyTo: view => {flyCalls.push({...view});return Promise.resolve(true);}
+    home: () => Promise.resolve(true), flyTo: view => {
+      flyAttempts.push({...view});
+      if(!visible)return Promise.resolve(false);
+      flyCalls.push({...view});return Promise.resolve(true);
+    }
   };
   const context = vm.createContext({ document, window, console, performance: { now: () => now },
     requestAnimationFrame: callback => { callbacks.set(++sequence, callback); return sequence; },
@@ -75,7 +80,8 @@ function harness() {
     training.activate(exercise); byId('simClear').checked = true; byId('simClear').dispatchEvent(event('change'));
     click(byData('source', 'REMOTE')); click(byId('simRearm')); click(byData('mode', 'DIRECT')); step();
   };
-  return { training, byId, byData, click, press, release, step, ready, viewerEvents, window, document, poseCalls, controlCalls, buttonCalls,accessCalls,hotspotCalls,flyCalls,manualCalls };
+  const setVisible=value=>{visible=value;viewerEvents.get('visibility')?.(value);};
+  return { training, byId, byData, click, press, release, step, ready, viewerEvents, window, document, poseCalls, controlCalls, buttonCalls,accessCalls,hotspotCalls,flyCalls,flyAttempts,setVisible,manualCalls };
 }
 
 test('manual commands replacing the demo release its held arm command first', () => {
@@ -263,6 +269,51 @@ test('the popup closes before cabinet motion and explicit opening frames the doo
   assert.equal(h.byId('simSelected').open,false);
   h.step(3);assert.equal(h.flyCalls.at(-1).id,'panel-door');
   assert(h.accessCalls.at(-1).panel>0);
+  h.training.deactivate();
+});
+
+test('the cabinet deep link waits for viewer visibility and frames only once', () => {
+  const h=harness({visible:false});
+  h.training.activate('panel',{ouvrirCoffret:true});h.step(3);
+  assert.equal(h.flyAttempts.length,0,'flyTo would refuse an offscreen model');
+  h.setVisible(true);h.step();
+  assert.equal(h.flyAttempts.length,0,'the visible sidebar still gets two layout frames');
+  h.step();assert.deepEqual(h.flyCalls,[{id:'panel-door'}]);
+  assert(h.accessCalls.at(-1).panel>0,'the explicit deep link also opens the cabinet');
+  h.setVisible(false);const opening=h.accessCalls.at(-1).panel;h.step(4);
+  h.setVisible(true);h.step(4);
+  assert.equal(h.flyAttempts.length,1,'returning to the model never restarts its camera visit');
+  assert.equal(h.accessCalls.at(-1).panel,opening,'returning never resumes an interrupted door');
+  h.training.deactivate();
+});
+
+test('an initial cabinet view survives visibility settling between its two layout frames', () => {
+  const h=harness();h.training.activate('panel');h.step();
+  h.setVisible(false);h.step(3);
+  assert.equal(h.flyAttempts.length,0,'the delayed layout cannot send a rejected camera flight');
+  h.setVisible(true);h.step(2);
+  assert.deepEqual(h.flyCalls,[{id:'panel-door'}]);
+  h.training.deactivate();
+});
+
+test('user intervention or leaving the exercise cancels a cabinet view waiting for visibility', () => {
+  for(const cancel of [
+    h=>h.viewerEvents.get('interaction')(),
+    h=>h.window.dispatchEvent(event('blur')),
+    h=>{h.document.hidden=true;h.document.dispatchEvent(event('visibilitychange'));h.document.hidden=false;},
+    h=>h.training.deactivate(),
+    h=>h.training.activate('radio-points'),
+    h=>h.training.releaseAll()
+  ]) {
+    const h=harness({visible:false});h.training.activate('panel');h.step(3);
+    cancel(h);h.setVisible(true);h.step(3);
+    assert.equal(h.flyAttempts.length,0,'an abandoned camera request cannot resume later');
+    h.training.deactivate();
+  }
+  const h=harness();h.training.activate('panel');h.step();
+  h.viewerEvents.get('interaction')();h.step(2);
+  h.setVisible(false);h.setVisible(true);h.step(2);
+  assert.equal(h.flyAttempts.length,0,'user camera input also cancels the queued layout callback');
   h.training.deactivate();
 });
 

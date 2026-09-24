@@ -1,7 +1,8 @@
 /* Training renderer. Public model-viewer 4.3.1 APIs only.
    Existing page controls, component cards and camera tours keep their contract. */
 import { clamp, ease, nearestYaw, framingScale } from './motion.js';
-import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js';
+import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js?v=1.102.0';
+import { attachPrecisionZoom } from './precision-zoom.js?v=1.102.0';
 
 export const V5_MOTIONS = [
   { id: 'turret', clip: 'Rotation_tourelle', min: -35, max: 35, initial: 0 },
@@ -62,7 +63,7 @@ export const RodbotViewer = {
     let availableAccessKeys = [], accessPose = initialAccess();
     let frame = null, lastFrame = 0, projectionUntil = 0, flight = null;
     let points = [], showPoints = true, framing = 1, width = 1, height = 1;
-    let homeTarget = vector(opts.home?.target, [0, 1.25, 0]), loadingReject = null;
+    let homeTarget = vector(opts.home?.target, [0, 1.25, 0]), loadingReject = null, precision = null;
     const emit = (name, ...args) => events.get(name)?.forEach(fn => fn(...args));
     const listen = (node, name, fn, options) => {
       node.addEventListener(name, fn, options);
@@ -155,6 +156,7 @@ export const RodbotViewer = {
       if (flight || autoRotate || now < projectionUntil) requestFrame();
     }
     function flyTo(view = {}, duration = 1100) {
+      precision?.cancel();
       if (destroyed || !loaded || !visible) return Promise.resolve(false);
       cancelFlight(); setAutoRotate(false);
       const from = getView();
@@ -171,8 +173,7 @@ export const RodbotViewer = {
     }
     function zoom(factor) {
       if (!loaded || !Number.isFinite(factor) || factor <= 0) return;
-      const current = getView(); interact();
-      void flyTo({ ...current, dist: current.dist * factor }, 220);
+      precision?.zoomBy(factor);
     }
     function applyPose() {
       if (!loaded || !canArticulate || destroyed || !visible) return;
@@ -318,6 +319,7 @@ export const RodbotViewer = {
       if (destroyed) return;
       const box = model.getBoundingClientRect();
       if (!box.width || !box.height) return;
+      precision?.cancel();
       const before = getView(); width = box.width; height = box.height;
       framing = framingScale(width, height) / 1.15;
       if (loaded) {
@@ -342,13 +344,10 @@ export const RodbotViewer = {
       queueProjection();
     });
     listen(model, 'pointerdown', interact);
-    listen(model, 'wheel', interact, { passive: true });
     listen(model, 'keydown', event => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.key === 'Home') { event.preventDefault(); interact(); void flyTo({ ...homeView, target: homeTarget }, 900); }
-      else if (['+', '=', '-', '_'].includes(event.key)) {
-        event.preventDefault(); event.stopPropagation(); zoom(event.key === '-' || event.key === '_' ? 1.2 : 1 / 1.2);
-      } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) interact();
+      else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) interact();
     }, true);
     listen(model, 'progress', event => emit('progress', clamp(event.detail?.totalProgress || 0, 0, 1)));
     listen(model, 'error', event => {
@@ -368,6 +367,7 @@ export const RodbotViewer = {
       flyTo, home: (duration = 900) => flyTo({ ...homeView, target: homeTarget }, duration), cancelFlight,
       zoom, setAutoRotate, setQuality, setHotspots, updateHotspots,
       setHotspotsVisible(value) { showPoints = Boolean(value); queueProjection(); },
+      get visible() { return visible; },
       getView, setPose, getPose: () => ({ ...pose }), resetPose,
       setControlPose, getControlPose: () => ({ ...controlPose }),
       setButtonPose, getButtonPose: () => ({ ...buttonPose }),
@@ -391,6 +391,8 @@ export const RodbotViewer = {
       model.cameraControls = true; model.autoRotate = false; model.autoplay = false;
       model.animationName = 'Presentation_360'; model.animationCrossfadeDuration = 0;
       model.timeScale = 0; model.interpolationDecay = 50;
+      precision = attachPrecisionZoom(model, { isReady: () => loaded && !destroyed && visible, onInteraction: interact });
+      cleanup.push(() => precision.destroy());
       model.interactionPrompt = 'none'; model.touchAction = 'pan-y';
       model.minCameraOrbit = 'auto 5deg 0.35m'; model.maxCameraOrbit = 'auto 90deg 45m';
       model.fieldOfView = '30deg'; model.cameraTarget = hasHomeTarget ? vectorString(homeTarget) : 'auto auto auto';

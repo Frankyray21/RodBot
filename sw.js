@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.101.0';
+const CACHE = 'rodbot-formation-v1.102.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -16,7 +16,7 @@ const CORE = [
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './3d/index.html', './3d/css/styles.css', './3d/css/viewer.css',
   './3d/css/training.css', './3d/css/component-popup.css', './3d/js/viewer-v5.js', './3d/js/motion.js', './3d/js/tour.js',
-  './3d/js/hotspots-v11.js', './3d/js/hero-v6.js', './3d/js/model-assets.js',
+  './3d/js/hotspots-v11.js', './3d/js/hero-v6.js', './3d/js/model-assets.js', './3d/js/precision-zoom.js',
   './3d/js/training-ui.js', './3d/js/simulation-state.js',
   './3d/replique.html', './3d/fidelite.html', './3d/js/replique.js', './3d/css/replique.css',
   './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js',
@@ -59,7 +59,7 @@ const POLICES = [
 /* La réplique 3D articulée et son éclairage font partie du contenu
    téléchargé par défaut depuis la 1.95.0 : l'atelier 3D doit marcher sous terre
    comme le reste, sans que l'opérateur ait à demander quoi que ce soit. */
-const MODELE_3D = ['./3d/assets/rodbot-v11-466c9f7f.glb', './3d/assets/warehouse-v5.hdr'];
+const MODELE_3D = ['./3d/assets/rodbot-v11-598a45f4.glb', './3d/assets/warehouse-v5.hdr'];
 
 /* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
    La réplique articulée et son éclairage sont aussi conservés pour le terrain.

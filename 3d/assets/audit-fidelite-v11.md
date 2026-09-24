@@ -2,7 +2,7 @@
 
 21 septembre 2026
 
-Le modèle V11 reprend les améliorations présentes dans la version **1.100** : section carrée du bras, baie arrière ouverte, distributeurs, connecteurs, supports du vérin et détails du mât. Ces éléments sont conservés et réunis dans une source Blender modifiable. Les corrections portent sur les proportions, les assemblages et l’aspect des surfaces, sans remplacer l’équipement par une reconstruction différente.
+Le modèle V11 reprend les améliorations présentes dans la version **1.100** : section carrée du bras, baie arrière ouverte, distributeurs, connecteurs, supports du vérin et détails du mât. La publication **1.102.0** conserve également les corrections arrivées dans la **1.101.0** : paire de boyaux du vérin et zoom de précision. Ces éléments sont réunis dans une source Blender modifiable. Les corrections portent sur les proportions, les assemblages et l’aspect des surfaces.
 
 L’audit croise les cinq photos initiales, la vidéo de dix minutes, les gros plans supplémentaires, le manuel opérateur et l’ancien scan Gaussian Splatting. Le scan a été redressé et mis à l’échelle à partir des fourreaux et de la longueur nominale de la machine. Son incertitude pratique est estimée à **±3 %** ; les différences de pose du bras et de hauteur sur stabilisateurs sont prises en compte. Il sert de référence de proportions, sans constituer un relevé métrologique.
 
@@ -30,7 +30,7 @@ Les **71 po** des chenilles sont interprétés comme une portion droite ou un en
 
 Le panier reste blanc peint. Le piédestal et le bras sont abaissés ensemble de 200 mm ; les niveaux du plateau, les supports, les câbles et l’écartement des stabilisateurs sont recalés. Ces déplacements sont des corrections visuelles étayées par le scan, le manuel et la vidéo, pas de nouvelles cotes constructeur.
 
-**Détails mécaniques et hydrauliques.** Les carters de chenilles, réducteurs, vis et bouchons sont repris d’après la photo du manuel p. 78 et la vidéo. La pince reçoit des traverses visuellement plus pleines et les parties noires observées. Les joues percées et raidisseurs relient désormais visiblement l’attache haute du vérin au bras. Coudes, sertissages, boucles, colliers, distributeurs et presse-étoupes suivent leur ensemble mécanique. Les axes du vérin ont été vérifiés dans trois positions : leur écart numérique reste inférieur à 0,001 mm dans le modèle. Cela vérifie la continuité de l’animation, sans valider la résistance d’un assemblage réel.
+**Détails mécaniques et hydrauliques.** Les carters de chenilles, réducteurs, vis et bouchons sont repris d’après la photo du manuel p. 78 et la vidéo. La pince reçoit des traverses visuellement plus pleines et les parties noires observées. Les joues percées et raidisseurs relient désormais visiblement l’attache haute du vérin au bras. Coudes, sertissages, boucles, colliers, distributeurs et presse-étoupes suivent leur ensemble mécanique. Les axes du vérin ont été vérifiés pendant l’animation : leur écart numérique reste inférieur à 0,01 mm dans le modèle. Cela vérifie la continuité de l’animation, sans valider la résistance d’un assemblage réel.
 
 Les boulons et optiques superposés ont été remplacés. De petits vides entre presse-étoupes et coffret, ainsi qu’entre réflecteurs et boîtiers, sont fermés. Les matières distinguent peinture, caoutchouc, polymère, acier usiné et raccords zingués ; les logos et marquages existants sont préservés.
 

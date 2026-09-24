@@ -25,7 +25,7 @@ La [réplique détaillée](3d/replique.html) accompagne l'atelier guidé de la [
 
 Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépôt. Aucun compte ChatGPT n'est requis. Le fichier 3D est chargé uniquement lors de l'ouverture de cette page. Les quiz, les fiches du scan et les attestations conservent leur fonctionnement.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v11-466c9f7f.glb) · [Sources et limites](3d/assets/audit-fidelite-v11.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v11-598a45f4.glb) · [Sources et limites](3d/assets/audit-fidelite-v11.md)
 
 ## Lancer en local
 

@@ -37,7 +37,7 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
   let frame = 0, last = 0, demonstration = 0, demoStart = 0, previousFeedback = '', status = null;
   let panelFraction=0, panelGoal=0, panelShown=false, pendingPanelFocus=null;
   let infoReturnFocus=null;
-  let panelViewRequest=0;
+  let pendingPanelView=null;
   const interiorIds=['receiver','ppu','rear-hmi','panel-terminals'];
   const pressed = new Map();
   const pulses = new Map();
@@ -212,9 +212,9 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
     syncButtons(status);
   };
 
-  function releaseAll() {
+  function releaseAll({preservePanelView=false}={}) {
     demonstration=0;
-    panelViewRequest++;
+    if(!preservePanelView)cancelPanelView();
     panelGoal=panelFraction;pendingPanelFocus=null;
     pulses.clear();
     dispatch({type:'RELEASE_ALL'});
@@ -338,11 +338,24 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
     }
     if(panelFraction===1&&pendingPanelFocus){const request=pendingPanelFocus;pendingPanelFocus=null;focus(request.id,request);}
   }
-  function framePanel() {
-    const request=++panelViewRequest;
+  function cancelPanelView() { pendingPanelView=null; }
+  function schedulePanelView() {
+    const request=pendingPanelView;
+    if(!request||request.scheduled||!active||exercise.id!=='panel'||viewer.visible===false||document.hidden)return;
+    request.scheduled=true;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      if(active&&exercise.id==='panel'&&request===panelViewRequest&&find('panel-door'))viewer.flyTo(find('panel-door').view,700);
+      request.scheduled=false;
+      if(pendingPanelView!==request||!active||exercise.id!=='panel'||viewer.visible===false||document.hidden)return;
+      // Consume this visit before flying: visibility changes must never replay it.
+      pendingPanelView=null;
+      const door=find('panel-door');
+      if(door)viewer.flyTo(door.view,700);
     }));
+  }
+  function framePanel() {
+    // The deep link activates the exercise before scrolling its viewer onscreen.
+    pendingPanelView={scheduled:false};
+    schedulePanelView();
   }
   function setPanel(value,{frameDoor=true}={}) {
     if(!(viewer.availableAccessKeys||[]).includes('panel'))return;
@@ -412,7 +425,11 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
   function deactivate() {
     closeInfo();releaseAll();active=false;container.hidden=true;if(frame)cancelAnimationFrame(frame);frame=0;last=0;
   }
-  viewer.on('visibility',visible=>{if(!visible)releaseAll();});
+  viewer.on('visibility',visible=>{
+    if(visible)schedulePanelView();
+    else releaseAll({preservePanelView:!document.hidden});
+  });
+  viewer.on('interaction',cancelPanelView);
   window.addEventListener('blur',releaseAll);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&active)releaseAll();});

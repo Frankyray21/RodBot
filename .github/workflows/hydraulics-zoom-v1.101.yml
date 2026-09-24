@@ -1,0 +1,57 @@
+name: Validate hydraulic hoses and zoom v1.101
+on:
+  push:
+    branches: [codex/hydraulics-zoom-v1.101]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: rodbot-hydraulics-zoom-v1.101
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply guarded migration
+        run: node scripts/apply-hoses-zoom-v1.101.cjs
+      - name: Unit and geometry tests
+        run: |
+          mkdir -p validation
+          set -o pipefail
+          node --test tests/*.test.cjs | tee validation/tests.txt
+      - name: Install browser and glTF validator
+        run: |
+          npm install --no-save --package-lock=false playwright gltf-validator
+          npx playwright install --with-deps chromium
+      - name: Validate glTF
+        run: |
+          node <<'JS'
+          const fs=require('node:fs'),path=require('node:path'),v=require('gltf-validator');
+          const dir='3d/assets';
+          v.validateString(fs.readFileSync(path.join(dir,'rodbot-v11-hydraulics.gltf'),'utf8'),{
+            externalResourceFunction:uri=>Promise.resolve(new Uint8Array(fs.readFileSync(path.join(dir,uri))))
+          }).then(result=>{fs.writeFileSync('validation/gltf.json',JSON.stringify(result,null,2));console.log({errors:result.issues.numErrors,warnings:result.issues.numWarnings});if(result.issues.numErrors)process.exitCode=1;});
+          JS
+      - name: Render and verify real browser controls
+        run: timeout --kill-after=5s 360s node scripts/validate-hoses-zoom-browser.cjs
+      - name: Commit validated build to review branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js index.html sw.js scene3d.js 3d tests/viewer-v5.test.cjs tests/component-popup.test.cjs
+          git commit -m 'Corriger les boyaux du vérin et le zoom de précision (v1.101.0)'
+          git push origin HEAD:codex/hydraulics-zoom-v1.101
+          git rev-parse HEAD >> validation/commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rodbot-v1.101-validation
+          path: validation/
+          retention-days: 7

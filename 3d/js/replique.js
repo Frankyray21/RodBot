@@ -1,6 +1,7 @@
 /* Camera positions and independent clips match the shared training model. */
-import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js';
-import { VUES, hotspotById } from './hotspots-v11.js';
+import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js?v=1.102.0';
+import { attachPrecisionZoom } from './precision-zoom.js?v=1.102.0';
+import { VUES, hotspotById } from './hotspots-v11.js?v=1.102.0';
 const cameraView = (key, view) => ({
   key,
   orbit: `${view.yaw}deg ${90 - view.pitch}deg ${view.dist}m`,
@@ -48,7 +49,7 @@ const TEXT = {
     preparing: 'Préparation de la vue 3D', ready: 'Vue 3D interactive', preview: 'Aperçu de l’équipement', dimensions: 'Dimensions estimées',
     errorTitle: 'Affichage 3D indisponible', errorLoad: 'Vérifie ta connexion, puis réessaie.', errorContext: 'L’affichage a été interrompu. Recharge la page pour le retrouver.',
     errorModule: 'Recharge la page pour réessayer.', retry: 'Réessayer', controlsLabel: 'Commandes de visualisation',
-    explore: 'Explore la machine', gesture: 'Glisse pour tourner. Pince ou utilise la molette pour zoomer.',
+    explore: 'Explore la machine', gesture: 'Clique sur un détail pour le centrer. Maj + molette pour affiner le zoom.',
     views: 'Angles de vue', overview: 'Vue d’ensemble', profile: 'Profil', basket: 'Côté panier', screen: 'Écran opérateur', frontLevers: 'Leviers frontaux', sideLevers: 'Leviers latéraux', remote: 'Télécommande', tripod: 'Trépied', roger: 'Machines Roger', free: 'Vue libre',
     hydraulique: 'Vérin et raccords', distributeurs: 'Distributeurs',
     articulate: 'Articuler le modèle', motionHelp: 'Déplace les curseurs pour observer les articulations.', motionsLabel: 'Mouvements du modèle',
@@ -67,7 +68,7 @@ const TEXT = {
     preparing: 'Preparing the 3D view', ready: 'Interactive 3D view', preview: 'Equipment preview', dimensions: 'Estimated dimensions',
     errorTitle: '3D view unavailable', errorLoad: 'Check your connection, then try again.', errorContext: 'The display was interrupted. Reload the page to restore it.',
     errorModule: 'Reload the page to try again.', retry: 'Try again', controlsLabel: 'Viewing controls',
-    explore: 'Explore the machine', gesture: 'Drag to rotate. Pinch or use the scroll wheel to zoom.',
+    explore: 'Explore the machine', gesture: 'Click a detail to centre it. Shift + scroll for finer zoom.',
     views: 'Camera views', overview: 'Overview', profile: 'Side view', basket: 'Rod basket', screen: 'Operator display', frontLevers: 'Front levers', sideLevers: 'Side levers', remote: 'Remote control', tripod: 'Tripod', roger: 'Machines Roger', free: 'Free view',
     hydraulique: 'Cylinder and fittings', distributeurs: 'Valve banks',
     articulate: 'Move the model', motionHelp: 'Move the sliders to explore the joints.', motionsLabel: 'Model movements',
@@ -84,6 +85,7 @@ const queryLang = new URLSearchParams(location.search).get('lang');
 if (queryLang === 'fr' || queryLang === 'en') lang = queryLang;
 const $ = id => document.getElementById(id);
 const model = $('viewer');
+let precision = null;
 const initialPose = Object.fromEntries(MOTIONS.map(motion => [motion.id, motion.initial]));
 let pose = { ...initialPose };
 let loaded = false;
@@ -164,6 +166,7 @@ function stop() {
   applyPose(pose);
 }
 function setView(index) {
+  precision?.cancel();
   if (!loaded || !VIEWS[index]) return;
   stop();
   model.cameraOrbit = VIEWS[index].orbit;
@@ -295,6 +298,12 @@ try {
   const { ModelViewerElement } = await import('../vendor/model-viewer-4.3.1.min.js');
   // Configure the local decoder before assigning src, so no GLB request races it.
   ModelViewerElement.dracoDecoderLocation = DRACO_URL;
+  model.minCameraOrbit = 'auto 5deg 0.35m';
+  model.maxCameraOrbit = 'auto 90deg 45m';
+  precision = attachPrecisionZoom(model, {
+    isReady: () => loaded,
+    onInteraction() { if (playing) stop(); activeView = null; refreshState(); }
+  });
   model.environmentImage = ENVIRONMENT_URL;
   model.src = MODEL_URL;
 } catch (error) {

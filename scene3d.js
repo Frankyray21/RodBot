@@ -22,7 +22,7 @@
   'use strict';
 
   var MV = './3d/vendor/model-viewer-4.3.1.min.js';
-  var GLB = './3d/assets/rodbot-v11-466c9f7f.glb';
+  var GLB = './3d/assets/rodbot-v11-598a45f4.glb';
   var HDR = './3d/assets/warehouse-v5.hdr';
   var DRACO = './3d/vendor/draco/';
   var AFFICHE = './3d/assets/rodbot-v11-poster.jpg';
