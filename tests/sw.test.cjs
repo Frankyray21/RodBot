@@ -134,7 +134,7 @@ test('activation deletes only old RodBot caches', async () => {
 test('3d controls and animations load offline immediately after installation', async () => {
   const h = harness();
   await h.lifecycle('install');
-  for (const file of ['3d/css/viewer.css', '3d/css/training.css', '3d/js/viewer-v5.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots-v18.js', '3d/js/training-ui.js', '3d/js/simulation-state.js', '3d/js/hero-v6.js', '3d/js/model-assets.js', '3d/vendor/model-viewer-4.3.1.min.js', '3d/vendor/draco/draco_wasm_wrapper.js']) {
+  for (const file of ['3d/css/viewer.css', '3d/css/training.css', '3d/js/viewer-v5.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots-v19.js', '3d/js/training-ui.js', '3d/js/simulation-state.js', '3d/js/hero-v6.js', '3d/js/model-assets.js', '3d/vendor/model-viewer-4.3.1.min.js', '3d/vendor/draco/draco_wasm_wrapper.js']) {
     assert.ok(h.precached.includes(BASE + file), `${file} must be precached`);
     const response = await h.request(`${file}?v=1.61.0`);
     assert.equal(await response.text(), `core:./${file}`);

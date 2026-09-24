@@ -76,7 +76,7 @@ test('active model, its external buffers and precision zoom are included in offl
 });
 test('active GLB preserves its hydraulic pair and independent animation contracts',async()=>{
  const active=activeAsset(),g=active.document;
- if(/^rodbot-v(?:17|18)-/.test(path.basename(active.file)))return validateV17Hydraulics(active);
+ if(/^rodbot-v(?:17|18|19)-/.test(path.basename(active.file)))return validateV17Hydraulics(active);
  if(path.basename(active.file).startsWith('rodbot-v16'))return validateV16Hydraulics(active);
  assert.match(active.file,/\.glb$/i,'the runtime uses the standalone GLB');
  const id=g.nodes.findIndex(n=>n.name==='MESH_LIFT_BASE_V11_HOSE_PAIR');assert.ok(id>=0,'new hydraulic pair is present in the actual runtime binary');
