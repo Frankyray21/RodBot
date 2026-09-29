@@ -329,7 +329,10 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
   function syncPanel() {
     const opening=panelGoal>.5;
     for(const button of [$('simPanelToggle'),panelButton].filter(Boolean)) {
-      button.textContent=opening?'Fermer le coffret':'Ouvrir le coffret';
+      const label=opening?'Fermer le coffret':'Ouvrir le coffret';
+      const caption=button.querySelector('[data-panel-label]');
+      if(caption)caption.textContent=label;else button.textContent=label;
+      button.setAttribute('aria-label',label);
       button.setAttribute('aria-pressed',String(opening));
       button.disabled=!(viewer.availableAccessKeys||[]).includes('panel');
     }

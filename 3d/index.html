@@ -17,11 +17,11 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="./assets/rodbot-v25-poster.jpg">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0e17'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23d22325' stroke='%23ffffff' stroke-width='4'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="../fonts/fonts.css?v=1.114.0">
-  <link rel="stylesheet" href="./css/styles.css?v=1.114.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.114.0">
-  <link rel="stylesheet" href="./css/training.css?v=1.114.0">
-  <link rel="stylesheet" href="./css/component-popup.css?v=1.114.0">
+  <link rel="stylesheet" href="../fonts/fonts.css?v=1.115.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.115.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.115.0">
+  <link rel="stylesheet" href="./css/training.css?v=1.115.0">
+  <link rel="stylesheet" href="./css/component-popup.css?v=1.115.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -82,7 +82,16 @@
           <model-viewer id="canvas3d" tabindex="0" alt="Réplique articulée du LP RodBot" aria-describedby="viewerInstructions" poster="./assets/rodbot-v25-poster.jpg"><span slot="progress-bar"></span>
             <span id="cabinetAnchor" slot="hotspot-cabinet-action" aria-hidden="true" style="width:0;height:0;opacity:0;pointer-events:none"></span>
           </model-viewer>
-          <button class="vbtn viewer-cabinet" id="btnCabinet" type="button" aria-pressed="false" hidden disabled>Ouvrir le coffret</button>
+          <button class="vbtn viewer-cabinet" id="btnCabinet" type="button" aria-label="Ouvrir le coffret" aria-pressed="false" hidden disabled>
+            <span class="cabinet-action-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+                <path d="M5 21V3h12v2M3 21h4"/>
+                <g class="cabinet-door-open"><path d="m7 5 12 3v13l-12-3Z"/><path d="M15 13v2"/></g>
+                <g class="cabinet-door-closed"><path d="M7 5h10v16H7Z"/><path d="M13 13h1"/></g>
+              </svg>
+            </span>
+            <span class="cabinet-action-label" data-panel-label aria-hidden="true">Ouvrir le coffret</span>
+          </button>
           <div class="hs-overlay" id="hsOverlay"></div>
           <div class="viewer-status"><span class="viewer-status-dot"></span><span id="renderStatus" role="status">Préparation du modèle</span></div>
           <div class="viewer-loader" id="viewerLoader">
@@ -187,7 +196,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.114.0</span>
+        <span id="rbSiteVer">Version 1.115.0</span>
         <span>Réplique de formation. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -334,7 +343,7 @@
     let heroPresentation = null;
     let atelierCharge;
     const atelierPret = new Promise((resoudre) => { atelierCharge = resoudre; });
-    import('./js/hero-v6.js?v=1.114.0').then(({createHero}) => {
+    import('./js/hero-v6.js?v=1.115.0').then(({createHero}) => {
       heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'), atelierPret);
     }).catch(() => { document.getElementById('heroPause').hidden = true; });
     const scrollCue = document.getElementById('scrollCue');
@@ -727,7 +736,7 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.114.0';
+      const VER = '1.115.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, CONTROLS, VUES, hotspotById }, { createTour }] = await Promise.all([
         import('./js/viewer-v5.js?v=' + VER),
@@ -1047,7 +1056,7 @@
           // Hide an offscreen action instead of scrolling the clipped 3D scene on focus.
           const halfWidth = cabinetButton.offsetWidth / 2;
           cabinetButton.hidden = x-halfWidth < 4 || x+halfWidth > stage.clientWidth-4 ||
-            y+24+cabinetButton.offsetHeight > stage.clientHeight-4;
+            y+10+cabinetButton.offsetHeight > stage.clientHeight-4;
         };
         v.on('projection', placeCabinetButton);
         placeCabinetButton();

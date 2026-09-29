@@ -19,11 +19,11 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.114.0
+## Réplique 3D v1.115.0
 
 La V25 affine le côté gauche du mât : logo MEDATECH, capuchon rouge aplati, raccords satinés et porte-câbles détaillé. Les proportions, articulations et interactions sont conservées. Les petits reliefs et épaisseurs restent estimés.
 
-Le bouton « Ouvrir le coffret » est ancré près de la porte dans la vue 3D. Il suit la rotation, le zoom et l’ouverture. Un clic cadre le coffret et ouvre sa porte. Le même bouton la referme. Son état suit aussi les commandes de l’exercice.
+Le coffret utilise une petite icône de porte ancrée au modèle. Son libellé apparaît au survol ou au focus clavier. La cible tactile reste large. Un clic ouvre ou ferme la porte. L’icône et son libellé suivent aussi les commandes de l’exercice.
 
 La V24 arrondit les contours des mâchoires et détaille leurs fixations extérieures. Les rondelles sont remises en appui. Les pointes, portées, pivots et interactions restent conservés. L’assemblage central à lumière reste à reconstruire.
 
