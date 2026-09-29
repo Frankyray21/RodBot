@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.107.0
+## Réplique 3D v1.108.0
+
+La V21 corrige la protection tubulaire côté IHM. Le montant est droit, avec deux petits coudes et des retours transversaux. La vidéo réelle fournit la référence visible ; les raccordements masqués restent estimés.
 
 La [réplique détaillée](3d/replique.html) accompagne l'atelier guidé de la [page 3D](3d/). Elle comprend la télécommande, le trépied, le logo Machines Roger et les détails mécaniques affinés avec la vidéo. Les vues rapprochées, la présentation à 360° et les six réglages d'articulation sont disponibles en français et en anglais.
 
@@ -27,7 +29,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v20-2e692d51.glb) · [Sources et limites](3d/assets/audit-fidelite-v20.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v21-5e007868.glb) · [Sources et limites](3d/assets/audit-fidelite-v21.md)
 
 ## Lancer en local
 
