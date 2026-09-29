@@ -19,9 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.112.0
+## Réplique 3D v1.113.0
 
-Le bouton « Ouvrir le coffret » reste visible sur le modèle, y compris en plein écran. Un clic cadre le coffret et ouvre sa porte. Le même bouton la referme. Son état suit aussi les commandes de l’exercice.
+Le bouton « Ouvrir le coffret » est ancré près de la porte dans la vue 3D. Il suit la rotation, le zoom et l’ouverture. Un clic cadre le coffret et ouvre sa porte. Le même bouton la referme. Son état suit aussi les commandes de l’exercice.
 
 La V24 arrondit les contours des mâchoires et détaille leurs fixations extérieures. Les rondelles sont remises en appui. Les pointes, portées, pivots et interactions restent conservés. L’assemblage central à lumière reste à reconstruire.
 

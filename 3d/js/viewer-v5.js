@@ -1,8 +1,8 @@
 /* Training renderer. Public model-viewer 4.3.1 APIs only.
    Existing page controls, component cards and camera tours keep their contract. */
 import { clamp, ease, nearestYaw, framingScale } from './motion.js';
-import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js?v=1.112.0';
-import { attachPrecisionZoom } from './precision-zoom.js?v=1.112.0';
+import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js?v=1.113.0';
+import { attachPrecisionZoom } from './precision-zoom.js?v=1.113.0';
 
 export const V5_MOTIONS = [
   { id: 'turret', clip: 'Rotation_tourelle', min: -35, max: 35, initial: 0 },
@@ -119,6 +119,7 @@ export const RodbotViewer = {
           el.style.zIndex = String((data.facingCamera ? 1000 : 500) - Math.round((position.z + 1) * 100));
         }
       }
+      emit('projection');
     }
     function tick(now) {
       frame = null;
