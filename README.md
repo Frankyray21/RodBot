@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.115.0
+## Réplique 3D v1.116.0
+
+La V26 ajoute le vérin latéral gauche et corrige les attaches des deux vérins. Chaque vérin porte deux retours de boyaux lisses. Les proportions générales et les interactions de formation sont conservées. Les petites dimensions et les extrémités cachées restent estimées.
 
 La V25 affine le côté gauche du mât : logo MEDATECH, capuchon rouge aplati, raccords satinés et porte-câbles détaillé. Les proportions, articulations et interactions sont conservées. Les petits reliefs et épaisseurs restent estimés.
 
@@ -39,7 +41,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v25-404436c3.glb) · [Sources et limites](3d/assets/audit-fidelite-v25.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v26-7165621e.glb) · [Sources et limites](3d/assets/audit-fidelite-v26.md)
 
 ## Lancer en local
 

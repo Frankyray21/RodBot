@@ -76,6 +76,7 @@ test('active model, its external buffers and precision zoom are included in offl
 });
 test('active GLB preserves its hydraulic pair and independent animation contracts',async()=>{
  const active=activeAsset(),g=active.document;
+ if(/^rodbot-v26-/.test(path.basename(active.file)))return validateV26Hydraulics(active);
  if(/^rodbot-v(?:17|18|19|20|21|22|23|24|25)-/.test(path.basename(active.file)))return validateV17Hydraulics(active);
  if(path.basename(active.file).startsWith('rodbot-v16'))return validateV16Hydraulics(active);
  assert.match(active.file,/\.glb$/i,'the runtime uses the standalone GLB');
@@ -131,6 +132,58 @@ async function validateV17Hydraulics(active){
   decodeV16Primitive(decoder,g,active.data,primitives[0]);
  }
  validateV16Controls(g,active.data);
+}
+
+// V26 has two cylinders with four smooth hoses. Do not force either side into
+// the former three-material loop envelope. The reviewed source fixture freezes
+// their named groups, rest dimensions and contact points independently of GLB.
+async function validateV26Hydraulics(active){
+ const g=active.document,c=require('./v26-hydraulic-contract.cjs').loadV26Contract();
+ assert.match(active.file,/\.glb$/i);validateV16Controls(g,active.data);
+ const byName=new Map();g.nodes.forEach((n,i)=>{if(n.name){assert(!byName.has(n.name));byName.set(n.name,i);}});
+ const parents=new Map();g.nodes.forEach((n,i)=>(n.children||[]).forEach(j=>parents.set(j,i)));
+ const d=await require('../3d/vendor/draco/draco_decoder.js')(),decoded=new Map(),worlds=new Map();
+ const identity=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+ function mul(a,b){return Array.from({length:16},(_,i)=>[0,1,2,3].reduce((sum,k)=>sum+a[k*4+i%4]*b[Math.floor(i/4)*4+k],0));}
+ function world(i){if(worlds.has(i))return worlds.get(i);const n=g.nodes[i],[x,y,z,w]=n.rotation||[0,0,0,1],s=n.scale||[1,1,1],t=n.translation||[0,0,0];
+  const local=n.matrix||[(1-2*y*y-2*z*z)*s[0],(2*x*y+2*z*w)*s[0],(2*x*z-2*y*w)*s[0],0,(2*x*y-2*z*w)*s[1],(1-2*x*x-2*z*z)*s[1],(2*y*z+2*x*w)*s[1],0,(2*x*z+2*y*w)*s[2],(2*y*z-2*x*w)*s[2],(1-2*x*x-2*y*y)*s[2],0,...t,1];
+  const result=mul(parents.has(i)?world(parents.get(i)):identity,local);worlds.set(i,result);return result;}
+ function transform(m,p){return [0,1,2].map(k=>m[k]*p[0]+m[k+4]*p[1]+m[k+8]*p[2]+m[k+12]);}
+ function select(selector){
+  assert(['HYD_LIFT_BASE','HYD_LIFT_ROD','HYD_LIFT_SLEEVE'].includes(selector.parent),'geometry follows an existing cylinder helper');
+  assert(selector.material_source_name||selector.material_source_names||selector.source_group,'use stable source markers rather than numbered mesh nodes');
+  if(selector.material_source_names)assert(Array.isArray(selector.material_source_names)&&selector.material_source_names.length>0&&selector.material_source_names.every(n=>typeof n==='string'),'explicit source material list');
+  const nodes=g.nodes.map((n,i)=>({n,i})).filter(({n,i})=>n.mesh!==undefined&&g.nodes[parents.get(i)]?.name===selector.parent&&
+   (!selector.material_source_name||n.extras?.material_source_name===selector.material_source_name)&&(!selector.material_source_names||selector.material_source_names.includes(n.extras?.material_source_name))&&(!selector.source_group||n.extras?.source_group===selector.source_group));
+  assert(Number.isInteger(selector.expected_meshes)&&selector.expected_meshes>0);assert.equal(nodes.length,selector.expected_meshes,'approved source marker selects the exact mesh groups');
+  return nodes.flatMap(({n,i})=>{
+   assert.equal(n.skin,undefined,'cylinder bodies, rods and manifolds stay rigid');
+   assert.equal(n.matrix,undefined);assert.deepEqual(n.translation||[0,0,0],[0,0,0]);assert.deepEqual(n.rotation||[0,0,0,1],[0,0,0,1]);assert.deepEqual(n.scale||[1,1,1],[1,1,1]);
+   return g.meshes[n.mesh].primitives.map((p,pi)=>{const key=i+':'+pi;if(!decoded.has(key)){const raw=decodeV16Primitive(d,g,active.data,p),m=world(i),positions=[];for(let k=0;k<raw.positions.length;k+=3)positions.push(transform(m,raw.positions.slice(k,k+3)));decoded.set(key,{positions,indices:raw.indices});}return decoded.get(key);});
+  });
+ }
+ const finite3=p=>Array.isArray(p)&&p.length===3&&p.every(Number.isFinite);
+ const inRegion=(p,r)=>p.every((v,k)=>v>=r.min[k]&&v<=r.max[k]);
+ assert.equal(c.rigid_features.filter(f=>f.kind==='manifold').length,2,'two independently measured manifold bodies');
+ assert.equal(c.rigid_features.filter(f=>f.kind==='barrel').length,2,'two black cylinder barrels');
+ assert.equal(c.rigid_features.filter(f=>f.kind==='rod').length,2,'two chrome cylinder rods');
+ for(const f of c.rigid_features){
+  assert(finite3(f.bounds?.min)&&finite3(f.bounds?.max));assert(f.tolerance_m>0&&f.tolerance_m<=.001,'dimension tolerance does not exceed the existing 1mm Draco envelope allowance');
+  if(f.region)assert(finite3(f.region.min)&&finite3(f.region.max));
+  const points=select(f.selector).flatMap(p=>p.positions).filter(p=>!f.region||inRegion(p,f.region));assert(points.length>=3,f.id+' actual decoded geometry');
+  for(let axis=0;axis<3;axis++){let min=Infinity,max=-Infinity;for(const p of points){min=Math.min(min,p[axis]);max=Math.max(max,p[axis]);}assert(Math.abs(min-f.bounds.min[axis])<=f.tolerance_m,f.id+' measured minimum');assert(Math.abs(max-f.bounds.max[axis])<=f.tolerance_m,f.id+' measured maximum');}
+ }
+ const sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),scale=(a,s)=>a.map(v=>v*s),add=(a,b)=>a.map((v,i)=>v+b[i]);
+ function segmentDistance2(p,a,b){const ab=sub(b,a),length=dot(ab,ab),t=length?Math.max(0,Math.min(1,dot(sub(p,a),ab)/length)):0,q=sub(p,add(a,scale(ab,t)));return dot(q,q);}
+ function triangleDistance2(p,a,b,c){const ab=sub(b,a),ac=sub(c,a),ap=sub(p,a),d00=dot(ab,ab),d01=dot(ab,ac),d11=dot(ac,ac),den=d00*d11-d01*d01;let best=Math.min(segmentDistance2(p,a,b),segmentDistance2(p,b,c),segmentDistance2(p,c,a));
+  if(den>1e-24){const u=(d11*dot(ap,ab)-d01*dot(ap,ac))/den,v=(d00*dot(ap,ac)-d01*dot(ap,ab))/den;if(u>=0&&v>=0&&u+v<=1){const delta=sub(p,add(a,add(scale(ab,u),scale(ac,v))));best=Math.min(best,dot(delta,delta));}}return best;}
+ assert(c.surface_contacts.length>=2,'reviewed contact samples for both cylinder assemblies');
+ for(const contact of c.surface_contacts){assert(finite3(contact.point));assert(contact.tolerance_m>0&&contact.tolerance_m<=.001);assert.equal(contact.sides.length,2);
+  for(const side of contact.sides){let nearest=Infinity;for(const primitive of select(side)){for(let k=0;k<primitive.indices.length;k+=3){const vertices=primitive.indices.slice(k,k+3).map(i=>primitive.positions[i]);nearest=Math.min(nearest,triangleDistance2(contact.point,...vertices));}}assert(Math.sqrt(nearest)<=contact.tolerance_m,contact.id+' independently fixed contact lies on both decoded surfaces');}
+ }
+ const sources=g.nodes.filter(n=>n.skin!==undefined).map(n=>n.extras?.v20_skin?.source);
+ for(const name of ['V17 | Gaine spiralée du boyau 1','V17 | Gaine spiralée du boyau 2'])assert(!sources.includes(name),'retired spiral is absent');
+ for(const name of ['V26 | Boyau vérin gauche 1','V26 | Boyau vérin gauche 2'])assert(sources.includes(name),'new smooth cylinder hose is present');
 }
 
 // V16 is regrouped by parent/material and Draco reorders vertices. Check the
@@ -194,16 +247,17 @@ function decodeV16Primitive(d,g,data,p){
   }
   assert.equal(g.accessors[p.attributes.POSITION].count,mesh.num_points(),'accessor describes the decoded mesh');
   assert.equal(g.accessors[p.indices].count,mesh.num_faces()*3);
-  const pos=attributes.POSITION,normals=attributes.NORMAL;let nondegenerate=0;
+  const pos=attributes.POSITION,normals=attributes.NORMAL,decodedIndices=[];let nondegenerate=0;
   for(let i=0;i<normals.length;i+=3)assert.ok(Math.abs(Math.hypot(...normals.slice(i,i+3))-1)<.005,'decoded unit normal');
   for(let i=0;i<mesh.num_faces();i++){
    assert.ok(decoder.GetFaceFromMesh(mesh,i,face));
    const ids=[0,1,2].map(j=>face.GetValue(j));assert.ok(ids.every(id=>id>=0&&id<mesh.num_points()),'decoded indices in range');
+   decodedIndices.push(...ids);
    const [a,b,c]=ids.map(id=>pos.slice(id*3,id*3+3)),u=b.map((v,j)=>v-a[j]),v=c.map((x,j)=>x-a[j]);
    if(Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])>1e-12)nondegenerate++;
   }
   assert.ok(nondegenerate>0,'decoded geometry contains actual surface triangles');
-  return {positions:pos};
+  return {positions:pos,normals,indices:decodedIndices};
  }finally{if(status)d.destroy(status);d.destroy(face);d.destroy(values);d.destroy(mesh);d.destroy(input);d.destroy(decoder);}
 }
 

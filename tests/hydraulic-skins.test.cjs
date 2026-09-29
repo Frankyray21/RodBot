@@ -8,6 +8,7 @@ const path=require('node:path');
 const js=path.join(__dirname,'../3d/js');
 const uri=fs.readFileSync(path.join(js,'model-assets.js'),'utf8').match(/MODEL_URL\s*=\s*new URL\(['"]([^'"]+)['"]/)?.[1];
 assert(uri);
+const isV26=/^rodbot-v26-/.test(path.basename(uri));
 const bytes=fs.readFileSync(path.resolve(js,uri));
 const jsonLength=bytes.readUInt32LE(12);
 const g=JSON.parse(bytes.subarray(20,20+jsonLength));
@@ -71,8 +72,10 @@ function decodePositions(d,p){
 }
 test('flexible hoses keep their rest geometry, terminal bindings and animated attachments',async()=>{
  assert.equal(g.skins.length,2);
+ const v26=isV26?require('./v26-hydraulic-contract.cjs').loadV26Contract():null;
  const expected=[...['V17 | Boyau diagonal protégé ','V17 | Gaine spiralée du boyau ','V14 | Flexible visible entrée capot '].flatMap(s=>[s+'1',s+'2']),'V20 | Bride claire sur boucles','V20 | Maintien noir bas des boucles'];
  expected.push(...Object.keys(terminals).filter(name=>name.startsWith('V22 |')));
+ if(v26){for(const name of ['V17 | Gaine spiralée du boyau 1','V17 | Gaine spiralée du boyau 2'])expected.splice(expected.indexOf(name),1);expected.push('V26 | Boyau vérin gauche 1','V26 | Boyau vérin gauche 2');assert.equal(expected.length,14);}
  const models=g.nodes.map((n,i)=>({n,i})).filter(({n})=>n.skin!==undefined);
  assert.deepEqual(models.map(({n})=>n.extras?.v20_skin?.source).sort(),expected.sort());
  const rest=worlds(),animated=[pose(false),pose(true)],d=await require('../3d/vendor/draco/draco_decoder.js')();
@@ -80,7 +83,9 @@ test('flexible hoses keep their rest geometry, terminal bindings and animated at
  for(const {n,i} of models){
   assert.equal(g.nodes[parents.get(i)].name,'CTRL_EQUIPMENT');
   const meta=n.extras.v20_skin,skin=g.skins[n.skin],jointNames=skin.joints.map(j=>g.nodes[j].name);
-  assert.deepEqual(jointNames,[meta.source.startsWith('V17 |')?'HYD_LIFT_BASE':'CTRL_SHOULDER_Y','CTRL_TURRET_Z']);
+  const cylinderHose=meta.source.startsWith('V17 |')||(v26&&meta.source.startsWith('V26 |'));
+  assert.deepEqual(jointNames,[cylinderHose?'HYD_LIFT_BASE':'CTRL_SHOULDER_Y','CTRL_TURRET_Z']);
+  if(v26&&meta.source.startsWith('V26 |'))assert.deepEqual(meta.joints,['HYD_LIFT_BASE','CTRL_TURRET_Z'],'new cylinder hose source annotation agrees with the actual two joints');
   const ib=read(skin.inverseBindMatrices),bind=[ib.slice(0,16),ib.slice(16,32)];
   for(let k=0;k<2;k++)assert(Math.max(...multiply(rest(skin.joints[k]),bind[k]).map((v,j)=>Math.abs(v-rest(i)[j])))<2e-6,'inverse bind preserves actual mesh rest transform');
   assert.equal(g.meshes[n.mesh].primitives.length,1);
@@ -97,9 +102,11 @@ test('flexible hoses keep their rest geometry, terminal bindings and animated at
   // A nearest-surface vertex at each authored centreline end must belong to
   // that endpoint, even if Draco changes the vertex order during a rebuild.
   for(const [k,indices] of [[0,start],[1,end]]){
-   const target=terminals[meta.source.startsWith('V22 |')?meta.source:(meta.source.startsWith('V17 |')?'diagonal':'capot')+meta.source.at(-1)][k];
+   const historicalKey=meta.source.startsWith('V22 |')?meta.source:(meta.source.startsWith('V17 |')?'diagonal':'capot')+meta.source.at(-1);
+   const target=(v26?.terminal_centres[meta.source]||terminals[historicalKey])[k];
    let nearest=0,distance=Infinity;for(let v=0;v<count;v++){const delta=Math.hypot(...target.map((x,a)=>x-pos[v*3+a]));if(delta<distance){distance=delta;nearest=v;}}
-   assert(indices.includes(nearest),'geometric terminal is rigidly bound to its corresponding articulation');assert(distance<(meta.source.includes('Gaine')?.12:.04));
+   const maximumDistance=v26?.terminal_centres[meta.source]?v26.terminal_max_surface_distance_m:(meta.source.includes('Gaine')?.12:.04);
+   assert(indices.includes(nearest),'geometric terminal is rigidly bound to its corresponding articulation');assert(distance<maximumDistance);
    const point=pos.slice(nearest*3,nearest*3+3),localPoint=transform(bind[k],point),positions=animated.map(world=>transform(world(skin.joints[k]),localPoint));
    assert(positions.flat().every(Number.isFinite));if(Math.hypot(...positions[0].map((x,a)=>x-positions[1][a]))>.001)moved++;
   }
