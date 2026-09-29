@@ -20,7 +20,16 @@ const terminals={
  'diagonal1':[[-.675964,1.710279,.282000],[-1.090000,1.608000,.125000]],
  'diagonal2':[[-.651502,1.673216,.282000],[-1.090000,1.608000,.157000]],
  'capot1':[[-1.017700,1.908453,.048000],[-1.040000,1.604000,.033000]],
- 'capot2':[[-1.017700,1.908453,-.013000],[-1.040000,1.604000,-.028000]]
+ 'capot2':[[-1.017700,1.908453,-.013000],[-1.040000,1.604000,-.028000]],
+ // Accepted V22 plate outlets and concealed foot entries, fixed independently
+ // of exported metadata. These are visual attachment coordinates, not ports
+ // verified from a hydraulic schematic.
+ 'V22 | Retour inférieur du faisceau 1':[[-1.292818,1.680574,-.255],[-1.045,1.455,.048]],
+ 'V22 | Retour inférieur du faisceau 2':[[-1.252,1.777,-.302],[-1.045,1.455,.024]],
+ 'V22 | Retour inférieur du faisceau 3':[[-1.292818,1.680574,-.349],[-1.045,1.455,0]],
+ 'V22 | Retour inférieur du faisceau 4':[[-1.279247,1.680166,-.396],[-1.045,1.455,-.024]],
+ 'V22 | Retour inférieur du faisceau 5':[[-1.292818,1.680574,-.443],[-1.045,1.455,-.048]],
+ 'V22 | Retour ligne à connecteur droit':[[-1.252,1.747,-.190],[-1.045,1.455,.076]]
 };
 function multiply(a,b){return Array.from({length:16},(_,i)=>{const row=i%4,col=Math.floor(i/4);return [0,1,2,3].reduce((s,k)=>s+a[k*4+row]*b[col*4+k],0);});}
 function transform(m,p){return [0,1,2].map(r=>m[r]*p[0]+m[r+4]*p[1]+m[r+8]*p[2]+m[r+12]);}
@@ -63,6 +72,7 @@ function decodePositions(d,p){
 test('flexible hoses keep their rest geometry, terminal bindings and animated attachments',async()=>{
  assert.equal(g.skins.length,2);
  const expected=[...['V17 | Boyau diagonal protégé ','V17 | Gaine spiralée du boyau ','V14 | Flexible visible entrée capot '].flatMap(s=>[s+'1',s+'2']),'V20 | Bride claire sur boucles','V20 | Maintien noir bas des boucles'];
+ expected.push(...Object.keys(terminals).filter(name=>name.startsWith('V22 |')));
  const models=g.nodes.map((n,i)=>({n,i})).filter(({n})=>n.skin!==undefined);
  assert.deepEqual(models.map(({n})=>n.extras?.v20_skin?.source).sort(),expected.sort());
  const rest=worlds(),animated=[pose(false),pose(true)],d=await require('../3d/vendor/draco/draco_decoder.js')();
@@ -87,7 +97,7 @@ test('flexible hoses keep their rest geometry, terminal bindings and animated at
   // A nearest-surface vertex at each authored centreline end must belong to
   // that endpoint, even if Draco changes the vertex order during a rebuild.
   for(const [k,indices] of [[0,start],[1,end]]){
-   const target=terminals[(meta.source.startsWith('V17 |')?'diagonal':'capot')+meta.source.at(-1)][k];
+   const target=terminals[meta.source.startsWith('V22 |')?meta.source:(meta.source.startsWith('V17 |')?'diagonal':'capot')+meta.source.at(-1)][k];
    let nearest=0,distance=Infinity;for(let v=0;v<count;v++){const delta=Math.hypot(...target.map((x,a)=>x-pos[v*3+a]));if(delta<distance){distance=delta;nearest=v;}}
    assert(indices.includes(nearest),'geometric terminal is rigidly bound to its corresponding articulation');assert(distance<(meta.source.includes('Gaine')?.12:.04));
    const point=pos.slice(nearest*3,nearest*3+3),localPoint=transform(bind[k],point),positions=animated.map(world=>transform(world(skin.joints[k]),localPoint));
