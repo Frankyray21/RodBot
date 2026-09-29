@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.113.0
+## Réplique 3D v1.114.0
+
+La V25 affine le côté gauche du mât : logo MEDATECH, capuchon rouge aplati, raccords satinés et porte-câbles détaillé. Les proportions, articulations et interactions sont conservées. Les petits reliefs et épaisseurs restent estimés.
 
 Le bouton « Ouvrir le coffret » est ancré près de la porte dans la vue 3D. Il suit la rotation, le zoom et l’ouverture. Un clic cadre le coffret et ouvre sa porte. Le même bouton la referme. Son état suit aussi les commandes de l’exercice.
 
@@ -37,7 +39,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v24-2932c5b3.glb) · [Sources et limites](3d/assets/audit-fidelite-v24.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v25-404436c3.glb) · [Sources et limites](3d/assets/audit-fidelite-v25.md)
 
 ## Lancer en local
 
