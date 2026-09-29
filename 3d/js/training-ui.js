@@ -8,7 +8,7 @@ export const EXERCISES = [
   { id:'emergency-points', title:'1 · Trouver les quatre arrêts', page:12, prompt:'Tourne autour du RodBot. Touche les quatre repères d’arrêt d’urgence.', targets:['u1','u2','u3','u4'] },
   { id:'radio-points', title:'2 · Repérer les commandes radio', page:21, prompt:'Trouve JS1, la bascule centrale JS2, JS3 et le bouton vert PINCE.', targets:['js1','js2','js3','grip-enable'] },
   { id:'panel', title:'Explorer le coffret IHM', page:14, prompt:'Ouvre le coffret. Repère le récepteur radio, le PPU, les borniers et l’arrière de l’écran.', targets:['panel-door','receiver','ppu','panel-terminals','rear-hmi'] },
-  { id:'manual-levers', title:'Observer les leviers manuels', page:15, prompt:'Repère les deux postes. Observe le débattement et le retour au neutre de chaque levier.', targets:['front-levers','side-levers'] }
+  { id:'manual-levers', title:'Observer les leviers manuels', page:50, prompt:'Repère les deux postes. Observe le débattement et le retour au neutre de chaque levier.', targets:['front-levers','side-levers'] }
 ];
 const CONTROL_INFO = {
   'panel-door':{title:'Porte du panneau IHM',text:'Ouvre et referme la porte pour observer l’intérieur du coffret virtuel.',page:14},
@@ -27,8 +27,8 @@ const CONTROL_INFO = {
   'mode-linear':{title:'Mode LINÉAIRE',text:'Les affectations diffèrent de DIRECT. Ce mode est présenté en repérage, sans animation de trajectoire.',page:57},
   'source-selector':{title:'Sélecteur LOCAL / REMOTE',text:'En LOCAL, la radio ne commande pas les mouvements du RodBot.',page:14},
   rearm:{title:'Réarmement de sécurité',text:'Le déverrouillage et le réarmement sont deux actions différentes.',page:49},
-  'front-levers':{title:'Leviers manuels du mât',text:'Observe leur emplacement. Consulte leur affectation dans le manuel.',page:15},
-  'side-levers':{title:'Leviers du poste latéral',text:'Observe les leviers et leur position de repos.',page:15}
+  'front-levers':{title:'Leviers manuels du mât',text:'Observe leur emplacement et leur débattement. Le manuel décrit la commande manuelle en LOCAL.',page:50},
+  'side-levers':{title:'Leviers du poste latéral',text:'Observe les leviers et leur position de repos.',page:50}
 };
 
 // A separate practice session: it never writes to the course, quizzes or certificate.
@@ -91,7 +91,7 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
       <div class="sim-readouts" aria-label="État du modèle"><span>Bras <strong id="simArmValue">0°</strong></span><span>Pince <strong id="simGripValue">0 %</strong></span><span id="simMotionStatus">Au repos</span></div>
     </div>
     <div class="sim-discover-list" id="simFindList"></div>
-    <details class="sim-limits"><summary>Ce que cet atelier simule</summary><p>Repérage, commandes DIRECT sélectionnées, double commande du grappin et arrêts de sécurité.</p><p>Amplitudes et vitesses sont illustratives. Le grappin reste vide.</p><p>Le télescope, les trajectoires et la conduite des chenilles ne sont pas simulés ici.</p><p>Cet entraînement ne valide pas l’aptitude à conduire la machine.</p></details>`;
+    <details class="sim-limits"><summary>Ce que cet atelier montre</summary><p>Quatre exercices : arrêts d’urgence, commandes radio, intérieur du coffret et leviers manuels.</p><p>L’enfoncement des arrêts, l’ouverture de la porte et le débattement des leviers sont représentés visuellement.</p><p>Les leviers ne commandent pas les fonctions hydrauliques. Amplitudes et vitesses d’animation sont illustratives.</p><p>Ces exercices de repérage ne valident pas l’aptitude à conduire la machine.</p></details>`;
   const $ = id => container.querySelector('#'+id);
   const controlsBySelector = selector => [...container.querySelectorAll(selector)];
   const isFind = () => exercise.targets.length > 0;

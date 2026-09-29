@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.109.0
+## Réplique 3D v1.110.0
+
+La V23 remet le gyrophare et le tube violet en appui. Elle corrige la tête noire, les deux boyaux du rotateur et des détails de commande. Les proportions générales et les interactions sont conservées. Les limites restantes sont documentées.
 
 La V22 détaille le faisceau au pied du mât depuis la photo réelle : platine, longs sertissages, coudes, unions et connecteur à repères jaunes. Six retours suivent les articulations existantes. Les entrées cachées restent estimées.
 
@@ -31,7 +33,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v22-097cc811.glb) · [Sources et limites](3d/assets/audit-fidelite-v22.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v23-896d68a9.glb) · [Sources et limites](3d/assets/audit-fidelite-v23.md)
 
 ## Lancer en local
 
