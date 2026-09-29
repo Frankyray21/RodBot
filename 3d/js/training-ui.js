@@ -32,7 +32,7 @@ const CONTROL_INFO = {
 };
 
 // A separate practice session: it never writes to the course, quizzes or certificate.
-export function mountTraining({ container, viewer, controls, emergencies, onActivate, onDeactivate, manualSrc, onManual }) {
+export function mountTraining({ container, viewer, controls, emergencies, onActivate, onDeactivate, manualSrc, onManual, panelButton }) {
   let active = false, selected = null, exercise = EXERCISES[0], seen = new Set(), evidence = new Set();
   let frame = 0, last = 0, demonstration = 0, demoStart = 0, previousFeedback = '', status = null;
   let panelFraction=0, panelGoal=0, panelShown=false, pendingPanelFocus=null;
@@ -328,8 +328,11 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
   }
   function syncPanel() {
     const opening=panelGoal>.5;
-    $('simPanelToggle').textContent=opening?'Fermer le coffret':'Ouvrir le coffret';
-    $('simPanelToggle').setAttribute('aria-pressed',String(opening));
+    for(const button of [$('simPanelToggle'),panelButton].filter(Boolean)) {
+      button.textContent=opening?'Fermer le coffret':'Ouvrir le coffret';
+      button.setAttribute('aria-pressed',String(opening));
+      button.disabled=!(viewer.availableAccessKeys||[]).includes('panel');
+    }
     $('simPanelState').textContent=Math.abs(panelFraction-panelGoal)>.001?(opening?'Ouverture…':'Fermeture…'):panelFraction>.98?'Coffret ouvert':panelFraction<.01?'Coffret fermé':'Porte en pause';
     const shown=panelFraction>.85;
     if(exercise.id==='panel'&&shown!==panelShown){
@@ -359,11 +362,17 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
   }
   function setPanel(value,{frameDoor=true}={}) {
     if(!(viewer.availableAccessKeys||[]).includes('panel'))return;
-    if(exercise.id!=='panel')activate('panel');
+    if(!active||exercise.id!=='panel') {
+      // Re-entering from Components must not snap an already open door shut.
+      const previousFraction=panelFraction;
+      activate('panel');
+      panelFraction=previousFraction;viewer.setAccessPose?.({panel:panelFraction});
+    }
     releaseAll();panelGoal=value;syncPanel();
     if(frameDoor)framePanel();
   }
   $('simPanelToggle').addEventListener('click',()=>setPanel(panelGoal>.5?0:1));
+  panelButton?.addEventListener('click',()=>setPanel(panelGoal>.5?0:1));
   for(const h of emergencies){
     const b=document.createElement('button');b.type='button';b.className='vbtn';b.id='simRelease-'+h.id;b.hidden=true;b.textContent='Déverrouiller : '+h.label.replace("Arrêt d'urgence : ",'');
     b.addEventListener('click',()=>dispatch({type:'RELEASE_ESTOP',id:h.id}));$('simStopList').append(b);
@@ -434,5 +443,6 @@ export function mountTraining({ container, viewer, controls, emergencies, onActi
   document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&active)releaseAll();});
   stateChanged(simulation.getState());
+  syncPanel();
   return {activate,deactivate,select,releaseAll,closeInfo,get active(){return active;},getState:()=>simulation.getState()};
 }
