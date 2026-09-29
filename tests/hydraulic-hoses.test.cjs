@@ -76,7 +76,7 @@ test('active model, its external buffers and precision zoom are included in offl
 });
 test('active GLB preserves its hydraulic pair and independent animation contracts',async()=>{
  const active=activeAsset(),g=active.document;
- const twinRevision=Number(path.basename(active.file).match(/^rodbot-v(26|27)-/)?.[1]);
+ const twinRevision=Number(path.basename(active.file).match(/^rodbot-v(26|27|28)-/)?.[1]);
  if(twinRevision)return validateTwinCylinderHydraulics(active,require('./hydraulic-contract.cjs').loadHydraulicContract(twinRevision));
  if(/^rodbot-v(?:17|18|19|20|21|22|23|24|25)-/.test(path.basename(active.file)))return validateV17Hydraulics(active);
  if(path.basename(active.file).startsWith('rodbot-v16'))return validateV16Hydraulics(active);
@@ -151,7 +151,7 @@ async function validateTwinCylinderHydraulics(active,c){
   const result=mul(parents.has(i)?world(parents.get(i)):identity,local);worlds.set(i,result);return result;}
  function transform(m,p){return [0,1,2].map(k=>m[k]*p[0]+m[k+4]*p[1]+m[k+8]*p[2]+m[k+12]);}
  function select(selector){
-  assert(['HYD_LIFT_BASE','HYD_LIFT_ROD','HYD_LIFT_SLEEVE'].includes(selector.parent),'geometry follows an existing cylinder helper');
+  assert(['HYD_LIFT_BASE','HYD_LIFT_ROD','HYD_LIFT_SLEEVE','CTRL_SHOULDER_Y'].includes(selector.parent),'geometry follows an existing cylinder or shoulder control');
   assert(selector.material_source_name||selector.material_source_names||selector.source_group,'use stable source markers rather than numbered mesh nodes');
   if(selector.material_source_names)assert(Array.isArray(selector.material_source_names)&&selector.material_source_names.length>0&&selector.material_source_names.every(n=>typeof n==='string'),'explicit source material list');
   const nodes=g.nodes.map((n,i)=>({n,i})).filter(({n,i})=>n.mesh!==undefined&&g.nodes[parents.get(i)]?.name===selector.parent&&
