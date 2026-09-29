@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.116.0
+## Réplique 3D v1.117.0
+
+La V27 applique les cotes du manuel de pièces BM260024_PM10654_R0 aux deux vérins. Les tiges mesurent 38,1mm de diamètre. Les axes mesurent 31,75×76,2mm. Les rondelles de butée et retenues correspondent aux vues éclatées. Les positions non cotées restent estimées. Les proportions générales, boyaux et commandes sont conservés.
 
 La V26 ajoute le vérin latéral gauche et corrige les attaches des deux vérins. Chaque vérin porte deux retours de boyaux lisses. Les proportions générales et les interactions de formation sont conservées. Les petites dimensions et les extrémités cachées restent estimées.
 
@@ -41,7 +43,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v26-7165621e.glb) · [Sources et limites](3d/assets/audit-fidelite-v26.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v27-6a36e65d.glb) · [Sources et limites](3d/assets/audit-fidelite-v27.md)
 
 ## Lancer en local
 

@@ -22,10 +22,10 @@
   'use strict';
 
   var MV = './3d/vendor/model-viewer-4.3.1.min.js';
-  var GLB = './3d/assets/rodbot-v26-7165621e.glb';
+  var GLB = './3d/assets/rodbot-v27-6a36e65d.glb';
   var HDR = './3d/assets/warehouse-v5.hdr';
   var DRACO = './3d/vendor/draco/';
-  var AFFICHE = './3d/assets/rodbot-v26-poster.jpg';
+  var AFFICHE = './3d/assets/rodbot-v27-poster.jpg';
 
   /* Un tour complet dure 30 s ; la camera respire sur 20 s, donc les deux
      mouvements ne retombent jamais en phase et la scene ne se repete pas. */

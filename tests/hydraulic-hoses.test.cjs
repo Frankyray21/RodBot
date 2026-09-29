@@ -76,7 +76,8 @@ test('active model, its external buffers and precision zoom are included in offl
 });
 test('active GLB preserves its hydraulic pair and independent animation contracts',async()=>{
  const active=activeAsset(),g=active.document;
- if(/^rodbot-v26-/.test(path.basename(active.file)))return validateV26Hydraulics(active);
+ const twinRevision=Number(path.basename(active.file).match(/^rodbot-v(26|27)-/)?.[1]);
+ if(twinRevision)return validateTwinCylinderHydraulics(active,require('./hydraulic-contract.cjs').loadHydraulicContract(twinRevision));
  if(/^rodbot-v(?:17|18|19|20|21|22|23|24|25)-/.test(path.basename(active.file)))return validateV17Hydraulics(active);
  if(path.basename(active.file).startsWith('rodbot-v16'))return validateV16Hydraulics(active);
  assert.match(active.file,/\.glb$/i,'the runtime uses the standalone GLB');
@@ -134,11 +135,11 @@ async function validateV17Hydraulics(active){
  validateV16Controls(g,active.data);
 }
 
-// V26 has two cylinders with four smooth hoses. Do not force either side into
+// V26/V27 have two cylinders with the same four smooth hoses. Do not force either side into
 // the former three-material loop envelope. The reviewed source fixture freezes
 // their named groups, rest dimensions and contact points independently of GLB.
-async function validateV26Hydraulics(active){
- const g=active.document,c=require('./v26-hydraulic-contract.cjs').loadV26Contract();
+async function validateTwinCylinderHydraulics(active,c){
+ const g=active.document;
  assert.match(active.file,/\.glb$/i);validateV16Controls(g,active.data);
  const byName=new Map();g.nodes.forEach((n,i)=>{if(n.name){assert(!byName.has(n.name));byName.set(n.name,i);}});
  const parents=new Map();g.nodes.forEach((n,i)=>(n.children||[]).forEach(j=>parents.set(j,i)));
