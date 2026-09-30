@@ -19,15 +19,17 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.123.0
+## Réplique 3D v1.124.0
 
-La V33 remonte la platine et aligne les raccords dans la longueur du mât. Les raccords inclinés repartent vers l’arrière. Les arrivées supérieures et les six retours sont raccordés au nouvel emplacement. Le placement reste estimé depuis la vidéo, le scan et le manuel de pièces, pages 51 et 53. Cette portion conserve quatre traversées hydrauliques et deux passages auxiliaires. Les huit traversées du manuel ne sont pas toutes reconstruites.
+La V34 remonte le support près de la bague télescopique et de l’attache avant de chaîne. La nouvelle photo corrige le placement V33, encore trop proche de l’épaule. Les six retours repartent longitudinalement sous le bras vers l’épaule. Les cinq arrivées supérieures et la ligne haute jaune rejoignent leurs raccords déplacés. Les positions restent estimées. La portion conserve quatre traversées hydrauliques et deux passages auxiliaires.
 
-La V32 avait détaillé les trois tôles, leurs coins arrondis et leurs fixations. Elle conservait alors le placement des raccords et des boyaux. La V33 corrige ce placement et leurs jonctions.
+La V33 avait tourné la rangée dans la longueur du mât. Son placement restait trop proche de l’épaule. La V34 le corrige depuis la nouvelle photo.
 
-La V31 avait abaissé les six boucles sous la platine. La V33 adapte leurs départs au nouvel emplacement. Les entrées cachées restent estimées.
+La V32 avait détaillé les trois tôles, leurs coins arrondis et leurs fixations. Ces pièces suivent le placement revu dans la V34.
 
-La V30 avait repris le porte-boyaux et le demi-tour sous la chaîne. La V33 raccorde les cinq arrivées à la platine repositionnée. Leurs portions guidées restantes sont conservées.
+La V31 avait abaissé les six boucles. La V34 reprend leur parcours sous le bras. Les destinations cachées restent estimées.
+
+La V30 avait repris le porte-boyaux. La V34 adapte les arrivées au support près de la bague télescopique.
 
 La V29 ajoute le creux oblong visible sur les flancs des maillons, selon le manuel de pièces p. 50. Le parcours, les dimensions extérieures et les boyaux sont conservés. La profondeur non cotée reste estimée.
 
@@ -55,7 +57,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v33-8a580a5f.glb) · [Sources et limites](3d/assets/audit-fidelite-v33.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v34-6e75d5ba.glb) · [Sources et limites](3d/assets/audit-fidelite-v34.md)
 
 ## Lancer en local
 

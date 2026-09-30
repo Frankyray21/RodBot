@@ -5,12 +5,12 @@ const fs=require('node:fs');const path=require('node:path');
 const changedSources=['V17 | Boyau diagonal protégé 1','V17 | Boyau diagonal protégé 2','V26 | Boyau vérin gauche 1','V26 | Boyau vérin gauche 2'];
 const repositionedSourcesV33=[...Array.from({length:5},(_,i)=>'V22 | Retour inférieur du faisceau '+(i+1)),'V22 | Retour ligne à connecteur droit'];
 function loadHydraulicContract(revision){
- assert([26,27,28,29,30,31,32,33].includes(revision),'only explicitly reviewed twin-cylinder revisions are supported');
+ assert([26,27,28,29,30,31,32,33,34].includes(revision),'only explicitly reviewed twin-cylinder revisions are supported');
  const c=JSON.parse(fs.readFileSync(path.join(__dirname,`fixtures/hydraulic-v${revision}.json`),'utf8'));
  assert.equal(c.schema,1);assert.equal(c.status,'approved',`V${revision} source contacts/dimensions must be independently approved before enabling these tests`);
  assert.match(c.source_sha256,/^[a-f0-9]{64}$/);assert(c.provenance.length>0,'record the reviewed source measurement reports');
  assert.equal(c.coordinate_system,'glTF Y-up, world-rest metres');
- const requiredSources=revision===33?[...changedSources,...repositionedSourcesV33]:[...changedSources];
+ const requiredSources=[33,34].includes(revision)?[...changedSources,...repositionedSourcesV33]:[...changedSources];
  assert.deepEqual(c.changed_terminal_sources,requiredSources);
  for(const name of requiredSources){assert.equal(c.terminal_centres[name]?.length,2,name+' needs two independently fixed terminal centres');for(const p of c.terminal_centres[name])assert(p.length===3&&p.every(Number.isFinite));}
  assert(c.terminal_max_surface_distance_m>0&&c.terminal_max_surface_distance_m<=.04,'never relax the existing terminal proximity bound');
