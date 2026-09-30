@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');const path=require('node:path');
 const changedSources=['V17 | Boyau diagonal protégé 1','V17 | Boyau diagonal protégé 2','V26 | Boyau vérin gauche 1','V26 | Boyau vérin gauche 2'];
 function loadHydraulicContract(revision){
- assert([26,27,28,29,30].includes(revision),'only explicitly reviewed twin-cylinder revisions are supported');
+ assert([26,27,28,29,30,31].includes(revision),'only explicitly reviewed twin-cylinder revisions are supported');
  const c=JSON.parse(fs.readFileSync(path.join(__dirname,`fixtures/hydraulic-v${revision}.json`),'utf8'));
  assert.equal(c.schema,1);assert.equal(c.status,'approved',`V${revision} source contacts/dimensions must be independently approved before enabling these tests`);
  assert.match(c.source_sha256,/^[a-f0-9]{64}$/);assert(c.provenance.length>0,'record the reviewed source measurement reports');
