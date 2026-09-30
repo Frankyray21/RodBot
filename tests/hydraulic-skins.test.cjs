@@ -8,7 +8,7 @@ const path=require('node:path');
 const js=path.join(__dirname,'../3d/js');
 const uri=fs.readFileSync(path.join(js,'model-assets.js'),'utf8').match(/MODEL_URL\s*=\s*new URL\(['"]([^'"]+)['"]/)?.[1];
 assert(uri);
-const twinRevision=Number(path.basename(uri).match(/^rodbot-v(26|27|28|29|30|31|32|33|34)-/)?.[1]);
+const twinRevision=Number(path.basename(uri).match(/^rodbot-v(26|27|28|29|30|31|32|33|34|35)-/)?.[1]);
 const bytes=fs.readFileSync(path.resolve(js,uri));
 const jsonLength=bytes.readUInt32LE(12);
 const g=JSON.parse(bytes.subarray(20,20+jsonLength));

@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.124.0
+## Réplique 3D v1.125.0
+
+La V35 reprend uniquement le trajet des six retours inférieurs V22. Le support près de la bague télescopique, les raccords et les arrivées supérieures sont conservés. Les départs aux raccords et les articulations ne sont pas déplacés. De petits ajustements des entrées masquées peuvent séparer les retours au pied. Le parcours et la déformation restent des approximations visuelles, avec des destinations masquées estimées.
 
 La V34 remonte le support près de la bague télescopique et de l’attache avant de chaîne. La nouvelle photo corrige le placement V33, encore trop proche de l’épaule. Les six retours repartent longitudinalement sous le bras vers l’épaule. Les cinq arrivées supérieures et la ligne haute jaune rejoignent leurs raccords déplacés. Les positions restent estimées. La portion conserve quatre traversées hydrauliques et deux passages auxiliaires.
 
@@ -57,7 +59,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v34-6e75d5ba.glb) · [Sources et limites](3d/assets/audit-fidelite-v34.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v35-ca2825d8.glb) · [Sources et limites](3d/assets/audit-fidelite-v35.md)
 
 ## Lancer en local
 
