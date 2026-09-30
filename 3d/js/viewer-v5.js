@@ -1,8 +1,8 @@
 /* Training renderer. Public model-viewer 4.3.1 APIs only.
    Existing page controls, component cards and camera tours keep their contract. */
 import { clamp, ease, nearestYaw, framingScale } from './motion.js';
-import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js?v=1.125.0';
-import { attachPrecisionZoom } from './precision-zoom.js?v=1.125.0';
+import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js?v=1.126.0';
+import { attachPrecisionZoom } from './precision-zoom.js?v=1.126.0';
 
 export const V5_MOTIONS = [
   { id: 'turret', clip: 'Rotation_tourelle', min: -35, max: 35, initial: 0 },

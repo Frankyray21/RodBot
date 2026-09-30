@@ -1,7 +1,7 @@
 /* Camera positions and independent clips match the shared training model. */
-import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js?v=1.125.0';
-import { attachPrecisionZoom } from './precision-zoom.js?v=1.125.0';
-import { VUES, hotspotById } from './hotspots-v35.js?v=1.125.0';
+import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js?v=1.126.0';
+import { attachPrecisionZoom } from './precision-zoom.js?v=1.126.0';
+import { VUES, hotspotById } from './hotspots-v36.js?v=1.126.0';
 const cameraView = (key, view) => ({
   key,
   orbit: `${view.yaw}deg ${90 - view.pitch}deg ${view.dist}m`,

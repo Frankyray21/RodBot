@@ -19,15 +19,17 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.125.0
+## Réplique 3D v1.126.0
 
-La V35 reprend uniquement le trajet des six retours inférieurs V22. Le support près de la bague télescopique, les raccords et les arrivées supérieures sont conservés. Les départs aux raccords et les articulations ne sont pas déplacés. De petits ajustements des entrées masquées peuvent séparer les retours au pied. Le parcours et la déformation restent des approximations visuelles, avec des destinations masquées estimées.
+La V36 remet la rangée de la platine et des raccords transversalement, parallèle aux traverses de la chaîne. Elle corrige l’orientation longitudinale des versions précédentes. Les cinq flexibles de flèche restent dans les rails sur leur portion guidée ; leurs sections libres rejoignent la platine et le poignet. Les six retours et la ligne auxiliaire sont raccordés au nouvel assemblage, et le support est remis en appui. La silhouette générale et les commandes sont conservées. Les dimensions non cotées et destinations masquées restent estimées. La portion conserve quatre traversées hydrauliques et deux passages auxiliaires.
 
-La V34 remonte le support près de la bague télescopique et de l’attache avant de chaîne. La nouvelle photo corrige le placement V33, encore trop proche de l’épaule. Les six retours repartent longitudinalement sous le bras vers l’épaule. Les cinq arrivées supérieures et la ligne haute jaune rejoignent leurs raccords déplacés. Les positions restent estimées. La portion conserve quatre traversées hydrauliques et deux passages auxiliaires.
+La V35 avait arrondi et séparé les six retours. La V36 adapte ces parcours aux ports de la rangée transversale. Les destinations masquées restent des estimations visuelles.
 
-La V33 avait tourné la rangée dans la longueur du mât. Son placement restait trop proche de l’épaule. La V34 le corrige depuis la nouvelle photo.
+La V34 avait rapproché le support de la bague télescopique et de l’attache avant de chaîne. La V36 corrige son orientation et remet ses appuis et raccordements en cohérence avec la rangée transversale.
 
-La V32 avait détaillé les trois tôles, leurs coins arrondis et leurs fixations. Ces pièces suivent le placement revu dans la V34.
+La V33 avait tourné la rangée dans la longueur du mât. Cette orientation était erronée ; la V36 la corrige.
+
+La V32 avait détaillé les tôles, leurs coins arrondis et leurs fixations. Ces pièces suivent le placement V36.
 
 La V31 avait abaissé les six boucles. La V34 reprend leur parcours sous le bras. Les destinations cachées restent estimées.
 
@@ -59,7 +61,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v35-ca2825d8.glb) · [Sources et limites](3d/assets/audit-fidelite-v35.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v36-815abe27.glb) · [Sources et limites](3d/assets/audit-fidelite-v36.md)
 
 ## Lancer en local
 
