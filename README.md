@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.119.0
+## Réplique 3D v1.120.0
+
+La V30 corrige le placement du porte-boyaux et le parcours de ses cinq boyaux dans le demi-tour. Les deux supports sont repositionnés et raccordés au mât. Les positions restent estimées depuis les photos. Les retours au pied restent à reprendre séparément.
 
 La V29 ajoute le creux oblong visible sur les flancs des maillons, selon le manuel de pièces p. 50. Le parcours, les dimensions extérieures et les boyaux sont conservés. La profondeur non cotée reste estimée.
 
@@ -47,7 +49,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v29-e00d77e2.glb) · [Sources et limites](3d/assets/audit-fidelite-v29.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v30-ce159071.glb) · [Sources et limites](3d/assets/audit-fidelite-v30.md)
 
 ## Lancer en local
 
