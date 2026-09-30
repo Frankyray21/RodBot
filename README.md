@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.126.0
+## Réplique 3D v1.127.0
+
+La V37 réoriente les parties supérieures des quatre raccords hydrauliques vers l’entrée de chaîne. Les cinq arrivées forment des arches continues et suivent un ordre de voies revu. Leurs sorties rejoignent les mêmes points sur le poignet. Les six retours descendent plus près de la platine, puis retrouvent leur passage sous le bras. La chaîne, les commandes et les proportions générales sont conservées. Les courbures sans cote et les destinations masquées restent estimées. L’assemblage conserve quatre traversées hydrauliques et deux passages auxiliaires ; les huit traversées du manuel ne sont pas toutes reconstruites.
 
 La V36 remet la rangée de la platine et des raccords transversalement, parallèle aux traverses de la chaîne. Elle corrige l’orientation longitudinale des versions précédentes. Les cinq flexibles de flèche restent dans les rails sur leur portion guidée ; leurs sections libres rejoignent la platine et le poignet. Les six retours et la ligne auxiliaire sont raccordés au nouvel assemblage, et le support est remis en appui. La silhouette générale et les commandes sont conservées. Les dimensions non cotées et destinations masquées restent estimées. La portion conserve quatre traversées hydrauliques et deux passages auxiliaires.
 
@@ -61,7 +63,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v36-815abe27.glb) · [Sources et limites](3d/assets/audit-fidelite-v36.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v37-65cc882d.glb) · [Sources et limites](3d/assets/audit-fidelite-v37.md)
 
 ## Lancer en local
 

@@ -76,7 +76,7 @@ test('active model, its external buffers and precision zoom are included in offl
 });
 test('active GLB preserves its hydraulic pair and independent animation contracts',async()=>{
  const active=activeAsset(),g=active.document;
- const twinRevision=Number(path.basename(active.file).match(/^rodbot-v(26|27|28|29|30|31|32|33|34|35|36)-/)?.[1]);
+ const twinRevision=Number(path.basename(active.file).match(/^rodbot-v(26|27|28|29|30|31|32|33|34|35|36|37)-/)?.[1]);
  if(twinRevision)return validateTwinCylinderHydraulics(active,require('./hydraulic-contract.cjs').loadHydraulicContract(twinRevision));
  if(/^rodbot-v(?:17|18|19|20|21|22|23|24|25)-/.test(path.basename(active.file)))return validateV17Hydraulics(active);
  if(path.basename(active.file).startsWith('rodbot-v16'))return validateV16Hydraulics(active);
