@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.121.0
+## Réplique 3D v1.122.0
+
+La V32 reprend le support des raccords : trois tôles, coins arrondis et fixations visibles. Les écrous et rondelles portent sur les tôles. Les boyaux et raccords restent à leur place. Cette portion reste partielle : le manuel montre davantage de traversées.
 
 La V31 reprend les six boucles sous la platine hydraulique. Elles descendent davantage et restent plus près du pied du mât. Leurs raccords et les proportions de la machine sont conservés. Le parcours reste estimé depuis la photo réelle.
 
@@ -51,7 +53,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v31-163cc807.glb) · [Sources et limites](3d/assets/audit-fidelite-v31.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v32-db1c3acd.glb) · [Sources et limites](3d/assets/audit-fidelite-v32.md)
 
 ## Lancer en local
 
