@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.128.0
+## Réplique 3D v1.129.0
+
+La V39 reprend deux faces visibles de la section télescopique avec des pistes gris satiné à rives rouges. Deux couvercles de guidage et leur visserie sont détaillés selon la page 54 du manuel de pièces. Leurs détails superposés et quatre rectangles noirs non corroborés sont retirés. Les six autres couvercles, les enveloppes des tubes, les boyaux et les commandes sont conservés. Les contours, les épaisseurs et la finition sans cote restent estimés.
 
 La V38 reprend les six retours de boyaux sous le bras. Leur retournement se rapproche de la platine, avec des fonds arrondis. Ils se regroupent plus tôt et suivent un passage inférieur plus régulier. Les parties arrière des trajets, les raccordements et les éléments rigides sont conservés. La chaîne et les proportions générales restent inchangées. Les trajets masqués et le comportement physique sur toute la plage de mouvement restent à confirmer. Les écarts visuels restants sont décrits dans le bilan de fidélité.
 
@@ -65,7 +67,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v38-b054412f.glb) · [Sources et limites](3d/assets/audit-fidelite-v38.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v39-a122e150.glb) · [Sources et limites](3d/assets/audit-fidelite-v39.md)
 
 ## Lancer en local
 
