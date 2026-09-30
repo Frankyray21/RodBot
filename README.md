@@ -19,13 +19,15 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.122.0
+## Réplique 3D v1.123.0
 
-La V32 reprend le support des raccords : trois tôles, coins arrondis et fixations visibles. Les écrous et rondelles portent sur les tôles. Les boyaux et raccords restent à leur place. Cette portion reste partielle : le manuel montre davantage de traversées.
+La V33 remonte la platine et aligne les raccords dans la longueur du mât. Les raccords inclinés repartent vers l’arrière. Les arrivées supérieures et les six retours sont raccordés au nouvel emplacement. Le placement reste estimé depuis la vidéo, le scan et le manuel de pièces, pages 51 et 53. Cette portion conserve quatre traversées hydrauliques et deux passages auxiliaires. Les huit traversées du manuel ne sont pas toutes reconstruites.
 
-La V31 reprend les six boucles sous la platine hydraulique. Elles descendent davantage et restent plus près du pied du mât. Leurs raccords et les proportions de la machine sont conservés. Le parcours reste estimé depuis la photo réelle.
+La V32 avait détaillé les trois tôles, leurs coins arrondis et leurs fixations. Elle conservait alors le placement des raccords et des boyaux. La V33 corrige ce placement et leurs jonctions.
 
-La V30 corrige le placement du porte-boyaux et le parcours de ses cinq boyaux dans le demi-tour. Les deux supports sont repositionnés et raccordés au mât. Les positions restent estimées depuis les photos. Les retours au pied sont repris dans la V31.
+La V31 avait abaissé les six boucles sous la platine. La V33 adapte leurs départs au nouvel emplacement. Les entrées cachées restent estimées.
+
+La V30 avait repris le porte-boyaux et le demi-tour sous la chaîne. La V33 raccorde les cinq arrivées à la platine repositionnée. Leurs portions guidées restantes sont conservées.
 
 La V29 ajoute le creux oblong visible sur les flancs des maillons, selon le manuel de pièces p. 50. Le parcours, les dimensions extérieures et les boyaux sont conservés. La profondeur non cotée reste estimée.
 
@@ -53,7 +55,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v32-db1c3acd.glb) · [Sources et limites](3d/assets/audit-fidelite-v32.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v33-8a580a5f.glb) · [Sources et limites](3d/assets/audit-fidelite-v33.md)
 
 ## Lancer en local
 
