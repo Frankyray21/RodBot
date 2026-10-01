@@ -1,8 +1,8 @@
 /* Training renderer. Public model-viewer 4.3.1 APIs only.
    Existing page controls, component cards and camera tours keep their contract. */
 import { clamp, ease, nearestYaw, framingScale } from './motion.js';
-import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js?v=1.129.0';
-import { attachPrecisionZoom } from './precision-zoom.js?v=1.129.0';
+import { MODEL_URL, ENVIRONMENT_URL, POSTER_URL } from './model-assets.js?v=1.130.0';
+import { attachPrecisionZoom } from './precision-zoom.js?v=1.130.0';
 
 export const V5_MOTIONS = [
   { id: 'turret', clip: 'Rotation_tourelle', min: -35, max: 35, initial: 0 },
@@ -37,11 +37,12 @@ export const cameraArrived = (actual, expected) => Math.abs(nearestYaw(expected.
   Math.abs(actual.pitch - expected.pitch) < .06 && Math.abs(actual.dist - expected.dist) < .002 &&
   actual.target.every((value, index) => Math.abs(value - expected.target[index]) < .002);
 
+/* Un seul rendu est proposé : le détaillé, sur tous les appareils. Le mode
+   « Fluide » (sans ombre portée) ne s'obtient plus qu'en forçant ?q=mobile,
+   pour dépanner un appareil qui peine. */
 function chooseQuality(value) {
   const choice = value || new URLSearchParams(location.search).get('q');
-  if (choice === 'mobile' || choice === 'hq') return choice;
-  return Math.min(screen.width, screen.height) < 700 || navigator.connection?.saveData ||
-    (navigator.deviceMemory && navigator.deviceMemory <= 4) ? 'mobile' : 'hq';
+  return choice === 'mobile' ? 'mobile' : 'hq';
 }
 
 export const RodbotViewer = {

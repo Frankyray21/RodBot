@@ -3,7 +3,10 @@
 
    Reprend la replique articulee du dossier 3d/ et lui fait faire, tout seul,
    un tour complet : on fait le tour de la machine, la camera se rapproche,
-   puis elle recule. Aucune manipulation demandee au travailleur.
+   puis elle recule. Rien n'est demande au travailleur, mais il PEUT prendre
+   la main : un doigt sur la machine la tourne, deux doigts la zooment. La
+   visite s'arrete le temps qu'il la manipule, puis repart toute seule de
+   l'angle ou il l'a laissee.
 
    Deux contraintes ont dicte le code.
 
@@ -31,10 +34,14 @@
      mouvements ne retombent jamais en phase et la scene ne se repete pas. */
   var TOUR_S = 30;
   var RESPIRE_S = 20;
+  /* Le doigt a la priorite : la visite repart seulement apres ce temps sans
+     aucun geste, pour ne pas arracher la machine des mains du travailleur. */
+  var REPRISE_MS = 6000;
 
-  var hote = null, cadre = null, vue = null, affiche = null, btn = null, lien = null, etat = null;
+  var hote = null, cadre = null, vue = null, affiche = null, btn = null, lien = null, etat = null, astuce = null;
   var pret = false, pause = false, visible = false, demande = false, casse = false;
   var raf = 0, t0 = 0, phase = 0, obs = null;
+  var libre = false, derniereMain = 0, doigt = false;   // la main du travailleur
 
   function reduit() {
     try { return global.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
@@ -67,6 +74,10 @@
       lien.setAttribute('href', '3d/?lang=' + (en() ? 'en' : 'fr'));
     }
     if (etat) etat.textContent = pret ? '' : (demande ? tr('Chargement de la machine…', 'Loading the machine…') : '');
+    if (astuce) {
+      astuce.textContent = tr('🖐 Glissez pour tourner la machine.', '🖐 Drag to turn the machine.');
+      astuce.hidden = !pret || libre;
+    }
   }
 
   /* La choregraphie, en une seule fonction sans effet de bord pour qu'elle
@@ -82,14 +93,59 @@
     var dist = 96 - 26 * (0.5 - 0.5 * Math.cos(respire));   // de 96 % a 70 %
     return theta.toFixed(2) + 'deg ' + phi.toFixed(2) + 'deg ' + dist.toFixed(1) + '%';
   }
+  /* L'inverse d'orbite() pour l'angle : a quel moment de la visite la camera
+     se trouve-t-elle a cet angle ? Sert a repartir de la ou le doigt a laisse
+     la machine, sans la faire sauter a l'autre bout du tour. */
+  function phaseAngle(thetaDeg) {
+    var t = ((thetaDeg + 180) % 360 + 360) % 360;
+    return t / 360 * TOUR_S;
+  }
+  function angleCourant() {
+    try { return vue.getCameraOrbit().theta * 180 / Math.PI; } catch (e) { return null; }
+  }
   function pas(temps) {
     raf = 0;
     if (pause || !visible || !pret || document.hidden) { t0 = 0; return; }
     var dt = t0 ? Math.min(0.06, (temps - t0) / 1000) : 0;
     t0 = temps;
+    if (libre) {
+      // Le doigt tient la machine : on ne touche a rien, on attend.
+      if (doigt || temps - derniereMain < REPRISE_MS) { raf = requestAnimationFrame(pas); return; }
+      reprendre();
+    }
     phase += dt;
     try { vue.cameraOrbit = orbite(phase); } catch (e) {}
     raf = requestAnimationFrame(pas);
+  }
+
+  /* La visite reprend a l'angle affiche. La hauteur et la distance reviennent
+     toutes seules : model-viewer glisse vers la position demandee. */
+  function reprendre() {
+    libre = false;
+    var angle = angleCourant();
+    if (angle !== null) phase = phaseAngle(angle);
+    if (astuce) astuce.hidden = true;
+  }
+
+  function maintenant() {
+    return (global.performance && performance.now) ? performance.now() : Date.now();
+  }
+  /* Un geste sur la machine : la visite s'efface, le travailleur conduit. */
+  function mainPrise() {
+    derniereMain = maintenant();
+    if (libre) return;
+    libre = true;
+    if (astuce) astuce.hidden = true;
+    if (pause) { pause = false; }   // tourner la machine la reveille
+    relance();
+  }
+  /* Le doigt se leve : le compte a rebours de la reprise part de maintenant.
+     Tant qu'il appuie, la visite ne reprend pas, meme si l'appareil rame et
+     que « camera-change » se fait attendre. */
+  function mainLachee() {
+    if (!doigt) return;
+    doigt = false;
+    derniereMain = maintenant();
   }
 
   function relance() {
@@ -137,8 +193,13 @@
     vue.setAttribute('tone-mapping', 'agx');
     vue.setAttribute('interaction-prompt', 'none');
     vue.setAttribute('loading', 'lazy');
-    vue.setAttribute('tabindex', '-1');
-    vue.setAttribute('aria-hidden', 'true');
+    /* La machine se tourne au doigt. « pan-y » laisse le doigt vertical
+       faire defiler la page : le heros est en haut d'une longue page. */
+    vue.setAttribute('camera-controls', '');
+    vue.setAttribute('touch-action', 'pan-y');
+    vue.setAttribute('min-camera-orbit', 'auto 15deg 45%');
+    vue.setAttribute('max-camera-orbit', 'auto 88deg 130%');
+    vue.setAttribute('tabindex', '0');
     vue.appendChild(document.createElement('span')).setAttribute('slot', 'progress-bar');
     cadre.appendChild(vue);
 
@@ -158,22 +219,37 @@
     etat = document.createElement('span');
     etat.className = 'rb-scene3d-etat';
     etat.setAttribute('role', 'status');
+    astuce = document.createElement('span');
+    astuce.className = 'rb-scene3d-astuce';
+    astuce.hidden = true;
     lien = document.createElement('a');
     lien.className = 'rb-scene3d-lien';
-    pied.appendChild(etat); pied.appendChild(lien);
+    pied.appendChild(etat); pied.appendChild(astuce); pied.appendChild(lien);
     hote.appendChild(pied);
 
     vue.addEventListener('load', function () {
       pret = true;
       cadre.classList.add('est-charge');
+      if (astuce && !libre) astuce.hidden = false;
       relance();
     });
+    /* Seul un VRAI geste compte. La visite ecrit l'orbite a chaque image et
+       declenche aussi cet evenement : sa source n'est pas « user-interaction ». */
+    vue.addEventListener('camera-change', function (e) {
+      if (e && e.detail && e.detail.source === 'user-interaction') mainPrise();
+    });
+    vue.addEventListener('pointerdown', function () { doigt = true; mainPrise(); });
+    // Le doigt se releve souvent hors de la machine : on ecoute toute la page.
+    document.addEventListener('pointerup', mainLachee);
+    document.addEventListener('pointercancel', mainLachee);
     vue.addEventListener('error', function () { casse = true; pret = false; libelles(); });
 
     btn.addEventListener('click', function () {
       if (casse) return;
       if (!demande) { pause = false; charger(); return; }
       pause = !pause;
+      // « Animer la machine » reprend la visite, meme apres un geste.
+      if (!pause && libre) reprendre();
       relance();
     });
 
@@ -215,5 +291,7 @@
     } catch (e) {}
   }
 
-  global.RBScene3D = { monter: monter, _orbite: orbite, _TOUR_S: TOUR_S, _RESPIRE_S: RESPIRE_S };
+  global.RBScene3D = { monter: monter, _orbite: orbite, _phaseAngle: phaseAngle,
+                      _TOUR_S: TOUR_S, _RESPIRE_S: RESPIRE_S, _REPRISE_MS: REPRISE_MS,
+                      _etat: function () { return { pret: pret, pause: pause, libre: libre }; } };
 })(typeof window !== 'undefined' ? window : this);

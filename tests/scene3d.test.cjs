@@ -60,6 +60,38 @@ test('la hauteur de vue reste lisible, jamais au ras du sol ni à la verticale',
   }
 });
 
+test('la machine se tourne au doigt, et la visite repart sans saut', () => {
+  const S = charger();
+  // phaseAngle est l'inverse exact de l'angle de la visite : la camera reprend
+  // la ou le doigt a laisse la machine, jamais a l'autre bout du tour.
+  for (const angle of [-180, -90, -0.5, 0, 45.25, 90, 179.9]) {
+    const reprise = lire(S._orbite(S._phaseAngle(angle))).theta;
+    assert.ok(Math.abs(reprise - angle) < 0.01, 'reprise a ' + angle + ' deg, obtenu ' + reprise);
+  }
+  // Un angle hors plage (model-viewer accumule les tours) revient dans le tour.
+  for (const angle of [-540, 200, 720]) {
+    const p = S._phaseAngle(angle);
+    assert.ok(p >= 0 && p < S._TOUR_S, 'phase hors tour pour ' + angle + ' : ' + p);
+  }
+  assert.ok(S._REPRISE_MS >= 3000, 'laisser le temps de manipuler avant de reprendre');
+});
+
+test('la scène accepte les gestes et reste accessible au clavier', () => {
+  const code = fs.readFileSync(path.join(__dirname, '..', 'scene3d.js'), 'utf8');
+  assert.ok(code.includes("setAttribute('camera-controls'"), 'la machine doit se tourner au doigt');
+  assert.ok(code.includes("setAttribute('touch-action', 'pan-y')"), 'un doigt vertical doit defiler la page');
+  assert.ok(code.includes("setAttribute('tabindex', '0')"), 'atteignable au clavier');
+  assert.ok(!code.includes("'aria-hidden'"), 'une commande ne se cache pas des lecteurs d ecran');
+  assert.ok(code.includes("source === 'user-interaction'"),
+    'seul un vrai geste doit interrompre la visite, pas la visite elle-meme');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'interface.css'), 'utf8');
+  const bloc = css.slice(css.indexOf('.rb-scene3d-vue {'), css.indexOf('.rb-scene3d.est-charge .rb-scene3d-vue'));
+  assert.ok(!bloc.includes('pointer-events: none'), 'les gestes doivent atteindre la machine');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.ok(!html.includes('data-rb-scene3d role="img"'),
+    'role="img" masquerait la commande 3D aux lecteurs d ecran');
+});
+
 test('la scène est précachée et chargée par la page', () => {
   const lireF = n => fs.readFileSync(path.join(__dirname, '..', n), 'utf8');
   const version = lireF('app.js').match(/var APP_VERSION = '([^']+)'/)[1];

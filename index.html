@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Formation opérateur, RodBot LP</title>
 <meta name="description" content="Formation a l exploitation du systeme robotise Borterra RodBot LP, basee sur le manuel de l operateur OM 10667.">
-<link rel="stylesheet" href="fonts/fonts.css?v=1.129.0">
+<link rel="stylesheet" href="fonts/fonts.css?v=1.130.0">
 <link rel="stylesheet" href="styles.css?v=1.8.21">
-<link rel="stylesheet" href="interface.css?v=1.129.0">
+<link rel="stylesheet" href="interface.css?v=1.130.0">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
@@ -168,7 +168,7 @@
 
           <!-- La scene 3D vit hors du gabarit (scene3d.js) : elle est redeposee
                ici apres chaque rendu, sinon le modele se rechargerait a chaque clic. -->
-          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="La machine en 3D, en mouvement"></div>
+          <div class="rb-scene3d-slot" data-rb-scene3d></div>
 
           <div class="rb-choix">
             <button class="rb-choix-carte rb-choix-form" onClick="{{ goFormation }}">
@@ -265,57 +265,17 @@
         <section class="rb-savoir-visuel" data-rb-scroll-section="equipment">
           <!-- La scène 3D vit hors du gabarit (scene3d.js). Un seul exemplaire
                existe : il est redéposé ici ou sur l'accueil, selon l'écran ouvert. -->
-          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="La machine en 3D, en mouvement"></div>
+          <div class="rb-scene3d-slot" data-rb-scene3d></div>
         </section>
 
-      <!-- LA MACHINE EN 3D : chaque fonctionnalité de l'atelier devient une porte nommée -->
-      <section class="mr-ghost" data-ghost="3D" data-rb-scroll-section="machine3d" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
-        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">02 : LA MACHINE EN 3D</div>
-        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Ouvrir, toucher, essayer</h2>
-        <p style="font-size:14.5px;line-height:1.6;color:#535252;max-width:62ch;margin:0 0 16px">La réplique articulée réagit comme la vraie machine. Chaque carte ouvre directement le bon exercice.</p>
-        <div class="rb-3d-note">⚠️ Première fois : environ 30 Mo à charger. Faites-le en surface.</div>
-        <div class="rb-3d-grid">
-          <a class="rb-3d-carte" href="3d/?exercise=panel&amp;lang=fr">
-            <span class="rb-3d-ic" aria-hidden="true">🚪</span>
-            <span class="rb-3d-txt">
-              <strong>Ouvrir le coffret IHM</strong>
-              <small>La porte s'ouvre. Récepteur, PPU, borniers, arrière de l'écran.</small>
-            </span>
-            <span class="rb-3d-page">p. 14</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?exercise=emergency-points&amp;lang=fr">
-            <span class="rb-3d-ic" aria-hidden="true">🛑</span>
-            <span class="rb-3d-txt">
-              <strong>Trouver les quatre arrêts</strong>
-              <small>Tournez autour de la machine. Touchez les quatre arrêts d'urgence.</small>
-            </span>
-            <span class="rb-3d-page">p. 12</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?exercise=radio-points&amp;lang=fr">
-            <span class="rb-3d-ic" aria-hidden="true">🕹️</span>
-            <span class="rb-3d-txt">
-              <strong>Repérer les commandes radio</strong>
-              <small>JS1, la bascule JS2, JS3 et le bouton vert PINCE.</small>
-            </span>
-            <span class="rb-3d-page">p. 21</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?exercise=manual-levers&amp;lang=fr">
-            <span class="rb-3d-ic" aria-hidden="true">🎚️</span>
-            <span class="rb-3d-txt">
-              <strong>Observer les leviers manuels</strong>
-              <small>Les deux postes. Débattement et retour au neutre.</small>
-            </span>
-            <span class="rb-3d-page">p. 15</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?lang=fr">
-            <span class="rb-3d-ic" aria-hidden="true">🔍</span>
-            <span class="rb-3d-txt">
-              <strong>Explorer les composants</strong>
-              <small>Le bras, la pince, le panier, les stabilisateurs.</small>
-            </span>
-            <span class="rb-3d-page">7 fiches</span>
-          </a>
-        </div>
+      <!-- TROUVER UN MOT : le bloc de recherche vit hors du gabarit (recherche.js).
+           Le gabarit est reconstruit a chaque rendu : un champ pose ici serait vide
+           des la premiere frappe. -->
+      <section class="mr-ghost" data-ghost="Mot" data-rb-scroll-section="trouver" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
+        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">02 : TROUVER UN MOT</div>
+        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Cherchez un mot</h2>
+        <p style="font-size:14.5px;line-height:1.6;color:#535252;max-width:62ch;margin:0 0 16px">Tapez un mot. Les leçons, les pages du manuel et les ateliers 3D apparaissent.</p>
+        <div class="rb-trouve-slot" data-rb-recherche></div>
       </section>
 
       <!-- AUCUN SYSTEME DE VISION : deplacee avant la section du mat articule -->
@@ -1574,7 +1534,7 @@
 
           <!-- La scene 3D vit hors du gabarit (scene3d.js) : elle est redeposee
                ici apres chaque rendu, sinon le modele se rechargerait a chaque clic. -->
-          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="The machine in 3D, moving"></div>
+          <div class="rb-scene3d-slot" data-rb-scene3d></div>
 
           <div class="rb-choix">
             <button class="rb-choix-carte rb-choix-form" onClick="{{ goFormation }}">
@@ -1671,58 +1631,17 @@
         <section class="rb-savoir-visuel" data-rb-scroll-section="equipment">
           <!-- La scène 3D vit hors du gabarit (scene3d.js). Un seul exemplaire
                existe : il est redéposé ici ou sur l'accueil, selon l'écran ouvert. -->
-          <div class="rb-scene3d-slot" data-rb-scene3d role="img" aria-label="The machine in 3D, moving"></div>
+          <div class="rb-scene3d-slot" data-rb-scene3d></div>
         </section>
 
-      <!-- LA MACHINE EN 3D : chaque fonctionnalité de l'atelier devient une porte nommée -->
-      <section class="mr-ghost" data-ghost="3D" data-rb-scroll-section="machine3d" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
-        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">02 : THE MACHINE IN 3D</div>
-        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Open it, touch it, try it</h2>
-        <p style="font-size:14.5px;line-height:1.6;color:#535252;max-width:62ch;margin:0 0 16px">The articulated replica behaves like the real machine. Each card opens the right exercise.</p>
-        <div class="rb-3d-note">⚠️ First time: about 30 MB to load. Do it on the surface.</div>
-        <div class="rb-3d-note" style="border-left-color:#989898">ℹ️ The 3D workshop is in French for now.</div>
-        <div class="rb-3d-grid">
-          <a class="rb-3d-carte" href="3d/?exercise=panel&amp;lang=en">
-            <span class="rb-3d-ic" aria-hidden="true">🚪</span>
-            <span class="rb-3d-txt">
-              <strong>Open the HMI cabinet</strong>
-              <small>The door opens. Receiver, PPU, terminals, back of the screen.</small>
-            </span>
-            <span class="rb-3d-page">p. 14</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?exercise=emergency-points&amp;lang=en">
-            <span class="rb-3d-ic" aria-hidden="true">🛑</span>
-            <span class="rb-3d-txt">
-              <strong>Find the four stops</strong>
-              <small>Turn around the machine. Tap the four emergency stops.</small>
-            </span>
-            <span class="rb-3d-page">p. 12</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?exercise=radio-points&amp;lang=en">
-            <span class="rb-3d-ic" aria-hidden="true">🕹️</span>
-            <span class="rb-3d-txt">
-              <strong>Find the radio controls</strong>
-              <small>JS1, the JS2 rocker, JS3 and the green GRIP button.</small>
-            </span>
-            <span class="rb-3d-page">p. 21</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?exercise=manual-levers&amp;lang=en">
-            <span class="rb-3d-ic" aria-hidden="true">🎚️</span>
-            <span class="rb-3d-txt">
-              <strong>Look at the manual levers</strong>
-              <small>Both stations. Travel and return to neutral.</small>
-            </span>
-            <span class="rb-3d-page">p. 15</span>
-          </a>
-          <a class="rb-3d-carte" href="3d/?lang=en">
-            <span class="rb-3d-ic" aria-hidden="true">🔍</span>
-            <span class="rb-3d-txt">
-              <strong>Explore the components</strong>
-              <small>The arm, the grip, the basket, the stabilisers.</small>
-            </span>
-            <span class="rb-3d-page">7 cards</span>
-          </a>
-        </div>
+      <!-- TROUVER UN MOT : le bloc de recherche vit hors du gabarit (recherche.js).
+           Le gabarit est reconstruit a chaque rendu : un champ pose ici serait vide
+           des la premiere frappe. -->
+      <section class="mr-ghost" data-ghost="Word" data-rb-scroll-section="trouver" style="max-width:1180px;margin:0 auto;padding:44px 28px 10px">
+        <div style="font-weight:800;font-size:11px;letter-spacing:.2em;color:#D92624;margin-bottom:8px">02 : FIND A WORD</div>
+        <h2 style="font-weight:900;font-size:30px;letter-spacing:.01em;text-transform:uppercase;margin:0 0 6px;color:#1D1E1B">Search a word</h2>
+        <p style="font-size:14.5px;line-height:1.6;color:#535252;max-width:62ch;margin:0 0 16px">Type a word. Lessons, manual pages and 3D workshops appear.</p>
+        <div class="rb-trouve-slot" data-rb-recherche></div>
       </section>
 
       <!-- NO VISION SYSTEM : moved before the mast section -->
@@ -2864,9 +2783,10 @@
 </div>
 </script>
 
-<script src="interface.js?v=1.129.0"></script>
-<script src="pdf.js?v=1.129.0"></script>
-<script src="scene3d.js?v=1.129.0"></script>
-<script src="app.js?v=1.129.0"></script>
+<script src="interface.js?v=1.130.0"></script>
+<script src="pdf.js?v=1.130.0"></script>
+<script src="scene3d.js?v=1.130.0"></script>
+<script src="recherche.js?v=1.130.0"></script>
+<script src="app.js?v=1.130.0"></script>
 </body>
 </html>
