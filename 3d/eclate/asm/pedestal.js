@@ -513,7 +513,6 @@ function diverter() {
   body.push(cylA([x - 0.034, y, z0], [0, 0, -1], 0.003, 0.012, 'machined', 10));
   const top = elbowFit(6, [x, y + s + 0.008, (z0 + z1) / 2], [0, 1, 0], [1, 0, 0]);
   const side = elbowFit(6, [x + s + 0.008, y, (z0 + z1) / 2], [1, 0, 0], [0, 0, -1]);
-  const botTip = add([x, y - s - 0.008, (z0 + z1) / 2], [0, -1, 0], jicLen(6));
   const kids = [
     part({ id: 'ped-div-valve', sec: '14.5.2', item: '1', pn: '277981', fr: 'Valve de dérivation manuelle 3/8 NPT', en: 'Manual diverter valve 3/8 NPT', qty: '1', page: 80, explode: [0, 0, 0] }, body),
     part({ id: 'ped-div-elb', sec: '14.5.2', item: '2', pn: '2024-6-6S', fr: 'Coudes 90° 3/8 NPT - 6 JIC', en: '90° fittings 3/8 NPT to -6 JIC', qty: '2', page: 80, explode: [0.03, 0.03, 0] }, [top.g, side.g]),
@@ -521,10 +520,10 @@ function diverter() {
       [jic(6, [x, y - s - 0.008, (z0 + z1) / 2], [0, -1, 0])]),
   ];
   const a = asm({ id: 'ped-div', sec: '14.5.2', item: '7', pn: '277979', fr: 'Valve de dérivation manuelle', en: 'Manual diverter', qty: '1', page: 80, explode: [0, 0, -0.08] }, kids);
-  return { a, side, botTip };
+  return { a, side };
 }
 
-function driveValves(tether) {
+function driveValves() {
   const { x0, x1, y0, ySide, yTop, zIn, zOut, zFoot, t } = DV;
   const out = [];
   // plaque en U : face extérieure chanfreinée (trous) + deux jambes à pattes repliées vers l'intérieur
@@ -763,7 +762,7 @@ function rootParts(vm, tb) {
 }
 
 /* Boyaux entre sous-ensembles (non listés, tracé estimé). */
-function linkHoses(vm, tb, dv) {
+function linkHoses(vm, tb) {
   const out = [];
   // banc 14.2.1, ports B -> raccords tournants (rangée avant)
   const pairs = [[1, -0.084], [3, 0], [5, 0.084]];
@@ -786,9 +785,7 @@ function linkHoses(vm, tb, dv) {
 export function build() {
   const vm = valveMount();
   const tb = tetherBlock();
-  const dvA = driveValves(tb);
-  // la dérivation est dans 14.5 : récupérer son raccord du bas pour le boyau de liaison
-  const dv = { botTip: add([DIV.x, DIV.y - DIV.s - 0.008, (DIV.z0 + DIV.z1) / 2], [0, -1, 0], jicLen(6)) };
+  const dvA = driveValves();
   const kids = [
     weldment(),
     vm.a,
@@ -799,7 +796,7 @@ export function build() {
     dumpLoad(),
     chargerBox(),
     ...rootParts(vm, tb),
-    linkHoses(vm, tb, dv),
+    linkHoses(vm, tb),
   ];
   return asm({ id: 'pedestal', sec: '14', item: '2', pn: '278249', fr: 'Socle (piédestal)', en: 'Pedestal', qty: '1', page: 69, explode: [0, 0, 0] }, kids);
 }
