@@ -311,9 +311,12 @@ function buildTB2(extra) {
   for (const uu of [-0.183, -0.06, u - 0.003]) { const p = BP(uu, v, 0.001); hw.push(aim(washer({ d: 0.19 * IN, mat: 'zincClear' }), p, OUT), aim(bolt({ d: 0.19 * IN, L: 0.375 * IN, head: 'bhcs', mat: 'zincClear' }), [p[0], p[1], p[2] - 0.0006], OUT)); }
   // ponts : 6 x 4 pos. et 10 x 2 pos. dans les puits du milieu
   const allU = [...pU, ...gU];
-  for (let i = 0; i < 6; i++) { const a = allU[i * 2], b = allU[i * 2 + 3]; br4.push(bpBox(b - a + W5 - 0.001, 0.0035, 0.004, (a + b) / 2, v + 0.007, RAIL_TOP + 0.050, MT.redPl(), 0)); }
-  for (let i = 0; i < 8; i++) { const a = allU[i * 2], b = allU[i * 2 + 1]; br2.push(bpBox(b - a + W5 - 0.001, 0.0035, 0.004, (a + b) / 2, v - 0.007, RAIL_TOP + 0.050, MT.redPl(), 0)); }
-  for (let i = 0; i < 2; i++) { const a = allU[10 + i * 3], b = allU[11 + i * 3]; br2.push(bpBox(b - a + W5 - 0.001, 0.0035, 0.004, (a + b) / 2, v + 0.020, RAIL_TOP + 0.040, MT.redPl(), 0)); }
+  const bridge = (arr, i0, n, dv, d0) => { const a = allU[i0], b = allU[i0 + n - 1]; arr.push(bpBox(b - a + W5 - 0.001, 0.0035, 0.004, (a + b) / 2, v + dv, RAIL_TOP + d0, MT.redPl(), 0)); };
+  for (const i0 of [0, 4, 9, 13]) bridge(br4, i0, 4, 0.007, 0.050);
+  for (const i0 of [0, 9]) bridge(br4, i0, 4, -0.007, 0.050);
+  for (const i0 of [4, 6, 13, 15]) bridge(br2, i0, 2, -0.007, 0.050);
+  for (const i0 of [0, 2, 9, 11]) bridge(br2, i0, 2, 0.022, 0.0475);
+  for (const i0 of [0, 9]) bridge(br2, i0, 2, -0.022, 0.0475);
   const pp = (o) => [...o.body, ...o.push];
   const S = '9.2', pg = 42;
   return asm({ id: 'elec-tb2', sec: S, item: '19', pn: '279601', fr: 'Bornier 2, disjoncteurs', en: 'Terminal block 2 (breakers)', qty: '1', page: pg, explode: [0, 0, -0.22] }, [
@@ -366,8 +369,8 @@ function buildTB1() {
   const tU = [];
   for (let i = 0; i < 16; i++) { terminal(u + W5 / 2, v, W5, 'plasticGrey', 'orange', tb); tU.push(u + W5 / 2); u += W5; }
   covers.push(...endCover(u + 0.0011, v, 0.0022, 'plasticGrey')); u += 0.0022;
-  for (let i = 0; i < 5; i++) { const a = tU[i * 3], b = tU[i * 3 + 2]; br5.push(bpBox(b - a + W5 - 0.001, 0.0035, 0.004, (a + b) / 2, v + 0.007, RAIL_TOP + 0.050, MT.redPl(), 0)); }
-  for (let i = 0; i < 10; i++) { const a = tU[i], b = tU[i + 2] ?? tU[i]; jmp.push(bpBox(Math.min(b - a, 0.0104) + W5 - 0.0015, 0.003, 0.0025, a + Math.min(b - a, 0.0104) / 2, v + (i % 2 ? -0.034 : 0.034), RAIL_TOP + 0.030, MT.redPl(), 0)); }
+  for (const [i0, dv] of [[0, 0.007], [5, 0.007], [10, 0.007], [0, -0.007], [5, -0.007]]) { const a = tU[i0], b = tU[i0 + 4]; br5.push(bpBox(b - a + W5 - 0.001, 0.0035, 0.004, (a + b) / 2, v + dv, RAIL_TOP + 0.050, MT.redPl(), 0)); }
+  for (const dv of [0.034, -0.034]) for (const i0 of [0, 3, 6, 9, 12]) { const a = tU[i0], b = tU[i0 + 2]; jmp.push(bpBox(b - a + W5 - 0.0015, 0.003, 0.0025, (a + b) / 2, v + dv, RAIL_TOP + 0.030, MT.redPl(), 0)); }
   const thin = (c, k, arr) => { arr.push(bpBox(0.0059, 0.090, 0.050, c, v, RAIL_TOP, k, 0.0006), bpBox(0.0057, 0.030, 0.022, c, v + 0.012, RAIL_TOP + 0.050, k, 0.0006)); };
   const thinU = [];
   for (let i = 0; i < 9; i++) { const c = u + 0.0031; thinU.push(c); thin(c, i < 4 ? 'plasticLight' : 'plasticGrey', i < 4 ? rel : ssr); u += 0.0062; }
@@ -429,7 +432,7 @@ function buildDoor() {
   const zb = ZD - 0.0045;  // face arrière du cadre 9.4 (joint 1,5 + plaque 3)
   hmi.push(m(G.plate(G.rrect(DOOR.bezel[0], DOOR.bezel[1], 0.006), 0.007, { holes: [{ rect: [0, 0, 0.230, 0.140, 0.002] }], bevel: 0.0015 }), 'plastic', { p: D(hu, hv, zb - 0.0035) }));
   hmi.push(box(0.236, 0.146, 0.004, 'plastic', D(hu, hv, zb - 0.0012), 0.001));
-  hmi.push(plane(DOOR.active[0], DOOR.active[1], cmat('hmi', 1024, 600, drawHMI, { emissive: 0.85, rough: 0.12, clear: 1 }), [-1, 0, 0], [0, 1, 0], D(hu, hv, zb - 0.0032)));
+  hmi.push(plane(DOOR.active[0], DOOR.active[1], cmat('hmi', 1024, 600, drawHMI, { emissive: 0.85, rough: 0.12, clear: 1 }), [-1, 0, 0], [0, 1, 0], D(hu, hv, zb - 0.0038)));
   hmi.push(box(0.272, 0.186, 0.044, 'plastic', D(hu, hv, ZDB + 0.022 + 0.0005), 0.004, 2));
   hmi.push(box(0.150, 0.040, 0.008, 'plastic', D(hu - 0.01, hv - 0.06, ZDB + 0.048), 0.002));
   hmi.push(box(0.012, 0.010, 0.010, 'plastic', D(hu - 0.075, hv - 0.06, ZDB + 0.056), 0.001));
@@ -466,7 +469,7 @@ function buildDoor() {
   // --- autocollants (face de porte, normale -Z)
   const dz = ZD - 0.0006, EX = [-1, 0, 0], EY = [0, 1, 0];
   const [lu, lv, lw, lh] = DOOR.lbl24, [mu, mv, mw, mh] = DOOR.pm, [wu, wv, ww, wh] = DOOR.warn;
-  const tagW = 0.057, tagH = 0.072, tagV = (vb) => vb + tagH / 2 - (tagH - tagW / 2);
+  const tagW = 0.057, tagH = 0.072, tagV = (vb) => vb + (tagH - tagW / 2) - tagH / 2;
   const decals = {
     l24: plane(lw, lh, cmat('lbl24', 384, 222, drawLabel24, { rough: 0.25, clear: 0.6 }), EX, EY, D(lu, lv, dz)),
     reset: plane(tagW, tagH, cmat('tagReset', 285, 360, tagDraw(['RÉARMEMENT', 'DE SÉCURITÉ']), { alpha: true }), EX, EY, D(pu, tagV(pv), dz)),
@@ -505,7 +508,7 @@ function buildBody() {
   const shell = [], zc = [], white = [];
   const depth = ZB - ZF;  // 0,203
   shell.push(aim(m(G.rectTube(BW, BH, depth, TW, 0.006), 'grey'), [CX, CY, (ZB + ZF) / 2], [0, 0, 1]));
-  shell.push(m(G.box(BW - 0.003, BH - 0.003, TW, 0.001), 'grey', { p: [CX, CY, ZB + TW / 2] }));
+  shell.push(m(G.box(BW - 0.003, BH - 0.003, TW, 0.001), 'grey', { p: [CX, CY, ZB - TW / 2] }));
   shell.push(m(G.plate(G.rrect(BW - 0.0004, BH - 0.0004, 0.006), TW, { holes: [{ rect: [0, 0, 0.468, 0.468, 0.004] }] }), 'grey', { p: [CX, CY, ZF + TW / 2] }));
   // pattes de fixation (dos), haut et bas
   for (const s of [-1, 1]) for (const t of [-1, 1]) {
@@ -532,7 +535,7 @@ function buildBody() {
   zc.push(m(G.box(0.0013, 0.444, 0.018, 0.0004), 'zincClear', { p: [CX - BW / 2 - 0.00075, CY, -0.7125] }));
   // fond de montage blanc et entretoises
   white.push(m(G.plate(G.rrect(0.432, 0.432, 0.004), 0.0027, { holes: [{ slot: [0.19, 0.19, 0.19, 0.198], r: 0.0045 }, { slot: [-0.19, 0.19, -0.19, 0.198], r: 0.0045 }, { c: [0.19, -0.195], r: 0.0045 }, { c: [-0.19, -0.195], r: 0.0045 }] }), 'white', { p: [CX, CY, BPZ + 0.00135] }));
-  for (const s of [-1, 1]) for (const t of [-1, 1]) zc.push(cylAxis(0.0045, 0.0104, 'zincClear', [CX + s * 0.19, CY + t * 0.1945, (ZB + TW + BPZ + 0.0027) / 2], [0, 0, 1], 12));
+  for (const s of [-1, 1]) for (const t of [-1, 1]) zc.push(cylAxis(0.0045, 0.0104, 'zincClear', [CX + s * 0.19, CY + t * 0.1945, (ZB - TW + BPZ + 0.0027) / 2], [0, 0, 1], 12));
   return part({ id: 'elec-p24-box', sec: '9', item: '17', pn: '279593', fr: 'Boîtier 20 x 20 x 8 po', en: '20 x 20 x 8 in enclosure', qty: '1', page: 38, explode: [0, 0, 0], note: 'Corps usiné avec fond de montage blanc. La porte est un nœud séparé.' }, [shell, zc, white]);
 }
 
@@ -597,7 +600,7 @@ function buildPanel24() {
   const rg = new THREE.ExtrudeGeometry(prof, { depth: 0.150, bevelEnabled: true, bevelSize: 0.003, bevelThickness: 0.003, bevelSegments: 2 });
   rg.translate(0, 0, -0.075);
   rx.push(m(orient(rg, [-1, 0, 0], [0, 1, 0], [xw - 0.0033, CY + 0.05, -0.628]), 'plastic'));
-  rxl.push(plane(0.030, 0.012, 'plasticLight', [0, 0, -1], [0.2, 1, 0], [xw - 0.003 - 0.054, CY + 0.06, -0.66]));
+  rxl.push(plane(0.030, 0.012, 'plasticLight', [0, 0, 1], [0.179, 0.984, 0], [xw - 0.003 - 0.0575, CY + 0.06, -0.66]));
   rxl[0].material = cmat('rxLabel', 256, 100, (c, w, h) => { c.fillStyle = '#e8e8e2'; c.fillRect(0, 0, w, h); txt(c, 'RX  868 MHz', w / 2, h / 2, h * 0.4, { color: '#222' }); });
   const plugs = { a: [], b: [] };
   for (const [k, zz] of [['a', -0.585], ['b', -0.625]]) {
@@ -624,7 +627,7 @@ function buildPanel24() {
   const cn1 = [['ANT', -0.211], ['RESERVE', -0.160], ['TELE', -0.108], ['CN36', -0.061], ['CN35', -0.010], ['CN8', 0.043], ['CN7', 0.095], ['CN6', 0.146], ['CN2', 0.197]];
   const cn2 = [['RESERVE', -0.207], ['CN12', -0.162], ['CN14', -0.118], ['CN13', -0.073], ['CN11', -0.028], ['CN10', 0.016], ['CN5', 0.061], ['RESERVE', 0.106], ['CN9', 0.150], ['CN4', 0.197]];
   const strip = (lab, key) => cmat(key, 1536, 40, drawStrip(lab.map(([s, u]) => [s, (u + 0.23) / 0.46])));
-  const d16 = [plane(0.46, 0.012, strip(cn1, 'cn1'), [-1, 0, 0], [0, 0, -1], [CX, ys, -0.701])];
+  const d16 = [plane(0.46, 0.012, strip(cn1, 'cn1'), [-1, 0, 0], [0, 0, -1], [CX, ys, -0.6935])];
   const d17 = [plane(0.46, 0.012, strip(cn2, 'cn2'), [-1, 0, 0], [0, 0, -1], [CX, ys, -0.628])];
   // décalque des numéros de disjoncteurs (16) et diodes (1) sur le bornier 2
   const cbL = Array.from({ length: 10 }, (_, i) => [`CB${i + 1}`, (i + 0.5) / 10]);
@@ -690,7 +693,9 @@ function buildCover() {
   // plaques 1 (extérieure) et 6 (intérieure), boulons 3, rondelles 4, écrous 5
   const yc = (yFlap + yTopB) / 2 - 0.003;
   const p1 = [m(G.box(0.52, 0.036, 0.003, 0.0012), 'zincClear', { p: [CX, yc, zb - t / 2 - 0.0003 - 0.0015] })];
-  const p6 = [m(G.box(0.52, 0.036, 0.003, 0.0012), 'zincClear', { p: [CX, yc, zb + t / 2 + 0.0003 + 0.0015] })];
+  const z6 = zb + t / 2 + 0.0003 + 0.0015, y6t = L.pedestal.topY + 0.003;
+  const p6 = [m(G.box(0.52, y6t - (yc - 0.018), 0.003, 0.0012), 'zincClear', { p: [CX, (y6t + yc - 0.018) / 2, z6] }),
+    m(G.box(0.36, 0.003, -0.425 - (z6 - 0.0015), 0.0012), 'zincClear', { p: [CX, y6t - 0.0015, (-0.425 + z6 - 0.0015) / 2] })];
   const bh = [], nh = [];
   for (const du of [-0.227, -0.076, 0.076, 0.227]) {
     const x = CX + du, zo = zb - t / 2 - 0.0033;
@@ -700,9 +705,9 @@ function buildCover() {
   }
   const S = '13', pg = 68;
   return asm({ id: 'flexCover', sec: S, item: '19', pn: '281371', fr: 'Couvercle souple du panneau 24 V', en: '24 V panel flexible cover', qty: '1', page: pg, explode: [0, 0, 0], approx: true, note: "Capot en U renversé, transparent, devant la porte. Ouverture ovale devant l'arrêt d'urgence. Fixation au socle estimée." }, [
-    part({ id: 'elec-fc-guard', sec: S, item: '2', pn: '281369', fr: 'Capot de protection souple', en: 'Spraydown guard', qty: '1', page: pg, explode: [0, 0.06, -0.10], approx: true, note: 'Matière transparente estimée (rendu du manuel opérateur p. 7).' }, guard),
+    part({ id: 'elec-fc-guard', sec: S, item: '2', pn: '281369', fr: 'Capot de protection souple', en: 'Spraydown guard', qty: '1', page: pg, explode: [0, 0.75, -0.04], approx: true, note: 'Matière transparente estimée (rendu du manuel opérateur p. 7).' }, guard),
     part({ id: 'elec-fc-plate1', sec: S, item: '1', pn: '281359', fr: 'Plaque extérieure', en: 'Outer plate', qty: '1', page: pg, explode: [0, 0, -0.05], approx: true }, p1),
-    part({ id: 'elec-fc-plate6', sec: S, item: '6', pn: '281488', fr: 'Plaque intérieure', en: 'Inner plate', qty: '1', page: pg, explode: [0, 0, 0], approx: true }, p6),
+    part({ id: 'elec-fc-plate6', sec: S, item: '6', pn: '281488', fr: 'Plaque intérieure', en: 'Inner plate', qty: '1', page: pg, explode: [0, 0, 0], approx: true, note: 'Cornière estimée : appui sur le dessus du socle (y = 1,40).' }, p6),
     part({ id: 'elec-fc-bolts', sec: S, item: '3, 4', pn: 'B044', fr: 'Boulons et rondelles', en: 'Bolts and washers', qty: '4', page: pg, explode: [0, 0, -0.11], note: 'Repères 3 (HHCS 1/4-20 x 1, 4) et 4 (rondelles, côté tête).' }, bh),
     part({ id: 'elec-fc-nuts', sec: S, item: '5, 4', pn: '237505', fr: 'Écrous autobloquants', en: 'Nylock nuts', qty: '4', page: pg, explode: [0, 0, 0.012], note: 'Repères 5 (écrous, 4) et 4 (rondelles, côté écrou). Le tableau dit 1/2-13, mais les boulons sont 1/4-20.' }, nh),
   ]);
@@ -791,15 +796,16 @@ function buildPowerSupply() {
   // prises sous le boîtier : M12 8 broches (2) et 7/8 po 3 broches (3)
   const rcp = (u, z, s) => {
     const k = s === '78' ? 1.6 : 1, x = x0 + u, y0 = yb, o = [];
-    o.push(m(G.hex(0.0175 * k, 0.0035 * k), 'zincClear', { p: [x, y0 - 0.0018 * k, z] }), m(G.cyl(0.0062 * k, 0.010 * k, 20), 'zincClear', { p: [x, y0 - 0.0035 * k - 0.005 * k, z] }));
-    o.push(m(G.cyl(0.0070 * k, 0.004, 20), 'zincClear', { p: [x, y0 - 0.0135 * k - 0.002, z] }), m(G.hex(0.0175 * k, 0.0045 * k), 'zincClear', { p: [x, y0 + TW + 0.0023 * k, z] }));
+    const hh = 0.0035 * k, bl = 0.008 * k;  // six pans, fût fileté, capuchon (le bas reste au-dessus du sol)
+    o.push(m(G.hex(0.0175 * k, hh), 'zincClear', { p: [x, y0 - hh / 2, z] }), m(G.cyl(0.0062 * k, bl, 20), 'zincClear', { p: [x, y0 - hh - bl / 2, z] }));
+    o.push(m(G.cyl(0.0070 * k, 0.003, 20), 'zincClear', { p: [x, y0 - hh - bl - 0.0015, z] }), m(G.hex(0.0175 * k, 0.0045 * k), 'zincClear', { p: [x, y0 + TW + 0.0023 * k, z] }));
     return o;
   };
   const S = '4', pg = 9;
   const pp = (o) => [...o.body, ...o.push];
   return asm({ id: 'powerSupply', sec: S, item: '17', pn: '280142', fr: "Panneau d'alimentation", en: 'Power supply panel', qty: '1', page: pg, explode: [0, 0, 0], approx: true, note: "Livré à part (p. 7) : se monte sur la foreuse mère (manuel opérateur p. 45). Posé au sol, face vers +Z. Profondeur estimée." }, [
     part({ id: 'elec-ps-box', sec: S, item: '12', pn: '280152', fr: 'Boîtier usiné', en: 'Machined enclosure', qty: '1', page: pg, explode: [0, 0, 0] }, [shell, zc, white]),
-    part({ id: 'elec-ps-door', sec: S, item: '12', pn: '280152', fr: 'Porte du boîtier', en: 'Enclosure door', qty: '1', page: pg, explode: [0, 0, 0.26], note: 'Porte du repère 12, charnière à gauche.' }, [doorM, doorG]),
+    part({ id: 'elec-ps-door', sec: S, item: '12', pn: '280152', fr: 'Porte du boîtier', en: 'Enclosure door', qty: '1', page: pg, explode: [0, 0.04, 0.27], note: 'Porte du repère 12, charnière à gauche.' }, [doorM, doorG]),
     part({ id: 'elec-ps-psu', sec: S, item: '4', pn: '279621', fr: 'Alimentation 24 V CC 20 A', en: '20 A 24 V DC power supply', qty: '1', page: pg, explode: [0, 0, 0.17] }, [psu.a, psu.b]),
     part({ id: 'elec-ps-tbp', sec: S, item: '5', pn: '254027', fr: 'Bornes 3 étages 1 potentiel', en: '1-potential terminal blocks', qty: '2', page: pg, explode: [0, 0, 0.12] }, pp(tP)),
     part({ id: 'elec-ps-tbg', sec: S, item: '6', pn: '254028', fr: 'Bornes de mise à la terre', en: 'Ground terminal blocks', qty: '3', page: pg, explode: [0, 0, 0.12] }, pp(tG)),
@@ -814,12 +820,12 @@ function buildPowerSupply() {
 }
 
 /** Moitiés de coupleur rapide le long de +Z. Femelle : manchon cannelé ; mâle : nez + six pans + filet ORB. */
-function qdFemale(D, p) {
+function qdFemale(D, p, inv = false) {
   const r = D / 2, g = [];
   g.push(m(G.hex(D * 0.95, D * 0.42), 'zincClear', { p: [0, D * 0.21, 0] }));
   g.push(m(G.lathe([[r * 0.62, D * 0.40], [r * 0.98, D * 0.40], [r, D * 0.46], [r, D * 1.05], [r * 1.04, D * 1.1], [r * 1.04, D * 1.22], [r, D * 1.27], [r, D * 1.62], [r * 0.9, D * 1.7], [r * 0.62, D * 1.7]], 30), 'zincClear'));
   g.push(m(G.torus(r * 1.01, D * 0.025, Math.PI * 2, 6, 30), 'zincClear', { p: [0, D * 0.75, 0], r: [90, 0, 0] }));
-  return aim(grp(g), p, [0, 0, 1]);
+  return aim(grp(g), p, [0, 0, inv ? -1 : 1]);
 }
 function qdMale(D, p, inv = false) {
   const r = D / 2, g = [];
@@ -856,28 +862,33 @@ function buildTether() {
   // paires de coupleurs : femelle ou mâle côté plaque (mâles et femelles inversés, note du dessin)
   const pair = (k, Dq, plateSide, idF, idM) => {
     const [u, v] = pos[k], x = x0 + u, y = yc + v, z0 = zfr + Dq * 0.22;
-    if (plateSide === 'f') { add(idF, qdFemale(Dq, [x, y, z0])); add(idM, qdMale(Dq, [x, y, z0 + Dq * 1.7 + Dq * 1.0], true)); }
-    else { add(idM, qdMale(Dq, [x, y, z0 + Dq * 0.05])); add(idF, qdFemale(Dq, [x, y, z0 + Dq * 1.6 + Dq * 1.7], )); }
+    if (plateSide === 'f') {
+      add(idF, qdFemale(Dq, [x, y, z0]));                                   // manchon vers l'avant
+      add(idM, qdMale(Dq, [x, y, z0 + Dq * 1.7 - Dq * 0.55]));             // nez dans le manchon, filet ORB vers l'avant
+    } else {
+      const tip = z0 + Dq * 1.6;                                            // filet ORB à la plaque, nez vers l'avant
+      add(idM, qdMale(Dq, [x, y, tip], true));
+      add(idF, qdFemale(Dq, [x, y, tip - Dq * 0.55 + Dq * 1.7], true));    // manchon tourné vers la plaque
+    }
   };
-  pair('s6a', 0.030, 'f', 'qd6f1', 'qd6m1'); pair('s6b', 0.030, 'm', 'qd6f2', 'qd6m2'); pair('s12', 0.046, 'f', 'qd12f', 'qd12m'); pair('s16', 0.056, 'm', 'qd16f', 'qd16m');
+  pair('s6a', 0.030, 'm', 'qd6f1', 'qd6m1'); pair('s6b', 0.030, 'f', 'qd6f2', 'qd6m2'); pair('s12', 0.046, 'm', 'qd12f', 'qd12m'); pair('s16', 0.056, 'm', 'qd16f', 'qd16m');
   // visserie 11, 12, 13 : boulons verticaux dans le pied, écrous dessous (au sol)
   const hw = [];
   for (const dz of [-0.05, -0.095]) {
     const x = x0 + 0.06, z = zp - th / 2 + dz;
     hw.push(aim(bolt({ d: 0.375 * IN, L: 1.25 * IN }), [x, ylift + th + 0.0045, z], [0, 1, 0]));
     hw.push(m(G.tube(0.0095, 0.005, 0.0045, 20), 'zinc', { p: [x, ylift + th + 0.00225, z] }), m(G.tube(0.0095, 0.005, 0.0045, 20), 'zinc', { p: [x, ylift - 0.00225 + 0.0045 - 0.0045, z] }));
-    hw.push(m(G.hex(0.0143, 0.0075, 0.005), 'zinc', { p: [x, 0.00375 + 0.0, z] }));
+    hw.push(m(G.hex(0.0143, 0.0075, 0.005), 'zinc', { p: [x, ylift - 0.0045 - 0.00375, z] }));
   }
   const S = '8', pg = 37;
-  const qd = (id, item, pn, fr, en, qty, ex, note) => part({ id: 'elec-tb-' + id, sec: S, item, pn, fr, en, qty, page: pg, explode: ex, note }, nodes[id.replace(/-/g, '')] || []);
   return asm({ id: 'tetherBulkhead', sec: S, item: '7', pn: '278240', fr: 'Plaque de raccords rapides', en: 'Tether bulkhead plate', qty: '1', page: pg, explode: [0, 0, 0], note: "Livrée à part (p. 7) : reçoit l'ombilical 4 boyaux. Posée au sol, face vers +Z." }, [
     part({ id: 'elec-tb-plate', sec: S, item: '7', pn: '278241', fr: 'Plaque de cloison', en: 'Bulkhead plate', qty: '1', page: pg, approx: true, explode: [0, 0, 0], note: 'Couleur estimée (rouge). Pied replié vers l\'arrière.' }, plate),
-    part({ id: 'elec-tb-qd6f-1', sec: S, item: '1', pn: '241910', fr: 'Coupleur femelle #6', en: '#6 female coupler', qty: '2', page: pg, explode: [0, 0, 0.05], note: 'Exemplaire 1 sur 2 (côté plaque, à gauche).' }, nodes.qd6f1),
-    part({ id: 'elec-tb-qd6m-1', sec: S, item: '2', pn: '241911', fr: 'Coupleur mâle #6', en: '#6 male coupler', qty: '2', page: pg, explode: [0, 0, 0.16], note: 'Exemplaire 1 sur 2.' }, nodes.qd6m1),
-    part({ id: 'elec-tb-qd6m-2', sec: S, item: '2', pn: '241911', fr: 'Coupleur mâle #6', en: '#6 male coupler', qty: '2', page: pg, explode: [0, 0, 0.05], note: 'Exemplaire 2 sur 2 (côté plaque, à droite) : mâle et femelle inversés.' }, nodes.qd6m2),
-    part({ id: 'elec-tb-qd6f-2', sec: S, item: '1', pn: '241910', fr: 'Coupleur femelle #6', en: '#6 female coupler', qty: '2', page: pg, explode: [0, 0, 0.16], note: 'Exemplaire 2 sur 2.' }, nodes.qd6f2),
-    part({ id: 'elec-tb-qd12f', sec: S, item: '3', pn: '241912', fr: 'Coupleur femelle #12', en: '#12 female coupler', qty: '1', page: pg, explode: [0, 0, 0.05] }, nodes.qd12f),
-    part({ id: 'elec-tb-qd12m', sec: S, item: '4', pn: '241913', fr: 'Coupleur mâle #12', en: '#12 male coupler', qty: '1', page: pg, explode: [0, 0, 0.18] }, nodes.qd12m),
+    part({ id: 'elec-tb-qd6m-1', sec: S, item: '2', pn: '241911', fr: 'Coupleur mâle #6', en: '#6 male coupler', qty: '2', page: pg, explode: [0, 0, 0.05], note: 'Exemplaire 1 sur 2 (côté plaque, en haut à gauche).' }, nodes.qd6m1),
+    part({ id: 'elec-tb-qd6f-1', sec: S, item: '1', pn: '241910', fr: 'Coupleur femelle #6', en: '#6 female coupler', qty: '2', page: pg, explode: [0, 0, 0.16], note: 'Exemplaire 1 sur 2 (bout libre, en haut à gauche).' }, nodes.qd6f1),
+    part({ id: 'elec-tb-qd6f-2', sec: S, item: '1', pn: '241910', fr: 'Coupleur femelle #6', en: '#6 female coupler', qty: '2', page: pg, explode: [0, 0, 0.05], note: 'Exemplaire 2 sur 2 (côté plaque, en haut à droite) : mâle et femelle inversés (note du dessin).' }, nodes.qd6f2),
+    part({ id: 'elec-tb-qd6m-2', sec: S, item: '2', pn: '241911', fr: 'Coupleur mâle #6', en: '#6 male coupler', qty: '2', page: pg, explode: [0, 0, 0.16], note: 'Exemplaire 2 sur 2 (bout libre, en haut à droite).' }, nodes.qd6m2),
+    part({ id: 'elec-tb-qd12m', sec: S, item: '4', pn: '241913', fr: 'Coupleur mâle #12', en: '#12 male coupler', qty: '1', page: pg, explode: [0, 0, 0.05] }, nodes.qd12m),
+    part({ id: 'elec-tb-qd12f', sec: S, item: '3', pn: '241912', fr: 'Coupleur femelle #12', en: '#12 female coupler', qty: '1', page: pg, explode: [0, 0, 0.18] }, nodes.qd12f),
     part({ id: 'elec-tb-qd16m', sec: S, item: '6', pn: '241915', fr: 'Coupleur mâle #16', en: '#16 male coupler', qty: '1', page: pg, explode: [0, 0, 0.05] }, nodes.qd16m),
     part({ id: 'elec-tb-qd16f', sec: S, item: '5', pn: '241914', fr: 'Coupleur femelle #16', en: '#16 female coupler', qty: '1', page: pg, explode: [0, 0, 0.20] }, nodes.qd16f),
     part({ id: 'elec-tb-fit6', sec: S, item: '8', pn: 'S3843-06-06', fr: 'Raccords de cloison #6', en: '#6 bulkhead fittings', qty: '2', page: pg, explode: [0, 0, -0.07] }, nodes.f6),
@@ -890,30 +901,31 @@ function buildTether() {
 /** Trousse de câbles (278226) : rouleaux posés au sol (approximatif, allégé). */
 function buildCableKit() {
   const y = KZ.y;
-  /** Rouleau à plat : hélice basse (une épaisseur de câble par tour), deux bouts tangents avec connecteurs M12. */
-  const coil = (cx, cz, R, turns, rC, mk, conn) => {
-    const pts = [], n = Math.round(turns * 32);
+  /** Rouleau à plat : hélice basse (une épaisseur de câble par tour), deux bouts tangents avec connecteurs M12.
+   *  turns en demi-tours (k + 0,5) : les deux bouts partent vers -Z (ph = 0) ou vers +Z (ph = 1). */
+  const coil = (cx, cz, R, turns, rC, mk, conn, ph = 0) => {
+    const pts = [], n = Math.round(turns * 32), a0 = ph ? Math.PI : 0;
     for (let i = 0; i <= n; i++) {
-      const f = i / n, a = f * turns * Math.PI * 2, rr = R * (1 + 0.035 * Math.sin(a * 3 + R * 50));
-      pts.push([cx + rr * Math.cos(a), y + rC + 1.9 * rC * f * (turns - 1), cz + rr * Math.sin(a)]);
+      const f = i / n, a = a0 + f * turns * Math.PI * 2, rr = R * (1 + 0.035 * Math.sin(a * 3 + R * 50));
+      pts.push([cx + rr * Math.cos(a), y + rC + 1.9 * rC * f * (turns - 0.5), cz + rr * Math.sin(a)]);
     }
     const g = [m(G.sweep(pts, rC, { radial: 8 }), mk)];
     for (const k of [0, 1]) {
-      const a = k ? turns * Math.PI * 2 : 0, p = pts[k ? n : 0];
-      const dir = k ? [-Math.sin(a), 0, Math.cos(a)] : [Math.sin(a), 0, -Math.cos(a)];
-      const tip = [p[0] + dir[0] * 0.06, y + rC, p[2] + dir[2] * 0.06];
+      const a = a0 + (k ? turns * Math.PI * 2 : 0), p = pts[k ? n : 0], sg = k ? 1 : -1;
+      const dir = [-Math.sin(a) * sg, 0, Math.cos(a) * sg];
+      const tip = [p[0] + dir[0] * 0.03, y + rC, p[2] + dir[2] * 0.03];
       g.push(m(G.sweep([p, [(p[0] + tip[0]) / 2, (p[1] + tip[1]) / 2, (p[2] + tip[2]) / 2], tip], rC, { radial: 8 }), mk));
-      g.push(aim(grp([m(G.cyl(rC * 1.5, 0.032, 16), 'plastic', { p: [0, 0.016, 0] }), m(G.cyl(rC * 1.75, 0.012, 16), conn, { p: [0, 0.038, 0] })]), [tip[0], y + rC * 1.75, tip[2]], dir));
+      g.push(aim(grp([m(G.cyl(rC * 1.5, 0.032, 16), mk, { p: [0, 0.016, 0] }), m(G.cyl(rC * 1.75, 0.012, 16), conn, { p: [0, 0.038, 0] })]), [tip[0], y + rC * 1.75, tip[2]], dir));
     }
     return g;
   };
   const S = '12', pg = 66;
-  const z0 = 1.60;
+  const zA = 1.535, zB = 1.665;
   return asm({ id: 'cableKit', sec: S, pn: '278226', fr: 'Trousse de câbles', en: 'Cable kit', qty: '1', page: pg, explode: [0, 0, 0], approx: true, note: "Livrée à part (p. 7). Rouleaux simplifiés, posés au sol." }, [
-    part({ id: 'elec-ck-misc', sec: S, item: '1 à 8, 10 à 13, 15, 17 à 21', pn: '279832', fr: 'Cordons M12 et réseau', en: 'M12 and network cordsets', qty: '1', page: pg, approx: true, explode: [0, 0.03, 0], note: 'Regroupe 18 repères de la p. 67 (cordons capteurs, DeviceNet, Ethernet).' }, [coil(-0.08, z0, 0.085, 3, 0.0032, 'cableBlack', 'zincClear'), coil(0.13, z0 + 0.03, 0.07, 3, 0.003, MT.devnet(), 'zincClear')]),
-    part({ id: 'elec-ck-279723', sec: S, item: '16', pn: '279723', fr: 'Cordon Profinet 4 broches', en: 'Profinet cordset', qty: '4', page: pg, spare: true, approx: true, explode: [0, 0.06, 0], note: 'Pièce de rechange critique (p. 85).' }, coil(0.33, z0 - 0.02, 0.07, 2, 0.003, MT.profinet(), 'zincClear')),
-    part({ id: 'elec-ck-279834', sec: S, item: '9', pn: '279834', fr: 'Cordon 5 m 4 broches', en: '5 m 4-pin cordset', qty: '2', page: pg, spare: true, approx: true, explode: [0, 0.06, 0], note: 'Pièce de rechange critique (p. 85).' }, coil(0.45, z0 + 0.08, 0.055, 3, 0.0028, 'cableYellow', 'zincClear')),
-    part({ id: 'elec-ck-279356', sec: S, item: '14', pn: '279356', fr: 'Cordon 2 m 4 broches', en: '2 m 4-pin cordset', qty: '4', page: pg, spare: true, approx: true, explode: [0, 0.06, 0], note: 'Pièce de rechange critique (p. 85).' }, coil(0.27, z0 + 0.11, 0.045, 2, 0.0028, 'cableBlack', 'zincClear')),
+    part({ id: 'elec-ck-misc', sec: S, item: '1 à 8, 10 à 13, 15, 17 à 21', pn: '279832', fr: 'Cordons M12 et réseau', en: 'M12 and network cordsets', qty: '1', page: pg, approx: true, explode: [0, 0.03, 0], note: 'Regroupe 18 repères de la p. 67 (cordons capteurs, DeviceNet, Ethernet).' }, [coil(-0.11, zA, 0.08, 3.5, 0.0032, 'cableBlack', 'zincClear'), coil(0.06, zA, 0.065, 2.5, 0.003, MT.devnet(), 'zincClear')]),
+    part({ id: 'elec-ck-279723', sec: S, item: '16', pn: '279723', fr: 'Cordon Profinet 4 broches', en: 'Profinet cordset', qty: '4', page: pg, spare: true, approx: true, explode: [0, 0.06, 0], note: 'Pièce de rechange critique (p. 85).' }, coil(0.03, zB, 0.055, 2.5, 0.003, MT.profinet(), 'zincClear', 1)),
+    part({ id: 'elec-ck-279834', sec: S, item: '9', pn: '279834', fr: 'Cordon 5 m 4 broches', en: '5 m 4-pin cordset', qty: '2', page: pg, spare: true, approx: true, explode: [0, 0.06, 0], note: 'Pièce de rechange critique (p. 85).' }, coil(0.20, zB - 0.005, 0.05, 3.5, 0.0028, 'cableYellow', 'zincClear', 1)),
+    part({ id: 'elec-ck-279356', sec: S, item: '14', pn: '279356', fr: 'Cordon 2 m 4 broches', en: '2 m 4-pin cordset', qty: '4', page: pg, spare: true, approx: true, explode: [0, 0.06, 0], note: 'Pièce de rechange critique (p. 85).' }, coil(-0.12, zB, 0.045, 2.5, 0.0028, 'cableBlack', 'zincClear', 1)),
   ]);
 }
 
