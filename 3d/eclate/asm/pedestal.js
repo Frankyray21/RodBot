@@ -258,7 +258,7 @@ function weldment() {
   red.push(weld([[XB - TBK - o, YB + o, -ZI], [XB - TBK - o, YB + o, ZI]], wr));
   for (const s of [-1, 1]) red.push(weld([[XF - o, YB + o, s * WIN], [XF - o, YB + o, s * ZW]], wr));
   for (const s of [-1, 1]) red.push(weld([[X0 + TW + o, YBM + 0.0127 + o, s * (ZI - 0.002)], [XF, YBM + 0.0127 + o, s * (ZI - 0.002)]], 0.003));
-  return part({ id: 'ped-weldment', sec: '14', item: '4', pn: '276769', fr: 'Caisson du socle (mécano-soudé)', en: 'Pedestal weldment', qty: '1', page: PG, explode: [0, 0, 0],
+  return part({ id: 'ped-weldment', sec: '14', item: '4', pn: '276769', fr: 'Caisson du socle (mécano-soudé)', en: 'Pedestal weldment', qty: '1', page: PG, explode: [0, 0, 0], approx: true,
     note: 'PIPE HANDLER MNT MACH. Semelle, flancs, poutre avant à lumière oblongue, dessus percé pour la couronne. Largeur selon layout (le dessin p. 69 donne un caisson plus étroit). Trous des pattes de la rampe de garde (châssis) dans la plaque arrière.' }, red);
 }
 
@@ -314,9 +314,9 @@ function valveMount() {
   out.push(part({ id: 'ped-vm-plate', sec: '14.2', item: '7', pn: '276789', fr: 'Plaque du panneau à leviers', en: 'Control panel plate', qty: '1', page: 72, explode: [plateDX, 0, 0] },
     [plZY(panelOutline(), PX0, PX1, 'red', plateHoles)]));
   // étiquettes
-  out.push(part({ id: 'ped-vm-decal', sec: '14.2', item: '9', pn: '278712', fr: 'Autocollant des commandes hydrauliques (2 x 7)', en: 'Hydraulic controls decal (2 x 7)', qty: '1', page: 72, explode: [plateDX - 0.02, 0, 0] },
+  out.push(part({ id: 'ped-vm-decal', sec: '14.2', item: '9', pn: '278712', fr: 'Autocollant des commandes hydrauliques (2 x 7)', en: 'Hydraulic controls decal (2 x 7)', qty: '1', page: 72, explode: [-0.30, 0, 0] },
     [lbl('vm-decal', { text: '', w: 0.34, h: 0.094, bg: '#f2f2ee', px: 1400, draw: pictos(2, 7, 'crane'), p: [PFZ, 1.075, -0.008], r: [0, -90, 0] })]));
-  out.push(part({ id: 'ped-vm-magnets', sec: '14.2', item: '3', pn: '260234', fr: 'Autocollant AIMANTS arrêt / marche', en: 'MAGNETS on/off decal', qty: '1', page: 72, explode: [plateDX - 0.02, 0, 0] },
+  out.push(part({ id: 'ped-vm-magnets', sec: '14.2', item: '3', pn: '260234', fr: 'Autocollant AIMANTS arrêt / marche', en: 'MAGNETS on/off decal', qty: '1', page: 72, explode: [-0.30, 0, 0] },
     [lbl('vm-mag', { lines: ['MAGNETS', 'OFF     ON'], w: 0.06, h: 0.03, bg: '#141414', fg: '#ffffff', p: [PFZ, 0.904, SWITCH.z], r: [0, -90, 0] })]));
   const estopDraw = (ctx, W, H) => {
     ctx.fillStyle = '#f2c200'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = '#111'; ctx.font = `bold ${W * 0.1}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -325,11 +325,11 @@ function valveMount() {
       for (let i = 0; i < t.length; i++) { const a = mid + s * (i - (t.length - 1) / 2) * step; ctx.save(); ctx.translate(W / 2 + Math.cos(a) * R, H / 2 + Math.sin(a) * R); ctx.rotate(a + s * Math.PI / 2); ctx.fillText(t[i], 0, 0); ctx.restore(); }
     });
   };
-  out.push(part({ id: 'ped-vm-estop-label', sec: '14.2', item: '1', pn: '108461', fr: 'Étiquette d\'arrêt d\'urgence 22 mm', en: 'E-stop label 22 mm', qty: '1', page: 72, explode: [plateDX - 0.02, 0, 0] },
+  out.push(part({ id: 'ped-vm-estop-label', sec: '14.2', item: '1', pn: '108461', fr: 'Étiquette d\'arrêt d\'urgence 22 mm', en: 'E-stop label 22 mm', qty: '1', page: 72, explode: [-0.30, 0, 0] },
     [roundLbl('estop', 0.031, [PFZ, ESTOP.y, ESTOP.z], [0, -90, 0], estopDraw, '#f2c200')]));
   // arrêt d'urgence
   const E = [PX0, ESTOP.y, ESTOP.z];
-  out.push(part({ id: 'ped-vm-estop', sec: '14.2', item: '5', pn: '269897', fr: 'Arrêt d\'urgence 22 mm', en: 'E-stop 22 mm', qty: '1', page: 72, explode: [plateDX - 0.08, 0, 0] }, [
+  out.push(part({ id: 'ped-vm-estop', sec: '14.2', item: '5', pn: '269897', fr: 'Arrêt d\'urgence 22 mm', en: 'E-stop 22 mm', qty: '1', page: 72, explode: [-0.36, 0, 0] }, [
     discA(add(E, [-0.0008, 0, 0]), [-1, 0, 0], 0.0165, 0.006, 'black'),
     lathA(add(E, [-0.0068, 0, 0]), [-1, 0, 0], [[0, 0], [0.012, 0], [0.012, 0.008], [0.019, 0.009], [0.0205, 0.013], [0.018, 0.019], [0.01, 0.0215], [0, 0.022]], 'redLens'),
     bx(PX1, PX1 + 0.05, ESTOP.y - 0.016, ESTOP.y + 0.016, ESTOP.z - 0.016, ESTOP.z + 0.016, 'plasticGrey', 0.003),
@@ -337,7 +337,7 @@ function valveMount() {
   ]));
   // sélecteur AIMANTS
   const S = [PX0, SWITCH.y, SWITCH.z];
-  out.push(part({ id: 'ped-vm-switch', sec: '14.2', item: '4', pn: '269894', fr: 'Sélecteur 22 mm 2 positions (aimants)', en: 'Selector switch 22 mm (magnets)', qty: '1', page: 72, explode: [plateDX - 0.08, 0, 0] }, [
+  out.push(part({ id: 'ped-vm-switch', sec: '14.2', item: '4', pn: '269894', fr: 'Sélecteur 22 mm 2 positions (aimants)', en: 'Selector switch 22 mm (magnets)', qty: '1', page: 72, explode: [-0.36, 0, 0] }, [
     lathA(add(S, [-0.0008, 0, 0]), [-1, 0, 0], [[0, 0], [0.0145, 0], [0.0145, 0.004], [0.0125, 0.0065], [0, 0.0065]], 'chrome'),
     lathA(add(S, [-0.0072, 0, 0]), [-1, 0, 0], [[0, 0], [0.0105, 0], [0.0105, 0.005], [0, 0.005]], 'plastic'),
     bx(PX0 - 0.026, PX0 - 0.012, SWITCH.y - 0.0125, SWITCH.y + 0.0125, SWITCH.z - 0.0045, SWITCH.z + 0.0045, 'plastic', 0.003),
@@ -356,7 +356,7 @@ function valveMount() {
     ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(W / 2, H / 2, W * 0.045, 0, 7); ctx.fill();
   };
   const Gp = [PX0, GAUGE.y, GAUGE.z];
-  out.push(part({ id: 'ped-vm-gauge', sec: '14.2', item: '2', pn: '240328', fr: 'Manomètre de panneau 0 à 5000 psi', en: 'Panel pressure gauge 0-5000 psi', qty: '1', page: 72, explode: [plateDX - 0.07, 0, 0] }, [
+  out.push(part({ id: 'ped-vm-gauge', sec: '14.2', item: '2', pn: '240328', fr: 'Manomètre de panneau 0 à 5000 psi', en: 'Panel pressure gauge 0-5000 psi', qty: '1', page: 72, explode: [-0.35, 0, 0] }, [
     lathA(Gp, [-1, 0, 0], [[0.0312, 0], [0.042, 0], [0.042, 0.003], [0.039, 0.0065], [0.033, 0.0072], [0.0322, 0.0045], [0.0312, 0.0045], [0.0312, 0]], 'chrome', 40),
     discA(add(Gp, [-0.0047, 0, 0]), [-1, 0, 0], 0.0322, 0.0015, 'glass'),
     roundLbl('gauge-dial', 0.0305, add(Gp, [-0.0013, 0, 0]), [0, -90, 0], dial, '#f6f6f2'),
@@ -366,7 +366,7 @@ function valveMount() {
   // bride en U du manomètre (derrière la plaque)
   const ux = PX1 + 0.016, uR = 0.0335;
   const uArc = m(G.torus(uR, 0.0022, Math.PI, 8, 24), 'zinc', { p: [ux, GAUGE.y, GAUGE.z], r: [0, 90, 0] });
-  out.push(part({ id: 'ped-vm-ubolt', sec: '14.2', item: '6', pn: '269989', fr: 'Bride en U du manomètre 2,5 po', en: 'U-bolt, 2.5 in gauge', qty: '1', page: 73, explode: [plateDX + 0.04, 0, 0] }, [
+  out.push(part({ id: 'ped-vm-ubolt', sec: '14.2', item: '6', pn: '269989', fr: 'Bride en U du manomètre 2,5 po', en: 'U-bolt, 2.5 in gauge', qty: '1', page: 73, explode: [-0.24, 0, 0] }, [
     uArc,
     ...[-1, 1].map((s) => cylA([ux, GAUGE.y, GAUGE.z + s * uR], [0, -1, 0], 0.0022, 0.028, 'zinc', 10)),
     bx(ux - 0.004, ux + 0.004, GAUGE.y - 0.034, GAUGE.y - 0.028, GAUGE.z - 0.044, GAUGE.z + 0.044, 'zinc', 0.0015),
@@ -374,12 +374,12 @@ function valveMount() {
   ]));
   // raccord 45° du manomètre
   const g45 = elbowFit(6, [PX1 + 0.0376, GAUGE.y, GAUGE.z], [1, 0, 0], [0, 1, 0], { ang: 45 });
-  out.push(part({ id: 'ped-vm-fit45', sec: '14.2', item: '14', pn: '2044-04-06S', fr: 'Raccord 1/4 NPT - 6 JIC à 45°', en: 'Fitting 1/4 NPT to -6 JIC 45°', qty: '1', page: 73, explode: [plateDX - 0.07, 0, 0] }, [g45.g]));
+  out.push(part({ id: 'ped-vm-fit45', sec: '14.2', item: '14', pn: '2044-04-06S', fr: 'Raccord 1/4 NPT - 6 JIC à 45°', en: 'Fitting 1/4 NPT to -6 JIC 45°', qty: '1', page: 73, explode: [-0.35, 0, 0] }, [g45.g]));
   // visserie de la plaque et du banc
   const hw = [];
   for (const [z, y] of [[-0.285, 0.897], [0.285, 0.897], [-0.285, 1.11], [0.285, 1.11]]) hw.push(bAt([PX0, y, z], [-1, 0, 0], { d: 0.375 * IN, L: 0.875 * IN, washer: true }));
   for (const [z, y] of [[-0.207, 1.115], [-0.207, 1.065], [0.175, 1.115], [0.175, 1.065]]) hw.push(bAt([PX0, y, z], [-1, 0, 0], { d: 0.008, L: 0.016, washer: true }));
-  out.push(part({ id: 'ped-vm-hw', sec: '14.2', item: '10, 11, 12, 13', pn: 'B025M, B141, W003, W003M', fr: 'Visserie du panneau à leviers', en: 'Control panel hardware', qty: '16', page: 72, explode: [plateDX - 0.05, 0, 0],
+  out.push(part({ id: 'ped-vm-hw', sec: '14.2', item: '10, 11, 12, 13', pn: 'B025M, B141, W003, W003M', fr: 'Visserie du panneau à leviers', en: 'Control panel hardware', qty: '16', page: 72, explode: [-0.33, 0, 0],
     note: 'Items 10 et 13 : 4 vis M8 x 16 et rondelles (banc). Items 11 et 12 : 4 vis 3/8-16 x 7/8 et rondelles (plaque).' }, hw));
   // boyau du manomètre (estimé)
   const gTip = toW2(add(ports.G.p, ports.G.dir, jicLen(6)));
@@ -410,17 +410,17 @@ function tetherBlock() {
     sol.push(lathA([x, y, TB.z0 - 0.064], [0, 0, -1], [[0, 0], [0.012, 0], [0.012, 0.012], [0.009, 0.014], [0, 0.014]], 'plastic', 20));
     sol.push(bx(x - 0.013, x + 0.013, y + 0.017, y + 0.045, TB.z0 - 0.058, TB.z0 - 0.024, 'plastic', 0.003));
   }
-  const f66 = [], f1212 = [], e66 = [], e1212 = [];
+  const f66a = [], f66b = [], f1212a = [], f1212b = [], e66 = [], e1212 = [];
   // face avant (-X) : P, T, Dr, LS de l'ombilical
-  f1212.push(jic(12, [TB.x0, ym, -0.075], [-1, 0, 0]), jic(12, [TB.x0, ym, -0.02], [-1, 0, 0]));
-  f66.push(jic(6, [TB.x0, ym, 0.045], [-1, 0, 0]), jic(6, [TB.x0, ym, 0.095], [-1, 0, 0]));
+  f1212a.push(jic(12, [TB.x0, ym, -0.075], [-1, 0, 0]), jic(12, [TB.x0, ym, -0.02], [-1, 0, 0]));
+  f66a.push(jic(6, [TB.x0, ym, 0.045], [-1, 0, 0]), jic(6, [TB.x0, ym, 0.095], [-1, 0, 0]));
   // face arrière (+X) : vers l'intérieur du caisson
-  f1212.push(jic(12, [TB.x1, ym, -0.03], [1, 0, 0]), jic(12, [TB.x1, ym, 0.0], [1, 0, 0]));
-  f66.push(jic(6, [TB.x1, ym, 0.03], [1, 0, 0]), jic(6, [TB.x1, ym, 0.07], [1, 0, 0]), jic(6, [TB.x1, ym, 0.11], [1, 0, 0]));
+  f1212b.push(jic(12, [TB.x1, ym, -0.03], [1, 0, 0]), jic(12, [TB.x1, ym, 0.0], [1, 0, 0]));
+  f66b.push(jic(6, [TB.x1, ym, 0.03], [1, 0, 0]), jic(6, [TB.x1, ym, 0.07], [1, 0, 0]), jic(6, [TB.x1, ym, 0.11], [1, 0, 0]));
   // dessus : PB, TB (coudes 12) ; PG (droit 6) ; CDB, LSB (coudes 6) ; bout +Z : coude 6
   const elb = TB_ELB.map(([x, z]) => elbowFit(12, [x, TB.y1, z], [0, 1, 0], [1, 0, 0]));
   elb.forEach((e) => e1212.push(e.g));
-  f66.push(jic(6, [-1.425, TB.y1, 0.0], [0, 1, 0]));
+  e66.push(jic(6, [-1.425, TB.y1, 0.0], [0, 1, 0]));
   e66.push(elbowFit(6, [-1.44, TB.y1, 0.06], [0, 1, 0], [0, 0, 1]).g, elbowFit(6, [-1.44, TB.y1, 0.11], [0, 1, 0], [0, 0, 1]).g);
   const endElb = elbowFit(6, [-1.42, ym, TB.z1], [0, 0, 1], [0, 1, 0]);
   e66.push(endElb.g);
@@ -429,9 +429,11 @@ function tetherBlock() {
   const kids = [
     part({ id: 'ped-tb-manifold', sec: '14.3', item: '1', pn: '279026', fr: 'Bloc de distribution de l\'ombilical', en: 'Tether manifold', qty: '1', page: 75, explode: [0, 0, 0],
       note: 'Ports de l\'ombilical P, T, Dr, LS à l\'avant. Deux électrovalves à cartouche au bout côté -Z.' }, [...body, ...sol]),
-    part({ id: 'ped-tb-fit-6-6', sec: '14.3', item: '2', pn: '202702-6-6', fr: 'Raccords 6 ORB - 6 JIC', en: 'Fittings 6ORB-6JIC', qty: '6', page: 75, explode: [-0.04, 0.02, 0] }, f66),
-    part({ id: 'ped-tb-fit-12-12', sec: '14.3', item: '3', pn: '202702-12-12', fr: 'Raccords 12 ORB - 12 JIC', en: 'Fittings 12ORB-12JIC', qty: '4', page: 75, explode: [-0.05, 0, 0] }, f1212),
-    part({ id: 'ped-tb-elb-6-6', sec: '14.3', item: '4', pn: '2062-6-6', fr: 'Coudes 90° ORB - JIC taille 6', en: '90° elbows ORB-JIC size 6', qty: '3', page: 75, explode: [0, 0.05, 0.02] }, e66),
+    part({ id: 'ped-tb-fit-6-6-av', sec: '14.3', item: '2', pn: '202702-6-6', fr: 'Raccords 6 ORB - 6 JIC (Dr et LS, avant)', en: 'Fittings 6ORB-6JIC (Dr, LS, front)', qty: '6', page: 75, explode: [-0.05, 0, 0] }, f66a),
+    part({ id: 'ped-tb-fit-6-6-ar', sec: '14.3', item: '2', pn: '202702-6-6', fr: 'Raccords 6 ORB - 6 JIC (arrière et dessus)', en: 'Fittings 6ORB-6JIC (rear, top)', qty: '6', page: 75, explode: [0.05, 0, 0] }, f66b),
+    part({ id: 'ped-tb-fit-12-12-av', sec: '14.3', item: '3', pn: '202702-12-12', fr: 'Raccords 12 ORB - 12 JIC (P et T, avant)', en: 'Fittings 12ORB-12JIC (P, T, front)', qty: '4', page: 75, explode: [-0.06, 0, 0] }, f1212a),
+    part({ id: 'ped-tb-fit-12-12-ar', sec: '14.3', item: '3', pn: '202702-12-12', fr: 'Raccords 12 ORB - 12 JIC (arrière)', en: 'Fittings 12ORB-12JIC (rear)', qty: '4', page: 75, explode: [0.06, 0, 0] }, f1212b),
+    part({ id: 'ped-tb-elb-6-6', sec: '14.3', item: '2, 4', pn: '202702-6-6, 2062-6-6', fr: 'Coudes 90° taille 6 et raccord droit du dessus', en: '90° elbows size 6 and top straight fitting', qty: '4', page: 75, explode: [0, 0.05, 0.02], note: 'Item 4 : 3 coudes (CDB, LSB, bout +Z). Item 2 : raccord droit PG.' }, e66),
     part({ id: 'ped-tb-elb-12-12', sec: '14.3', item: '5', pn: '2062-12-12S', fr: 'Adaptateurs 90° ORB - JIC taille 12', en: '90° adapters ORB-JIC size 12', qty: '2', page: 75, explode: [0, 0.06, 0] }, e1212),
     part({ id: 'ped-tb-hw', sec: '14.3', item: '6, 7', pn: 'B161, 224166', fr: 'Vis 3/8-16 x 4 3/4 et rondelles Nord-Lock', en: 'HHCS 3/8-16 x 4.75 and Nord-Lock washers', qty: '8', page: 75, explode: [0, 0.16, 0] }, hw),
   ];
@@ -465,7 +467,7 @@ function gripperHook() {
     part({ id: 'ped-hook-hw', sec: '14.4', item: '3, 4, 5, 6', pn: 'W001, 237505, B042, B044', fr: 'Visserie du crochet', en: 'Hook hardware', qty: '12', page: 76, explode: [-0.04, 0, 0],
       note: '3 vis 1/4-20 (1 x 3/4 po, 2 x 1 po), 3 écrous Nylock, 6 rondelles.' }, hw),
   ];
-  return asm({ id: 'ped-hook', sec: '14.4', item: '6', pn: '276799', fr: 'Crochet de valve de pince', en: 'Gripper valve hook', qty: '1', page: 76, explode: [-0.25, 0, 0.18], approx: true,
+  return asm({ id: 'ped-hook', sec: '14.4', item: '6', pn: '276799', fr: 'Crochet de valve de pince', en: 'Gripper valve hook', qty: '1', page: 76, explode: [-0.22, -0.18, 0.12], approx: true,
     note: 'Emplacement estimé (montant avant côté +Z) d\'après la p. 69.' }, kids);
 }
 
@@ -492,7 +494,7 @@ function tramBank() {
       note: '5 leviers à pommeau, ports A et B vers le caisson (p. 77, vues de dessus et de dessous).' }, b.meshes),
     part({ id: 'ped-tram-fit-6-6', sec: '14.5.1', item: '2', pn: '202702-6-6', fr: 'Raccords 6 ORB - 6 JIC', en: 'Fittings 6ORB-6JIC', qty: '6', page: 79, explode: [0, 0, -0.05] }, f66),
     part({ id: 'ped-tram-fit-8-10', sec: '14.5.1', item: '3', pn: '202702-8-10', fr: 'Raccords 8 ORB - 10 JIC', en: 'Fittings 8ORB-10JIC', qty: '4', page: 79, explode: [0, 0, -0.05] }, f810),
-    part({ id: 'ped-tram-elb-6-6', sec: '14.5.1', item: '4', pn: '2062-6-6', fr: 'Coudes 90° ORB - JIC femelle taille 6', en: '90° elbows MORB-FJIC size 6', qty: '2', page: 79, explode: [-0.05, 0, 0] }, [e1.g, e2.g]),
+    part({ id: 'ped-tram-elb-6-6', sec: '14.5.1', item: '4', pn: '2062-6-6', fr: 'Coudes 90° ORB - JIC femelle taille 6', en: '90° elbows MORB-FJIC size 6', qty: '2', page: 79, explode: [0, 0, -0.05] }, [e1.g, e2.g]),
     part({ id: 'ped-tram-fit-8-12', sec: '14.5.1', item: '5', pn: '202702-8-12S', fr: 'Raccords 8 ORB - 12 JIC (P et T)', en: 'Fittings 8ORB-12JIC (P, T)', qty: '2', page: 79, explode: [0, 0, -0.06] },
       [jic(12, b.ports.P.p, b.ports.P.dir), jic(12, b.ports.T.p, b.ports.T.dir)]),
   ];
@@ -597,7 +599,7 @@ function bulkhead() {
     part({ id: 'ped-bh-plate', sec: '14.6', item: '1', pn: '280726', fr: 'Plaque de cloison (mécano-soudée)', en: 'Bulkhead weldment', qty: '1', page: 81, explode: [0, 0, 0] }, [plXZ(outline, y0, y1, 'red', holes)]),
     part({ id: 'ped-bh-swivels', sec: '14.6', item: '2', pn: '122097', fr: 'Raccords tournants de cloison JIC mâle', en: 'Live swivel bulkhead fittings MJIC', qty: '13', page: 81, explode: [0, 0.12, 0] }, sw),
   ];
-  return asm({ id: 'ped-bh', sec: '14.6', item: '8', pn: '277764', fr: 'Plaque de raccords tournants', en: 'Bulkhead with live swivels', qty: '1', page: 81, explode: [0.70, 0, 0], approx: true,
+  return asm({ id: 'ped-bh', sec: '14.6', item: '8', pn: '277764', fr: 'Plaque de raccords tournants', en: 'Bulkhead with live swivels', qty: '1', page: 81, explode: [-0.32, -0.40, 0], approx: true,
     note: 'Position estimée : sur la traverse intérieure, sous l\'axe de la couronne.' }, kids);
 }
 

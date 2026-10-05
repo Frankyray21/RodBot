@@ -62,9 +62,11 @@ function boltAt(p, dir, o = {}) {
   return aim(bolt(o), VA(p).addScaledVector(VA(dir).normalize(), w), dir);
 }
 function nutAt(p, dir, o = {}) {
-  const d = o.d || 0.5 * IN, g = []; let off = 0;
-  if (o.washer) { g.push(aim(washer({ d, mat: o.wmat || 'zincClear' }), VA(p), dir)); off = 0.12 * d; }
-  g.push(aim(nut({ d, mat: o.mat || 'zinc', lock: o.lock }), VA(p).addScaledVector(VA(dir).normalize(), off), dir));
+  const d = o.d || 0.5 * IN, mk = o.mat || 'zinc', g = []; let off = 0;
+  if (o.washer) { g.push(aim(washer({ d, mat: o.wmat || mk }), VA(p), dir)); off = 0.12 * d; }
+  const P = VA(p).addScaledVector(VA(dir).normalize(), off);
+  g.push(aim(nut({ d, mat: mk }), P, dir));
+  if (o.lock) g.push(aim(m(G.lathe([[0.5 * d, 0], [0.68 * d, 0], [0.62 * d, 0.22 * d], [0.5 * d, 0.26 * d]], 20), mk), P.clone().addScaledVector(VA(dir).normalize(), 0.86 * d), dir));
   return grp(g);
 }
 function washerAt(p, dir, d, mk = 'zincClear', od = null, t = null) { return aim(washer({ d, mat: mk, od, t }), VA(p), dir); }
@@ -139,7 +141,7 @@ function buildWristMount() {
   for (const s of [-1, 1]) for (const zo of [GZ + FT / 2 + 0.0025, GZ - FT / 2 - 0.0025]) apW.push(weld([[AP.ax0 + 0.006, AP.ay + AP.t + 0.0025, s * zo], [AP.ax1 - 0.006, AP.ay + AP.t + 0.0025, s * zo]], 0.0035));
   ch.push(grp([ap, ...apW], { r: [0, 0, TH_A] }));
   return part({ id: 'grip-wristmount', sec: '5', item: '6', pn: '276360', fr: 'Plaque de poignet soudée 30°', en: 'Wrist mount weldment, 30 deg', qty: '1', page: 10,
-    explode: [-0.16, 0.36, 0], note: "Bride verticale boulonnée sur la patte de bout de flèche. La plaque d'appui reçoit l'actionneur de poignet, à 30° de la bride. Cotes relevées p. 10 et 11." }, ch, { r: [0, 0, 0] });
+    explode: [-0.12, 0.40, 0], note: "Bride verticale boulonnée sur la patte de bout de flèche. La plaque d'appui reçoit l'actionneur de poignet, à 30° de la bride. Cotes relevées p. 10 et 11." }, ch, { r: [0, 0, 0] });
 }
 
 /* ================================================================== */
@@ -169,7 +171,7 @@ function buildWristActuator() {
   const vis = part({ id: 'grip-wristact-hw', sec: '5.9', item: '2', pn: 'B117M', fr: 'Visserie et adaptateurs', en: 'Hardware and adapters', qty: '-', page: 34,
     explode: [0, 0.10, 0], note: 'Repères 2 (B117M M20 x 110 x4), 3 (250619 x8), 4 (N008M x4), 5 (GG106-NP06-04 x2).' }, hw);
   return asm({ id: 'grip-wristact', sec: '5.9', item: '7', pn: '276573', fr: 'Actionneur de poignet', en: 'Wrist actuator', qty: '1', page: 34,
-    explode: [0, 0.24, 0] }, [act, vis], { r: [0, 0, TH_A] });
+    explode: [0, 0.22, 0] }, [act, vis], { r: [0, 0, TH_A] });
 }
 
 /* ================================================================== */
@@ -192,21 +194,21 @@ function buildEncoderMount() {
   const vis = part({ id: 'grip-encmount-hw', sec: '5.5', item: '6', pn: 'B143', fr: 'Visserie', en: 'Hardware', qty: '-', page: 20, explode: [0, 0.06, 0.03],
     note: 'Repères 2 (245089 x2), 3 (236666 x4), 4 (236667 x2), 5 (259704 x4), 6 (B143 x2), 7 (N017 x2).' }, hw);
   return asm({ id: 'grip-encmount', sec: '5.5', item: '8', pn: '276671', fr: 'Support du codeur de poignet', en: 'Encoder wrist mount', qty: '1', page: 20,
-    explode: [-0.16, 0.36, 0.30] }, [pl, vis], { r: [0, 0, TH_A] });
+    explode: [-0.12, 0.40, 0.20] }, [pl, vis], { r: [0, 0, TH_A] });
 }
 function buildWristEncoder() {
   const e = grp([encoder({ conn: 'back' })], { p: [0, 0, EZ + 0.003], r: [90, 0, 0] });
   return part({ id: 'grip-enc-wrist', sec: '5', item: '4', pn: '269907', fr: 'Codeur du poignet (programmé)', en: 'Wrist rotary encoder', qty: '1', page: 10, spare: true,
-    explode: [-0.16, 0.36, 0.22] }, [e], { r: [0, 0, TH_A] });
+    explode: [-0.12, 0.40, 0.32] }, [e], { r: [0, 0, TH_A] });
 }
 /* 5.4.1 : aimant de codeur (281633) sur le bout de l'arbre (tourne avec le support en U). */
 function buildMagnet() {
   const pot = part({ id: 'grip-magnet-pot', sec: '5.4.1', item: '1', pn: '255906', fr: 'Aimant enrobé 75 lb', en: 'Encased magnet, 75 lb', qty: '1', page: 19, spare: true, explode: [0, 0, 0] },
     [lathe([[0, 0], [0.0225, 0], [0.024, 0.0015], [0.024, 0.0105], [0.0225, 0.012], [0, 0.012]], 'rubber', [0, 0, 0.1555], 'z', 40), cyl(0.0032, 0.010, 'zinc', [0, 0, 0.1725], 'z', 12)]);
   const stud = part({ id: 'grip-magnet-stud', sec: '5.4.1', item: '2', pn: '281634', fr: 'Goujon 12 mm', en: 'Stud, 12 mm', qty: '1', page: 19, explode: [0, 0, 0.03] },
-    [cyl(0.006, 0.0175, 'zinc', [0, 0, 0.1675 + 0.00875], 'z', 20), box(0.0125, 0.003, 0.0012, 'blackOxide', [0, 0, 0.1852], 0.0003)]);
+    [cyl(0.006, 0.0175, 'zinc', [0, 0, 0.1675 + 0.00875], 'z', 20), box(0.0125, 0.003, 0.0012, 'zinc', [0, 0, 0.1852], 0.0003)]);
   return asm({ id: 'grip-magnet', sec: '5.4.1', item: '16', pn: '281633', fr: 'Aimant de codeur', en: 'Magnet encoder attachment', qty: '1', page: 19, spare: true,
-    explode: [0, 0.24, 0.12], note: "Section K-K p. 10 : au bout de l'arbre de l'actionneur de poignet, sous le codeur 269907." }, [pot, stud]);
+    explode: [0, 0.22, 0.10], note: "Section K-K p. 10 : au bout de l'arbre de l'actionneur de poignet, sous le codeur 269907." }, [pot, stud]);
 }
 
 /* ================================================================== */
@@ -242,24 +244,25 @@ function buildStraddle() {
       [box(0.042, 0.005, 0.022, 'zincClear', [-0.075, BASE.y1 + 0.0025, s * 0.062], 0.0012)]));
   });
   // visserie et colliers
-  const hw = [];
+  const hp = [], hn = [], hw = [];
   for (let k = 0; k < 12; k++) {
     const a = k * 30 * DEG, x = SP.bc * Math.cos(a), y = SP.bc * Math.sin(a);
-    hw.push(boltAt([x, y, SP.zi + SP.t + 0.006], [0, 0, 1], { d: 0.012, L: 0.030, washer: true, mat: 'blackOxide' }));
-    hw.push(boltAt([x, y, -(SP.zi + SP.t + 0.006)], [0, 0, -1], { d: 0.016, L: 0.035, head: 'shcs', washer: true, mat: 'blackOxide' }));
+    hp.push(boltAt([x, y, SP.zi + SP.t + 0.006], [0, 0, 1], { d: 0.012, L: 0.030, washer: true, mat: 'blackOxide' }));
+    hn.push(boltAt([x, y, -(SP.zi + SP.t + 0.006)], [0, 0, -1], { d: 0.016, L: 0.035, head: 'shcs', washer: true, mat: 'blackOxide' }));
   }
   for (const s of [-1, 1]) for (const x of [-0.085, -0.065]) {
     hw.push(boltAt([x, BASE.y1 + 0.005, s * 0.062], [0, 1, 0], { d: 0.25 * IN, L: 0.75 * IN, washer: true }));
     hw.push(nutAt([x, BASE.y0, s * 0.062], [0, -1, 0], { d: 0.25 * IN }));
+    hw.push(m(G.torus(0.0085, 0.0018, Math.PI * 1.6, 8, 20), 'zinc', { p: [x, BASE.y1 + 0.005 + 0.0095, s * 0.062], r: [0, 90, 0] }));
   }
-  // colliers P (233614 x2, 252433 x2) sur les plaques de montage
-  for (const s of [-1, 1]) for (const x of [-0.085, -0.065]) {
-    hw.push(m(G.torus(0.0085, 0.0018, Math.PI * 1.6, 8, 20), 'zincClear', { p: [x, BASE.y1 + 0.005 + 0.0095, s * 0.062], r: [0, 90, 0] }));
-  }
-  const vis = part({ id: 'grip-straddle-hw', sec: '5.7', item: '15', pn: 'C109M', fr: 'Visserie et colliers', en: 'Hardware and P-clamps', qty: '-', page: 31, explode: [0, 0.03, 0],
-    note: 'Repères 1 (116139 x12), 2 (117753 x10), 3 (224166 x12), 4 (233614 x2), 5 (252433 x2), 6 (258780 x4), 7 (260182 x12), 11 (B042 x2), 12 (B055M x12), 13 (B142 x6), 14 (B270 x10, avec la plaque à raccords), 15 (C109M x12), 16 (N015 x2), 17 (N017 x6). Colliers simplifiés.' }, hw);
+  const visP = part({ id: 'grip-straddle-hw-m12', sec: '5.7', item: '12', pn: 'B055M', fr: 'Vis M12 (côté +Z)', en: 'M12 bolts (+Z side)', qty: '12', page: 31, explode: [0, 0, 0.09],
+    note: 'Repères 12 (B055M x12) et 7 (260182 x12) : joue +Z vers la bride de l\'actionneur.' }, hp);
+  const visN = part({ id: 'grip-straddle-hw-m16', sec: '5.7', item: '15', pn: 'C109M', fr: 'Vis M16 (côté -Z)', en: 'M16 screws (-Z side)', qty: '12', page: 31, explode: [0, 0, -0.09],
+    note: 'Repères 15 (C109M x12) et 1 (116139 x12) : joue -Z vers la bride de l\'actionneur.' }, hn);
+  const vis = part({ id: 'grip-straddle-hw', sec: '5.7', item: '13', pn: 'B142', fr: 'Visserie et colliers', en: 'Hardware and P-clamps', qty: '-', page: 31, explode: [0, 0.04, 0],
+    note: 'Repères 3 (224166 x12), 4 (233614 x2), 5 (252433 x2), 6 (258780 x4), 11 (B042 x2), 13 (B142 x6), 16 (N015 x2), 17 (N017 x6). Colliers simplifiés.' }, hw);
   return asm({ id: 'grip-straddle', sec: '5.7', item: '13', pn: '277180', fr: 'Support en U du poignet', en: 'Wrist straddle mount', qty: '1', page: 31, explode: [0, 0, 0] },
-    [body, buildBulkhead(), ...mp, vis]);
+    [body, buildBulkhead(), ...mp, visP, visN, vis]);
 }
 function buildBulkhead() {
   const yb = BASE.y1, t = 0.008;
@@ -268,8 +271,7 @@ function buildBulkhead() {
   for (let k = 0; k < 5; k++) { const a = (18 + k * 72) * DEG; holes.push({ c: [0.043 * Math.cos(a), -0.043 * Math.sin(a)], r: 0.0075 }); }
   const SW = [[0.0135, 0.0135], [-0.0135, 0.0135], [-0.0135, -0.0135], [0.0135, -0.0135]];
   const ch = [plate(circleShape(0.075), t, 'red', [0, yb + t / 2, 0], 'xz', holes),
-    lathe([[0.0, yb + t], [0.031, yb + t], [0.031, yb + t + 0.011], [0.029, yb + t + 0.012], [0, yb + t + 0.012]], 'red', [0, 0, 0], 'y', 40),
-    decal({ text: '→', w: 0.012, h: 0.008, bg: '#a8121a', fg: '#ffffff', p: [0.058, yb + t + 0.0006, 0.02], r: [-90, 0, 0] })];
+    lathe([[0.0, yb + t], [0.031, yb + t], [0.031, yb + t + 0.011], [0.029, yb + t + 0.012], [0, yb + t + 0.012]], 'red', [0, 0, 0], 'y', 40)];
   const plateP = part({ id: 'grip-bulkhead-plate', sec: '5.7.1', item: '1', pn: '277951', fr: 'Plaque à raccords soudée', en: 'Bulkhead weldment', qty: '1', page: 32, explode: [0, 0, 0] }, ch);
   const yTop = yb + t + 0.012;
   const sw = SW.map(([x, z], i) => part({ id: `grip-bulkhead-swivel-${i + 1}`, sec: '5.7.1', item: '2', pn: '122097', fr: 'Raccord tournant JIC', en: 'Live swivel, JIC bulkhead', qty: '4', page: 32,
@@ -297,19 +299,19 @@ const WY = -0.2735, WZ = -0.150;  // axe de la vis sans fin
 function buildRotateActuator() {
   const s = [];
   s.push(lathe([[0.048, -0.250], [0.048, -0.222], [0.146, -0.222], [0.150, -0.226], [0.150, -0.284], [0.146, -0.288], [0.104, -0.288], [0.104, -0.250], [0.048, -0.250]], 'black', [0, 0, 0], 'y', 64));
-  for (let k = 0; k < 8; k++) { const a = (22.5 + k * 45) * DEG; s.push(disc(0.0062, 0.0012, 'blackOxide', [0.128 * Math.cos(a), -0.2214, 0.128 * Math.sin(a)], 'y', 14)); }
+  for (let k = 0; k < 8; k++) { const a = (22.5 + k * 45) * DEG; s.push(disc(0.0062, 0.0012, 'black', [0.128 * Math.cos(a), -0.2214, 0.128 * Math.sin(a)], 'y', 14)); }
   s.push(lathe([[0.050, -0.250], [0.102, -0.250], [0.102, -0.303], [0.099, -0.305], [0.053, -0.305], [0.050, -0.302], [0.050, -0.250]], 'machined', [0, 0, 0], 'y', 56));
   s.push(box(0.210, 0.094, 0.085, 'black', [0, WY, WZ], 0.008));
   for (const sx of [-1, 1]) { s.push(box(0.065, 0.100, 0.092, 'black', [sx * 0.1325, WY, WZ], 0.010)); s.push(disc(0.042, 0.007, 'black', [sx * 0.1685, WY, WZ], 'x', 40)); }
-  for (const x of [-0.06, 0, 0.06]) s.push(disc(0.0045, 0.002, 'blackOxide', [x, WY, WZ - 0.0425 - 0.0008], 'z', 14));
+  for (const x of [-0.06, 0, 0.06]) s.push(disc(0.0045, 0.002, 'black', [x, WY, WZ - 0.0425 - 0.0008], 'z', 14));
   s.push(decal({ text: 'ROTARY MASTER', w: 0.10, h: 0.012, bg: '#1d1e20', fg: '#c9c9c9', font: 'bold', p: [0, WY - 0.035, WZ - 0.0428], r: [0, 180, 0] }));
   const slew = part({ id: 'grip-rotact-slew', sec: '5.4', item: '7', pn: '276729', fr: "Couronne d'orientation à vis sans fin", en: 'Slew drive', qty: '1', page: 18, explode: [0, 0, 0],
     note: "Carter fixe boulonné sous le support en U ; la bague intérieure tourne avec le bras d'inclinaison." }, s);
   // moteur hydraulique (bout +X)
   const mo = [box(0.020, 0.100, 0.100, 'grey', [0.182, WY, WZ], 0.012), cyl(0.052, 0.083, 'grey', [0.2335, WY, WZ], 'x', 40), cyl(0.055, 0.025, 'grey', [0.2875, WY, WZ], 'x', 40)];
   for (const x of [0.214, 0.258]) mo.push(ring(0.0535, 0.050, 0.004, 'black', [x, WY, WZ], 'x', 40));
-  for (let k = 0; k < 7; k++) { const a = k * 360 / 7 * DEG; mo.push(m(G.cyl(0.0045, 0.006, 12), 'blackOxide', { p: [0.3030, WY + 0.040 * Math.cos(a), WZ + 0.040 * Math.sin(a)], r: [0, 0, -90] })); }
-  mo.push(disc(0.012, 0.004, 'machined', [0.302, WY, WZ], 'x', 24));
+  for (let k = 0; k < 7; k++) { const a = k * 360 / 7 * DEG; mo.push(m(G.cyl(0.0045, 0.006, 12), 'black', { p: [0.3030, WY + 0.040 * Math.cos(a), WZ + 0.040 * Math.sin(a)], r: [0, 0, -90] })); }
+  mo.push(disc(0.012, 0.004, 'grey', [0.302, WY, WZ], 'x', 24));
   for (const y of [WY + 0.0245, WY - 0.0245]) mo.push(box(0.026, 0.020, 0.012, 'grey', [0.215, y, WZ + 0.050], 0.002));
   const motor = part({ id: 'grip-rotact-motor', sec: '5.4', item: '15', pn: '278096', fr: 'Moteur hydraulique 127,5 cc', en: 'Hydraulic motor, 127.5 cc', qty: '1', page: 18, explode: [0.12, 0, 0] }, mo);
   // couvercle du codeur (bout -X)
@@ -319,7 +321,7 @@ function buildRotateActuator() {
     [cyl(0.011, 0.010, 'machined', [-0.177, WY, WZ], 'x', 6)]);
   const stop = part({ id: 'grip-rotact-stop', sec: '5.4', item: '10', pn: '277475', fr: 'Plaque de butée intérieure', en: 'Internal wrist stop plate', qty: '1', page: 18, explode: [0, -0.06, 0], approx: true },
     [box(0.070, 0.010, 0.036, 'steel', [0, -0.255, 0.0], 0.002)]);
-  const sm = [cyl(0.0053, 0.038, 'zinc', [0, WY - 0.050 - 0.019, WZ], 'y', 12), aim(greaseNipple('brass'), V(0, WY - 0.050 - 0.038, WZ), V(0, -1, 0))];
+  const sm = [cyl(0.0053, 0.038, 'zinc', [0, WY - 0.050 - 0.019, WZ], 'y', 12), aim(greaseNipple('zinc'), V(0, WY - 0.050 - 0.038, WZ), V(0, -1, 0))];
   for (const a of [60, 240]) sm.push(m(G.hex(0.010, 0.005), 'zinc', { p: [0.116 * Math.cos(a * DEG), -0.2905, 0.116 * Math.sin(a * DEG)] }));
   const small = part({ id: 'grip-rotact-grease', sec: '5.4', item: '5', pn: '259844', fr: 'Graisseur, mamelon et bouchons', en: 'Grease nipple, pipe nipple and plugs', qty: '-', page: 18, explode: [0, -0.05, -0.03],
     note: 'Repères 5 (259844), 6 (266876 x2) et 8 (277430).' }, sm);
@@ -395,7 +397,7 @@ function buildTiltArm() {
   for (const x of [0.0, 0.04]) hw.push(boltAt([x, 0.198, -0.129], [0, 0, -1], { d: 0.25 * IN, L: 0.75 * IN, head: 'shcs', washer: true }));
   const vis = part({ id: 'grip-tiltarm-hw', sec: '5.8', item: '9', pn: 'B269', fr: 'Visserie', en: 'Hardware', qty: '-', page: 33, explode: [0, 0.05, 0],
     note: 'Repères 1 (116142 x2), 2 (117753 x10), 8 (B265 x4), 9 (B269 x6), 10 (C008 x2).' }, hw);
-  return asm({ id: 'grip-tiltarm', sec: '5.8', item: '14', pn: '277210', fr: "Bras d'inclinaison", en: 'Gripper tilt arm V2.0', qty: '1', page: 33, explode: [0, -0.42, 0] },
+  return asm({ id: 'grip-tiltarm', sec: '5.8', item: '14', pn: '277210', fr: "Bras d'inclinaison", en: 'Gripper tilt arm V2.0', qty: '1', page: 33, explode: [0, -0.46, 0] },
     [mount, cmount, pin, ret, stud, vis], CF);
 }
 
@@ -415,7 +417,7 @@ function buildTiltCylinder() {
     [grp(c, { name: 'tiltcyl' })]);
   between(cy.children[0], A, B);
   const fit = grp([...[0.075, 0.115].map(y => grp([fitting({ d: 0.25 * IN, L: 0.026, mat: 'zincClear' }), m(G.torus(0.012, 0.0045, Math.PI / 2, 8, 12), 'zincClear', { p: [0.012, 0.026, 0], r: [0, 0, 90] })], { p: [-0.064, y, 0], r: [0, 0, 90] })),
-    aim(greaseNipple('zinc'), V(0, 0.0185, 0), V(0, 1, 0)), aim(greaseNipple('zinc'), V(0, len + 0.017, 0), V(0, 1, 0))]);
+    aim(greaseNipple('zincClear'), V(0, 0.0185, 0), V(0, 1, 0)), aim(greaseNipple('zincClear'), V(0, len + 0.017, 0), V(0, 1, 0))]);
   between(fit, A, B);
   const fits = part({ id: 'grip-tiltcyl-fittings', sec: '5.3', item: '1', pn: '2062-4-4', fr: 'Raccords coudés et graisseurs', en: '90 deg fittings and grease nipples', qty: '2', page: 17, explode: [-0.05, 0.05, 0] }, [fit]);
   const rt = grp([box(0.003, 0.070, 0.054, 'zincClear', [-0.0665, 0.095, 0], 0.001), box(0.016, 0.003, 0.054, 'zincClear', [-0.0735, 0.0585, 0], 0.001)]);
@@ -424,7 +426,7 @@ function buildTiltCylinder() {
   const hw = grp([boltAt([-0.068, 0.095, 0.020], [-1, 0, 0], { d: 0.3125 * IN, L: 0.625 * IN, washer: true }), boltAt([-0.068, 0.095, -0.020], [-1, 0, 0], { d: 0.3125 * IN, L: 0.625 * IN, washer: true })]);
   between(hw, A, B);
   const vis = part({ id: 'grip-tiltcyl-hw', sec: '5.3', item: '5', pn: 'B074', fr: 'Visserie', en: 'Hardware', qty: '-', page: 17, explode: [-0.13, 0.13, 0], note: 'Repères 2 (224212 x2) et 5 (B074 x2).' }, [hw]);
-  return asm({ id: 'grip-tiltcyl', sec: '5.3', item: '18', pn: '278189', fr: "Vérin d'inclinaison", en: 'Tilt cylinder assembly', qty: '1', page: 17, explode: [-0.26, -0.52, 0] },
+  return asm({ id: 'grip-tiltcyl', sec: '5.3', item: '18', pn: '278189', fr: "Vérin d'inclinaison", en: 'Tilt cylinder assembly', qty: '1', page: 17, explode: [-0.32, -0.70, 0] },
     [cy, fits, ret, vis], CF);
 }
 
@@ -433,12 +435,12 @@ function buildTiltPin() {
   const [x, y] = [TC.B[0], TC.B[1]], zh = -0.1241;
   const sb = grp([lathe([[0, 0], [0.0143, 0], [0.0143, 0.0190], [0.0120, 0.0195], [0, 0.0195]], 'blackOxide', [0, 0, 0], 'y', 24),
     cyl(0.0095, 0.0762, 'blackOxide', [0, -0.0381, 0], 'y', 20), cyl(0.0079, 0.019, 'blackOxide', [0, -0.0857, 0], 'y', 16)]);
-  const bolt3 = part({ id: 'grip-pivot3', sec: '5', item: '3', pn: '236263', fr: "Boulon épaulé 3/4 x 3 po (vérin d'inclinaison)", en: 'Shoulder bolt, 3/4 x 3 in', qty: '1', page: 10, explode: [-0.42, -0.56, 0] },
+  const bolt3 = part({ id: 'grip-pivot3', sec: '5', item: '3', pn: '236263', fr: "Boulon épaulé 3/4 x 3 po (vérin d'inclinaison)", en: 'Shoulder bolt, 3/4 x 3 in', qty: '1', page: 10, explode: [-0.48, -0.74, 0] },
     [aim(sb, V(x, y, zh), V(0, 0, -1))], CF);
   const hw = [];
   for (const z of [zh, -0.1145, -0.0771]) hw.push(aim(washer({ d: 0.75 * IN, od: 0.032, t: 0.0016, mat: 'zincClear' }), V(x, y, z), V(0, 0, 1)));
   hw.push(nutAt([x, y, -0.0479], [0, 0, 1], { d: 0.625 * IN, washer: true, lock: true }));
-  const vis = part({ id: 'grip-hw-pivot', sec: '5', item: '11', pn: '276913', fr: "Rondelles et écrou de l'axe épaulé", en: 'Shoulder bolt washers and nut', qty: '-', page: 10, explode: [-0.34, -0.56, 0],
+  const vis = part({ id: 'grip-hw-pivot', sec: '5', item: '11', pn: '276913', fr: "Rondelles et écrou de l'axe épaulé", en: 'Shoulder bolt washers and nut', qty: '-', page: 10, explode: [-0.41, -0.74, 0],
     note: 'Repères 11 (276913 x3), 26 (N064 x1) et 28 (W007 x1).' }, hw, CF);
   return [bolt3, vis];
 }
@@ -470,7 +472,7 @@ function buildTiltEncoder() {
   for (const x of [-0.018, 0.018]) hw.push(boltAt([x, 0.056, z0 + 0.008], [0, -1, 0], { d: 0.138 * IN, L: 0.5 * IN, head: 'shcs' }));
   const vis = part({ id: 'grip-tiltenc-hw', sec: '5.1', item: '6', pn: 'B042', fr: 'Visserie', en: 'Hardware', qty: '-', page: 14, explode: [0, 0.12, 0],
     note: 'Repères 1 (236666 x2), 2 (245089 x2), 3 (236667 x2), 4 (W001 x4), 5 (N058 x2), 6 (B042 x2).' }, hw);
-  return asm({ id: 'grip-tiltenc', sec: '5.1', item: '12', pn: '280896', fr: "Codeur d'inclinaison", en: 'Tilt encoder assembly', qty: '1', page: 14, explode: [0.22, -0.48, 0], approx: true,
+  return asm({ id: 'grip-tiltenc', sec: '5.1', item: '12', pn: '280896', fr: "Codeur d'inclinaison", en: 'Tilt encoder assembly', qty: '1', page: 14, explode: [0.28, -0.70, 0], approx: true,
     note: "Position estimée : sur le dessus du bloc de serrage, entre les jambes du bras. La biellette s'engage sur le goujon 277311 de la jambe." },
     [enc, cover, mnt, link, vis], CF);
 }
@@ -560,7 +562,7 @@ function buildGrappleClamp() {
   }
   const vis = part({ id: 'grip-clampjaw-hw', sec: '5.6.2', item: '4', pn: '249855', fr: 'Boulons épaulés des mâchoires', en: 'Jaw shoulder bolts', qty: '4', page: 25, explode: [0, -0.02, 0],
     note: 'Repères 4 (249855 x4), 5 (W007 x4), 6 (N064 x4), 7 (276913 x8).' }, hw);
-  return asm({ id: 'grip-clampjaw', sec: '5.6.2', item: '33', pn: '280898', fr: 'Supports et mâchoires', en: 'Grapple clamp (jaws)', qty: '1', page: 25, explode: [0, -0.30, 0] },
+  return asm({ id: 'grip-clampjaw', sec: '5.6.2', item: '33', pn: '280898', fr: 'Supports et mâchoires', en: 'Grapple clamp (jaws)', qty: '1', page: 25, explode: [0, -0.18, 0] },
     [...buildJawMounts(), buildJawAssembly(1, 1), buildJawAssembly(-1, 2), vis]);
 }
 
@@ -593,7 +595,7 @@ function buildRod(cid, e, item) {
     [lathe([[0, 0.152], [0.0182, 0.152], [0.0185, 0.1535], [0.0185, 0.1785], [0.0182, 0.180], [0, 0.180]], 'machined', [0, 0, 0], 'y', 32)]);
   const rodL = 0.165 - TB.y;
   const rod = part({ id: `${cid}-rod-rod`, sec: '5.6.3.2', item: '7', pn: '277557', fr: 'Tige usinée', en: 'Cylinder rod, machined', qty: '1', page: 29, explode: [0, 0.0, 0] },
-    [cyl(0.0127, rodL - 0.0105, 'chrome', [0, TB.y + 0.0105 + (rodL - 0.0105) / 2, 0], 'y', 28), cyl(0.0094, 0.012, 'machined', [0, 0.171, 0], 'y', 20)]);
+    [cyl(0.0127, rodL - 0.0105, 'chrome', [0, TB.y + 0.0105 + (rodL - 0.0105) / 2, 0], 'y', 28), cyl(0.0094, 0.012, 'chrome', [0, 0.171, 0], 'y', 20)]);
   const bar = part({ id: `${cid}-rod-bar`, sec: '5.6.3.2', item: '3', pn: '275968', fr: 'Barre en T usinée', en: 'Bar, machined', qty: '1', page: 29, explode: [0, -0.04, 0] },
     [cyl(0.0105, 0.096, 'machined', [0, TB.y, 0], 'x', 24), box(0.030, 0.012, 0.024, 'machined', [0, TB.y + 0.004, 0], 0.003)]);
   const kids = [piston, rod, bar];
@@ -615,16 +617,16 @@ function buildGrappleCylinder(e) {
   const gland = part({ id: `${cid}-gland`, sec, item: it.gland, pn: '275983', fr: 'Fond de guidage', en: 'Gland', qty: '1', page, explode: [0, -0.07, 0] }, [box(0.075, 0.022, 0.050, 'black', [0, 0.040, 0], 0.003)]);
   const b = [box(0.075, 0.130, 0.050, 'black', [0, 0.116, 0], 0.003)];
   for (const y of [0.065, 0.165]) b.push(disc(0.0085, 0.003, 'black', [xin + Math.sign(xin) * 0.0015, y, 0], 'x', 20));
-  for (const y of [0.075, 0.145]) for (const s of [-1, 1]) b.push(disc(0.0065, 0.001, 'blackOxide', [0, y, s * 0.0252], 'z', 16));
+  for (const y of [0.075, 0.145]) for (const s of [-1, 1]) b.push(disc(0.0065, 0.001, 'black', [0, y, s * 0.0252], 'z', 16));
   const barrel = part({ id: `${cid}-barrel`, sec, item: it.barrel, pn: pnB, fr: `Fourreau no ${no}`, en: `Cylinder barrel #${no}`, qty: '1', page, explode: [0, 0, 0] }, b);
   const cap = part({ id: `${cid}-cap`, sec, item: it.cap, pn: '277567', fr: 'Chapeau du vérin', en: 'Cylinder cap, top', qty: '1', page, explode: [0, 0.10, 0] }, [box(0.080, 0.020, 0.056, 'black', [0, 0.191, 0], 0.003)]);
   const hw = [];
   for (const x of [-0.028, 0.028]) for (const z of [-0.016, 0.016]) { hw.push(boltAt([x, 0.201, z], [0, 1, 0], { d: 0.4375 * IN, L: 1.125 * IN, washer: true })); hw.push(boltAt([x, 0.029 + 0.0, z], [0, -1, 0], { d: 0.4375 * IN, L: 1.5 * IN, head: 'shcs', mat: 'blackOxide' })); }
   const np = e < 0 ? 4 : 6;
   for (let k = 0; k < np; k++) hw.push(disc(0.0036, 0.0015, 'zinc', [-xin + Math.sign(-xin) * 0.0007, 0.08 + k * 0.016, 0.012], 'x', 12));
-  const vis = part({ id: `${cid}-hw`, sec, item: '8', pn: 'B206', fr: 'Visserie et bouchons', en: 'Hardware and plugs', qty: '-', page, explode: [0, 0.15, 0],
+  const vis = part({ id: `${cid}-hw`, sec, item: '8', pn: 'B206', fr: 'Visserie et bouchons', en: 'Hardware and plugs', qty: '-', page, explode: [0, 0.08, -0.12],
     note: `Repères 1 (218014 x4), 7 (278170 x${np}), 8 (B206 x4), 9 (C215 x4, vis du fond, têtes noyées).` }, hw);
-  return asm({ id: cid, sec, item: e < 0 ? '18' : '23', pn, fr: `Vérin de pince no ${no}`, en: `Grapple cylinder #${no}`, qty: '1', page, spare: true, explode: [0, 0.26, 0] },
+  return asm({ id: cid, sec, item: e < 0 ? '18' : '23', pn, fr: `Vérin de pince no ${no}`, en: `Grapple cylinder #${no}`, qty: '1', page, spare: true, explode: [0, 0.16, 0] },
     [gland, barrel, cap, buildRod(cid, e, it.rod), buildSealKit(cid, e), vis], { p: [e * CYX, 0, 0] });
 }
 
@@ -666,11 +668,10 @@ function buildClamp() {
   kids.push(part({ id: 'grip-clamp-accu', sec: '5.6', item: '17', pn: '277521', fr: 'Accumulateur', en: 'Accumulator assembly', qty: '1', page: 21, explode: [-0.05, 0.14, 0.12] }, ac));
   // valve de maintien de charge 8 sur son support soudé 25
   const vx = 0.090, vz = 0.045;
-  kids.push(part({ id: 'grip-clamp-valvemount', sec: '5.6', item: '25', pn: '277736', fr: 'Support soudé de la valve', en: 'Load holding mount weldment', qty: '1', page: 21, explode: [0.03, 0.10, 0.06] },
+  kids.push(part({ id: 'grip-clamp-valvemount', sec: '5.6', item: '25', pn: '277736', fr: 'Support soudé de la valve', en: 'Load holding mount weldment', qty: '1', page: 21, explode: [0.03, 0.12, 0.06] },
     [box(0.058, 0.008, 0.086, 'red', [vx, FR.y1 + 0.004, vz], 0.002), box(0.040, 0.033, 0.060, 'red', [vx, FR.y1 + 0.008 + 0.0165, vz], 0.003)]));
   const va = [box(0.050, 0.060, 0.070, 'alu', [vx, 0.100, vz], 0.003)];
   for (const z of [vz - 0.018, vz + 0.018]) va.push(m(G.hex(0.019, 0.012), 'zinc', { p: [vx, 0.136, z] }), cyl(0.007, 0.010, 'zinc', [vx, 0.147, z], 'y', 16));
-  va.push(decal({ text: 'LCV', w: 0.022, h: 0.008, bg: '#c8ccd0', fg: '#222222', p: [vx, 0.105, vz + 0.0356] }));
   kids.push(part({ id: 'grip-clamp-valve', sec: '5.6', item: '8', pn: '242556', fr: 'Valve de maintien de charge double', en: 'Load check valve, dual', qty: '1', page: 21, explode: [0.03, 0.20, 0.08] }, va));
   // tubes hydrauliques 19, 20, 21, 22, 26
   const xc2 = CYX - 0.0375 - 0.003, xc1 = -xc2;
@@ -682,15 +683,15 @@ function buildClamp() {
     ['26', '277786', 5, [[0.070, 0.130, vz], [0.070, 0.145, vz], [-0.090, 0.145, vz], [-0.090, 0.145, -0.050], [-0.090, 0.077, -0.050], [-0.090, 0.077, -0.0415]]],
   ];
   for (const [it, pn, n, pts] of T) kids.push(part({ id: `grip-clamp-tube-${n}`, sec: '5.6', item: it, pn, fr: `Tube hydraulique no ${n}`, en: `Hydraulic tube #${n}`, qty: '1', page: 21,
-    explode: [0, 0.12 + n * 0.012, 0.04], approx: true, note: 'Parcours simplifié entre la valve et les vérins.' }, [steelTube(pts)]));
+    explode: [0, 0.10 + n * 0.01, 0.03], approx: true, note: 'Parcours simplifié entre la valve et les vérins.' }, [steelTube(pts)]));
   // raccords 2, 3, 4
   const ft = [];
   for (const e of [-1, 1]) for (const y of [0.065, 0.165]) ft.push(aim(fitting({ d: 0.375 * IN, L: 0.012, mat: 'zincClear' }), V(e * (CYX - 0.0375) - e * 0.0, y, 0), V(-e, 0, 0)));
   for (const [p, d] of [[[0.080, 0.115, vz - 0.035], [0, 0, -1]], [[0.100, 0.085, vz - 0.035], [0, 0, -1]], [[vx - 0.025, 0.085, 0.025], [-1, 0, 0]], [[vx - 0.025, 0.070, 0.025], [-1, 0, 0]], [[0.070, 0.130, vz], [0, 1, 0]]]) ft.push(aim(fitting({ d: 0.25 * IN, L: 0.010, mat: 'zincClear' }), VA(p).addScaledVector(VA(d), -0.010), d));
-  kids.push(part({ id: 'grip-clamp-fittings', sec: '5.6', item: '3', pn: '202702-6-6', fr: 'Raccords des vérins et de la valve', en: 'Cylinder and valve fittings', qty: '-', page: 21, explode: [0, 0.10, 0.02],
+  kids.push(part({ id: 'grip-clamp-fittings', sec: '5.6', item: '3', pn: '202702-6-6', fr: 'Raccords des vérins et de la valve', en: 'Cylinder and valve fittings', qty: '-', page: 21, explode: [0, 0.09, 0.02],
     note: 'Repères 2 (202702-4-6 x2), 3 (202702-6-6 x5), 4 (2062-6-6 x4). Positions simplifiées.' }, ft));
   // aimant 12 V (31), sabots (12), plaque de retenue des boulons (13), retenue en caoutchouc (24), bride usinée (27)
-  kids.push(part({ id: 'grip-clamp-magnet', sec: '5.6', item: '31', pn: '281188', fr: 'Aimant 12 V avec connecteur', en: '12 V magnet with connector', qty: '1', page: 21, explode: [0, -0.20, -0.24] },
+  kids.push(part({ id: 'grip-clamp-magnet', sec: '5.6', item: '31', pn: '281188', fr: 'Aimant 12 V avec connecteur', en: '12 V magnet with connector', qty: '1', page: 21, explode: [0, -0.18, -0.24] },
     [box(0.200, 0.090, 0.080, 'black', [0, -0.110, 0], 0.006), decal({ text: '12 VDC', w: 0.07, h: 0.022, bg: '#1d1e20', fg: '#f2f2f2', p: [0, -0.105, 0.0406] }),
       cyl(0.008, 0.016, 'zincClear', [0.070, -0.057, 0.020], 'y', 18), m(G.hex(0.018, 0.008), 'zincClear', { p: [0.070, -0.062, 0.020] })]));
   [1, -1].forEach((s, k) => {
@@ -704,7 +705,7 @@ function buildClamp() {
   kids.push(part({ id: 'grip-clamp-retclamp', sec: '5.6', item: '27', pn: '277864', fr: 'Bride de retenue usinée', en: 'Retaining clamp, machined', qty: '1', page: 21, explode: [0, -0.10, 0], approx: true,
     note: "Bloc sous la plaque du cadre : reçoit les boulons épaulés 10 de l'inclinaison (cales 14 de part et d'autre)." },
     [box(0.080, 0.026, 0.244, 'steel', [0, 0.0, 0], 0.003)]));
-  kids.push(part({ id: 'grip-clamp-tuberet', sec: '5.6', item: '24', pn: '277706', fr: 'Retenue de tubes en caoutchouc', en: 'Rubber tube retainer', qty: '1', page: 22, spare: true, explode: [0, 0.10, -0.06] },
+  kids.push(part({ id: 'grip-clamp-tuberet', sec: '5.6', item: '24', pn: '277706', fr: 'Retenue de tubes en caoutchouc', en: 'Rubber tube retainer', qty: '1', page: 22, spare: true, explode: [0, 0.08, -0.06] },
     [box(0.030, 0.020, 0.024, 'rubber', [-0.045, 0.046, -0.112], 0.006)]));
   // boulons épaulés 10 de l'inclinaison
   [1, -1].forEach((s, k) => kids.push(part({ id: `grip-clamp-pivotbolt-${k + 1}`, sec: '5.6', item: '10', pn: '256107', fr: "Boulon épaulé 1 po x 2,5 po (inclinaison)", en: 'Shoulder bolt 1 x 2.5 in (tilt)', qty: '2', page: 21, explode: [0, 0, s * 0.16] },
@@ -713,14 +714,14 @@ function buildClamp() {
   // gardes 28 (x2), 29, 30
   const gw = 0.003, gy0 = 0.045, gy1 = 0.185;
   const sideWall = (x0, x1, z) => plate(rshape([[x0, gy0], [x1, gy0], [x1, gy1], [x0, gy1]], x0 < 0 ? [0.002, 0.002, 0.03, 0.002] : [0.002, 0.002, 0.002, 0.03]), gw, 'red', [0, 0, z], 'xy');
-  kids.push(part({ id: 'grip-clamp-guard3', sec: '5.6', item: '30', pn: '278150', fr: 'Garde no 3 (vérin no 1)', en: 'Guard #3 weldment', qty: '1', page: 21, explode: [-0.12, 0.42, 0], approx: true },
+  kids.push(part({ id: 'grip-clamp-guard3', sec: '5.6', item: '30', pn: '278150', fr: 'Garde no 3 (vérin no 1)', en: 'Guard #3 weldment', qty: '1', page: 21, explode: [-0.16, 0.16, 0], approx: true },
     [sideWall(-0.238, -0.120, 0.0655), sideWall(-0.238, -0.120, -0.0655), m(G.plate(rshape([[-0.0670, gy0], [0.0670, gy0], [0.0670, gy1], [-0.0670, gy1]], 0.003), gw, { holes: [{ c: [0.03, 0.12], r: 0.014 }] }), 'red', { p: [-0.2395, 0, 0], r: [0, -90, 0] }),
       ...[-0.05, 0.05].map(z => box(0.012, 0.016, 0.006, 'red', [-0.232, FR.y1 + 0.008, z], 0.001))]));
-  kids.push(part({ id: 'grip-clamp-guard1-1', sec: '5.6', item: '28', pn: '277869', fr: 'Garde no 1 (vérin no 2)', en: 'Guard #1 weldment', qty: '2', page: 21, explode: [0.12, 0.42, 0], approx: true },
+  kids.push(part({ id: 'grip-clamp-guard1-1', sec: '5.6', item: '28', pn: '277869', fr: 'Garde no 1 (vérin no 2)', en: 'Guard #1 weldment', qty: '2', page: 21, explode: [0.14, 0.16, 0], approx: true },
     [sideWall(0.120, 0.232, 0.0655), sideWall(0.120, 0.232, -0.0655), box(0.016, gw, 0.134, 'red', [0.224, gy1 - gw / 2, 0], 0.001), ...[-0.0655, 0.0655].map(z => box(0.012, 0.016, 0.006, 'red', [0.15, FR.y1 + 0.008, z * 0.92], 0.001))]));
-  kids.push(part({ id: 'grip-clamp-guard2', sec: '5.6', item: '29', pn: '277883', fr: 'Garde no 2 (bout droit)', en: 'Guard #2 weldment', qty: '1', page: 21, explode: [0.26, 0.36, 0], approx: true },
+  kids.push(part({ id: 'grip-clamp-guard2', sec: '5.6', item: '29', pn: '277883', fr: 'Garde no 2 (bout droit)', en: 'Guard #2 weldment', qty: '1', page: 21, explode: [0.28, 0.12, 0], approx: true },
     [m(G.plate(rshape([[-0.067, gy0], [0.067, gy0], [0.067, gy1], [-0.067, gy1]], [0.002, 0.002, 0.02, 0.02]), gw, {}), 'red', { p: [0.2435, 0, 0], r: [0, -90, 0] }), box(0.016, gw, 0.080, 'red', [0.236, FR.y1 + gw / 2, 0], 0.001), box(0.003, 0.016, 0.080, 'red', [0.2435, FR.y1 + 0.008, 0], 0.001)]));
-  kids.push(part({ id: 'grip-clamp-guard1-2', sec: '5.6', item: '28', pn: '277869', fr: 'Garde no 1 (centre, sur la valve)', en: 'Guard #1 weldment (centre)', qty: '2', page: 21, explode: [0.03, 0.50, 0.08], approx: true },
+  kids.push(part({ id: 'grip-clamp-guard1-2', sec: '5.6', item: '28', pn: '277869', fr: 'Garde no 1 (centre, sur la valve)', en: 'Guard #1 weldment (centre)', qty: '2', page: 21, explode: [0.03, 0.24, 0.10], approx: true },
     [box(0.066, gw, 0.100, 'red', [vx, 0.162, vz], 0.001), box(0.066, 0.115, gw, 'red', [vx, 0.162 - 0.0575, vz + 0.0485], 0.001), box(0.066, 0.008, gw, 'red', [vx, FR.y1 + 0.004, vz + 0.0485 + 0.004], 0.001)]));
   // visserie du bloc de serrage
   const hw = [];
@@ -739,14 +740,14 @@ function buildClamp() {
   hw.push(boltAt([0.236, FR.y1 + gw, 0.03], [0, 1, 0], { d: 0.375 * IN, L: 1 * IN, washer: true }), boltAt([0.236, FR.y1 + gw, -0.03], [0, 1, 0], { d: 0.375 * IN, L: 1 * IN, washer: true }));
   kids.push(part({ id: 'grip-clamp-hw', sec: '5.6', item: '37', pn: 'B142', fr: 'Visserie du bloc de serrage', en: 'Clamp hardware', qty: '-', page: 23, explode: [0, 0.05, 0], approx: true,
     note: 'Repères 1 (120831 x4), 5, 6 (224166 x29), 7, 9 (250778 x4), 11, 14 (276962 x12, cales), 34 à 40, 41 (281325 x4, boulons modifiés), 42 (C079 x2), 43 (N017 x4), 44, 45, 46 (281061 x8), 47 (281327 x4). Positions des petites vis simplifiées.' }, hw));
-  return asm({ id: 'grip-clamp', sec: '5.6', item: '17', pn: '277553', fr: 'Bloc de serrage', en: 'Grapple clamp', qty: '1', page: 21, explode: [0, -0.66, 0] }, kids, CF);
+  return asm({ id: 'grip-clamp', sec: '5.6', item: '17', pn: '277553', fr: 'Bloc de serrage', en: 'Grapple clamp', qty: '1', page: 21, explode: [0, -0.96, 0] }, kids, CF);
 }
 
 /* 29 : adaptateur coudé ORFS / ORB sur la valve (repère C). */
 function buildAdapter29() {
   const g = grp([m(G.hex(0.019, 0.010), 'zincClear', { p: [0.005, 0, 0], r: [0, 0, -90] }), m(G.torus(0.012, 0.0055, Math.PI / 2, 8, 12), 'zincClear', { p: [0.010, 0.012, 0], r: [0, 0, -90] }),
     m(G.hex(0.019, 0.010), 'zincClear', { p: [0.022, 0.017, 0] })], { p: [0.115, 0.118, 0.062] });
-  return part({ id: 'grip-adapter29', sec: '5', item: '29', pn: 'FF1868T-0606S', fr: 'Adaptateur coudé no 6 ORFS / ORB', en: 'Adapter, #6 ORFS to #6 ORB, 90 deg', qty: '1', page: 10, explode: [0.10, -0.44, -0.08], approx: true,
+  return part({ id: 'grip-adapter29', sec: '5', item: '29', pn: 'FF1868T-0606S', fr: 'Adaptateur coudé no 6 ORFS / ORB', en: 'Adapter, #6 ORFS to #6 ORB, 90 deg', qty: '1', page: 10, explode: [0.10, -0.76, -0.12], approx: true,
     note: 'Près de la valve du bloc de serrage (vue de côté p. 10).' }, [g], CF);
 }
 
@@ -757,22 +758,22 @@ function buildWristHardware() {
     const long = (r === 3 && c === 1);
     hw.push(aim(washer({ d: 0.5 * IN, mat: 'zincClear', od: r === 0 ? 0.032 : 0.025, t: 0.0025 }), V(xi, y, z), V(1, 0, 0)));
     hw.push(boltAt([xi + 0.0025, y, z], [1, 0, 0], { d: 0.5 * IN, L: (long ? 1.75 : 1.5) * IN }));
-    if (r < 3) hw.push(nutAt([FLX - 0.014, y, z], [-1, 0, 0], { d: 0.5 * IN }));
+    if (r < 3) hw.push(nutAt([FLX, y, z], [-1, 0, 0], { d: 0.5 * IN }));
   }));
   hw.push(boltAt([FLX + FT, 0.252, 0.0], [1, 0, 0], { d: 0.5 * IN, L: 1.25 * IN, washer: true }));
   for (const z of [-0.035, 0.035]) hw.push(nutAt([FLX + FT, FYT - 0.012, z], [1, 0, 0], { d: 0.19 * IN }));
-  return part({ id: 'grip-hw-wrist', sec: '5', item: '21', pn: 'B269', fr: 'Visserie de la plaque de poignet', en: 'Wrist mount hardware', qty: '-', page: 10, explode: [-0.26, 0.36, 0], approx: true,
-    note: "Repères 1 (117753), 2 (228318 x4), 20 (B267), 21 (B269 x8), 22 (B271), 23 (N019 x6, au dos de la patte, patte supposée de 14 mm), 24 (N029 x2)." }, hw);
+  return part({ id: 'grip-hw-wrist', sec: '5', item: '21', pn: 'B269', fr: 'Visserie de la plaque de poignet', en: 'Wrist mount hardware', qty: '-', page: 10, explode: [-0.26, 0.40, 0], approx: true,
+    note: "Repères 1 (117753), 2 (228318 x4), 20 (B267), 21 (B269 x8), 22 (B271), 23 (N019 x6, sur la face côté flèche, hors de la patte 278122), 24 (N029 x2)." }, hw);
 }
 function buildGrommet() {
   const prof = [[0.029, -0.0105], [0.040, -0.0105], [0.040, -0.0075], [0.0345, -0.0067], [0.0345, 0.0067], [0.040, 0.0075], [0.040, 0.0105], [0.029, 0.0105], [0.029, -0.0105]];
-  return part({ id: 'grip-grommet', sec: '5', item: '9', pn: '276803', fr: 'Passe-fil 2,5 po en caoutchouc', en: 'Grommet, 2.5 x 3/8 in rubber', qty: '1', page: 11, explode: [-0.16, 0.36, -0.12] },
+  return part({ id: 'grip-grommet', sec: '5', item: '9', pn: '276803', fr: 'Passe-fil 2,5 po en caoutchouc', en: 'Grommet, 2.5 x 3/8 in rubber', qty: '1', page: 11, explode: [-0.12, 0.40, -0.14] },
     [lathe(prof, 'rubber', [GP.hole[0], GP.hole[1], -GZ], 'z', 40)]);
 }
 function buildEncoderHardware() {
   // repères 25 (N058), 26 (B042), 27 (W001 x2) : fixation du support de boyaux 10
   const hw = [boltAt([-0.084, BASE.y1 + 0.005, 0], [0, 1, 0], { d: 0.25 * IN, L: 0.75 * IN, washer: true }), nutAt([-0.084, BASE.y0, 0], [0, -1, 0], { d: 0.25 * IN, washer: true, lock: true })];
-  return part({ id: 'grip-hw-hosesup', sec: '5', item: '26', pn: 'B042', fr: 'Vis du support de boyaux', en: 'Hose support screw', qty: '-', page: 10, explode: [-0.14, 0.06, 0], approx: true,
+  return part({ id: 'grip-hw-hosesup', sec: '5', item: '26', pn: 'B042', fr: 'Vis du support de boyaux', en: 'Hose support screw', qty: '-', page: 10, explode: [-0.14, 0.08, 0], approx: true,
     note: 'Repères 25 (N058), 26 (B042) et 27 (W001 x2).' }, hw);
 }
 

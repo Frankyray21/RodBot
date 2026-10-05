@@ -42,8 +42,8 @@ const YT = AY - 0.024;           // axe du vérin télescopique (œil arrière p
 const XTB = -1.330;              // axe du pied du vérin télescopique
 const XTR = XIF - 0.035;         // axe de l'œil de tige (dans la flèche intérieure)
 const EZ0 = -0.20;               // plan de la chaîne porte-câbles (côté -Z)
-const WY = 1.452, WZ = 0.205;    // axe de la vis sans fin de la couronne (selon X, côté +Z, op07)
-const WX0 = SX - 0.150, WX1 = SX + 0.100;   // bouts du carter de la vis
+const WY = 1.470, WZ = 0.205;    // axe de la vis sans fin de la couronne (selon X, côté +Z, op07)
+const WX0 = SX - 0.150, WX1 = SX + 0.145;   // bouts du carter (au-dessus des têtes des 15 vis du socle)
 const ZE1 = [0.1134, 0.1293], ZE2 = [0.1707, 0.1866];   // joues de chape des vérins (côté +Z), 5/8 po
 
 /* ------------------------------------------------------------------ */
@@ -128,7 +128,6 @@ function liftCylinder(Lp, up) {
 /** Axe 1 1/4 x 3 po avec languette soudée, entre les joues ZE1..ZE2 du côté s ; vis d'arrêt en (x+0,0243, y+dy). */
 function cylPin(x, y, s, dy) {
   const z0 = s * (ZE1[0] - 0.0015), z1 = s * (ZE2[1] + 0.0015), zc = (z0 + z1) / 2, Lp = Math.abs(z1 - z0);
-  const a = Math.atan2(dy, 0.0243);
   return grp([
     m(alongZ(lath([[0, -Lp / 2], [0.0153, -Lp / 2], [0.0159, -Lp / 2 + 0.001], [0.0159, Lp / 2], [0, Lp / 2]], 28)), 'machined', { p: [x, y, zc] }),
     m(tr(G.plate(slotShape([0, 0], [0.0243, dy], 0.0145), 0.006, { holes: [{ c: [0.0243, dy], r: 0.0068 }] }), x, y, s * (ZE2[1] + 0.003)), 'machined'),
@@ -145,10 +144,10 @@ function buildSlew() {
     m(tr(plateXZ(sole, 0.015, { holes: holes15, curve: 48 }), SX, Y0 + 0.0075, SZ), 'blackCast'),
     m(lath([[0.1065, Y0 + 0.015], [0.172, Y0 + 0.015], [0.172, 1.452], [0.168, 1.456], [0.16, 1.456], [0.16, 1.4575], [0.1065, 1.4575], [0.1065, Y0 + 0.015]], 64), 'blackCast', { p: [SX, 0, SZ] }),
     // carter de la vis sans fin, tangent côté +Z (op07), moteur au bout +X, codeur au bout -X
-    m(G.box(WX1 - WX0, 0.066, 0.095, 0.012), 'blackCast', { p: [(WX0 + WX1) / 2, Y0 + 0.034, 0.1975] }),
-    m(G.cyl(0.045, WX1 - WX0 - 0.012, 32), 'blackCast', { p: [(WX0 + WX1) / 2, WY, WZ], r: [0, 0, 90] }),
-    m(discR(0.047, 0.008, 32), 'blackCast', { p: [WX0 + 0.004, WY, WZ], r: [0, 0, 90] }),
-    m(discR(0.047, 0.008, 32), 'blackCast', { p: [WX1 - 0.004, WY, WZ], r: [0, 0, 90] }),
+    m(G.box(WX1 - WX0, 0.038, 0.095, 0.010), 'blackCast', { p: [(WX0 + WX1) / 2, 1.449, 0.1975] }),
+    m(G.cyl(0.040, WX1 - WX0 - 0.012, 32), 'blackCast', { p: [(WX0 + WX1) / 2, WY, WZ], r: [0, 0, 90] }),
+    m(discR(0.042, 0.008, 32), 'blackCast', { p: [WX0 + 0.004, WY, WZ], r: [0, 0, 90] }),
+    m(discR(0.042, 0.008, 32), 'blackCast', { p: [WX1 - 0.004, WY, WZ], r: [0, 0, 90] }),
     // bague tournante (reçoit la bride de la base de levage)
     m(lath([[0.092, 1.430], [0.105, 1.430], [0.105, 1.4578], [0.156, 1.4578], [0.157, 1.459], [0.157, Y1 - 0.0008], [0.156, Y1], [0.092, Y1], [0.092, 1.430]], 64), 'black', { p: [SX, 0, SZ] }),
   ];
