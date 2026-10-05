@@ -10,6 +10,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { finalize } from './kit.js';
 import { ASSEMBLIES } from './asm/index.js';
@@ -83,7 +84,7 @@ ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground)
 
 const mobile = matchMedia('(max-width: 820px)').matches || (navigator.maxTouchPoints > 0 && Math.min(screen.width, screen.height) < 820);
 const qualityBox = $('#oQuality'); qualityBox.checked = !mobile;
-let composer = null, gtao = null;
+let composer = null, gtao = null, outline = null;
 function buildComposer() {
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   const rt = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
@@ -93,7 +94,13 @@ function buildComposer() {
   gtao.updateGtaoMaterial({ radius: 0.18, distanceExponent: 1.4, thickness: 1.2, scale: 1.0, samples: 12 });
   gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
   gtao.blendIntensity = 0.9;
-  composer.addPass(gtao); composer.addPass(new OutputPass());
+  composer.addPass(gtao);
+  // Contour de la pièce choisie : cyan vif, visible sur le rouge, le blanc et le noir ; plus pâle quand la pièce est cachée.
+  outline = new OutlinePass(new THREE.Vector2(size.x, size.y), scene, camera);
+  Object.assign(outline, { edgeStrength: 8, edgeGlow: 0.6, edgeThickness: 2.5 * renderer.getPixelRatio(), pulsePeriod: 0 });
+  outline.visibleEdgeColor.set('#00e5ff'); outline.hiddenEdgeColor.set('#0b6f80');
+  outline.selectedObjects = selectedMeshes(); outline.enabled = outline.selectedObjects.length > 0;
+  composer.addPass(outline); composer.addPass(new OutputPass());
 }
 
 /* ---------------- État ---------------- */
@@ -216,8 +223,14 @@ const HOME_DIR = new THREE.Vector3(0.62, 0.48, -0.62); // comme la vue CAO p. 7 
 
 /* ---------------- Sélection et visibilité ---------------- */
 function hiMat(m) {
-  if (!highlightCache.has(m)) { const h = m.clone(); h.emissive = new THREE.Color('#ff2030'); h.emissiveIntensity = 0.32; highlightCache.set(m, h); }
+  // léger éclaircissement neutre : la couleur réelle de la pièce reste lisible ; le contour fait le repérage
+  if (!highlightCache.has(m)) { const h = m.clone(); h.emissive = new THREE.Color('#ffffff'); h.emissiveIntensity = 0.06; highlightCache.set(m, h); }
   return highlightCache.get(m);
+}
+function selectedMeshes() {
+  const out = []; if (!sel) return out;
+  sel.traverse(o => { if (o.isMesh && o.visible) out.push(o); });
+  return out;
 }
 function refreshMeshes() {
   root.traverse(o => {
@@ -225,6 +238,7 @@ function refreshMeshes() {
     o.visible = !focus || within(own, focus);
     o.material = sel && within(own, sel) ? hiMat(o.userData.baseMat) : o.userData.baseMat;
   });
+  if (outline) { outline.selectedObjects = selectedMeshes(); outline.enabled = outline.selectedObjects.length > 0; }
   dirty = true;
 }
 function setFocus(n, instant = false) {
@@ -451,7 +465,8 @@ function loop(now) {
   if (controls.update()) dirty = true;
   if (controls.autoRotate) dirty = true;
   if (!dirty) return; dirty = false;
-  if (qualityBox.checked) { if (!composer) { buildComposer(); resize(); } composer.render(); } else renderer.render(scene, camera);
+  // Rendu réaliste : ombrage d'ambiance. Rendu rapide : sans ombrage, mais le contour reste quand une pièce est choisie.
+  if (qualityBox.checked || sel) { if (!composer) { buildComposer(); resize(); } gtao.enabled = qualityBox.checked; composer.render(); } else renderer.render(scene, camera);
   layoutBalloons();
 }
 
