@@ -271,16 +271,18 @@ function drawRoger(ctx, W, H) {
 function buildDecalLP() {
   // Flanc -Z du châssis (garde-corps rouge), entre les fourreaux, sous le bac (vue CAO p. 7, repère 13 p. 7).
   return part({ id: 'decalLP', sec: '3', item: '13', pn: '279235', fr: 'Autocollant LP RODBOT 24 x 3 po', en: 'LP RODBOT decal 24 x 3 in', qty: '1', page: 7, explode: [0, 0, 0],
-    note: 'Collé sur le flanc -Z du châssis, sous le bac (vue CAO du manuel opérateur p. 7).' }, [
-    decal({ text: '', w: 24 * IN, h: 3 * IN, px: 1024, draw: drawLP, p: [0.015, 0.597, -(L.frame.halfWidth + 0.0015)], r: [0, 180, 0] }),
+    note: 'Collé sur le flanc -Z du châssis, sous le bac, entre les fourreaux (vue CAO du manuel opérateur p. 7). Placé sous l\'encoche du creux du bac.' }, [
+    decal({ text: '', w: 24 * IN, h: 3 * IN, px: 1024, draw: drawLP, p: [0.015, 0.545, -(L.frame.halfWidth + 0.0015)], r: [0, 180, 0] }),
   ]);
 }
 function buildDecals() {
-  // Sous le panneau 24 V, côté -Z (p. 79) : x de -1,105 à -0,856 ; y de 0,61 à 0,756 ; plan de la face du panneau.
+  // Vu p. 79 sous le panneau 24 V (x de -1,105 à -0,856 ; y de 0,61 à 0,756). La face rouge pleine la plus proche, visible côté -Z,
+  // est l'âme de la plaque pliée 18 du châssis (frame.js, frame-plate18) : z = -0,503, x de -1,14 à -0,808, y de 0,50 à 0,645.
+  // L'autocollant y est collé entre les deux colonnes de vis (x = -1,122 et -0,826), à 1 mm de la face.
   return asm({ id: 'decals', sec: '3', item: '18', fr: 'Autocollant du socle', en: 'Pedestal decal', page: 7, explode: [0, 0, 0] }, [
     part({ id: 'acc-decal-roger', sec: '3', item: '18', pn: '281303', fr: 'Autocollant Machines Roger 40e', en: 'Machines Roger 40th decal', qty: '1', page: 7, explode: [0, 0, -0.15],
-      approx: true, note: 'Position relevée p. 79, sous le panneau 24 V. Profondeur estimée : plan de la face du panneau (z = -0,735).' }, [
-      decal({ text: '', w: 0.25, h: 0.146, px: 512, draw: drawRoger, p: [-0.98, 0.683, L.panel24.faceZ - 0.0015], r: [0, 180, 0] }),
+      approx: true, note: 'Vu p. 79 sous le panneau 24 V. Collé sur la plaque pliée 18 du châssis (face rouge la plus proche), donc environ 10 cm plus bas que sur le dessin.' }, [
+      decal({ text: '', w: 0.24, h: 0.138, px: 512, draw: drawRoger, p: [-0.974, 0.573, -0.504], r: [0, 180, 0] }),
     ]),
   ]);
 }
@@ -507,18 +509,20 @@ function buildRemote() {
 /* ------------------------------------------------------------------ */
 /* 5. Ombilical 10 m 278232 (4 boyaux gainés)                          */
 /* ------------------------------------------------------------------ */
+/* Ports de l'ombilical sur la face avant du bloc du socle (pedestal.js, nœud ped-tb) :
+ * bouts des raccords JIC à x = -1,505, y = 0,719 ; P et T (taille 12) à z = -0,075 et -0,02 ; Dr et LS (taille 6) à z = 0,045 et 0,095. */
+const TPORT = { x: -1.505, y: 0.719 };
 function buildTether() {
-  const f = L.tether.from, C = L.tether.coil;
-  // Boyaux : #6 x 2 en haut, #12 en bas à gauche, #16 en bas à droite (disposition de la plaque 278240, p. 37).
+  const C = L.tether.coil, PX = TPORT.x, PY = TPORT.y;
   const HO = [
-    { r: 0.0095, d: 0.375 * IN, off: [0.012, 0.016], at: [f[1] + 0.035, f[2] - 0.035], lat: -0.075 },
-    { r: 0.0095, d: 0.375 * IN, off: [-0.012, 0.016], at: [f[1] + 0.035, f[2] + 0.035], lat: 0.075 },
-    { r: 0.0155, d: 0.75 * IN, off: [0.014, -0.012], at: [f[1] - 0.035, f[2] - 0.04], lat: -0.027 },
-    { r: 0.019, d: 1.0 * IN, off: [-0.014, -0.012], at: [f[1] - 0.035, f[2] + 0.04], lat: 0.03 },
+    { n: 'P', r: 0.0155, d: 0.75 * IN, z: -0.075, off: [0.014, -0.012], lat: -0.066 },
+    { n: 'T', r: 0.0155, d: 0.75 * IN, z: -0.02, off: [-0.014, -0.012], lat: -0.02 },
+    { n: 'Dr', r: 0.0095, d: 0.375 * IN, z: 0.045, off: [0.012, 0.016], lat: 0.024 },
+    { n: 'LS', r: 0.0095, d: 0.375 * IN, z: 0.095, off: [-0.012, 0.016], lat: 0.062 },
   ];
-  // axe du faisceau : descente au sol, puis rouleau de 3,15 tours
-  const pts = [V(f[0] - 0.30, f[1] - 0.09, f[2]), V(f[0] - 0.38, f[1] - 0.23, f[2] - 0.015), V(f[0] - 0.48, f[1] - 0.35, f[2] - 0.04),
-    V(f[0] - 0.62, 0.052, f[2] - 0.08), V(f[0] - 0.82, 0.046, f[2] - 0.16), V(f[0] - 1.05, 0.046, f[2] - 0.28)];
+  // axe du faisceau : descente devant le socle, puis rouleau de 3,15 tours au sol
+  const pts = [V(-1.86, 0.62, 0.01), V(-1.93, 0.48, 0.0), V(-1.99, 0.30, -0.02), V(-2.05, 0.13, -0.04), V(-2.14, 0.055, -0.08),
+    V(-2.32, 0.046, -0.16), V(-2.55, 0.046, -0.25)];
   const a0 = 100, turns = 3.15, R0 = 0.37, pitch = 0.095, aEnd = a0 + turns * 360;
   const at = (a, r, y) => V(C[0] + r * Math.cos(a * D2R), y, C[2] + r * Math.sin(a * D2R));
   for (let a = a0; a <= aEnd + 1e-6; a += 15) pts.push(at(a, R0 + 0.01 * Math.sin(a * D2R * 2.3), 0.046 + (a - a0) / 360 * pitch));
@@ -531,15 +535,19 @@ function buildTether() {
   const w1 = sample(0, us, 0.035), w2 = sample(us - 0.04 / Lt, 1, 0.035);
   const wrap45 = [m(G.sweep(w1, 0.046, { radial: 12, seg: w1.length }), 'polymer')];
   const wrap35 = [m(G.sweep(w2, 0.041, { radial: 12, seg: w2.length }), 'polymer')];
-  // boyaux dans le faisceau (repère de Frenet le long de l'axe), avec légère torsion
+  // boyaux dans le faisceau (repère de Frenet le long de l'axe), avec légère torsion ;
+  // phase choisie pour que les gros boyaux (P, T) entrent côté -Z, comme leurs ports
   const N = Math.ceil(Lt / 0.05), fr = curve.computeFrenetFrames(N, false);
+  const tau0 = Math.atan2(-fr.normals[0].z, fr.binormals[0].z);
   const E = curve.getPointAt(1), TE = curve.getTangentAt(1), TEh = V(TE.x, 0, TE.z).normalize(), side = V(-TEh.z, 0, TEh.x);
+  const ferrule = (h) => grp([m(G.lathe([[0, 0], [h.r * 1.25, 0], [h.r * 1.25, 0.03], [h.r * 1.05, 0.036], [0, 0.036]], 20), 'zincClear')]);
   const hoses = [];
   HO.forEach((h, idx) => {
     const cR = h.d * 1.25 + 0.004; // rayon hors tout du coupleur (coins de l'hexagone) : il repose au sol
-    const offAt = (i) => { const s = i / N * Lt, tau = 0.35 * s, [a, c] = h.off; return fr.normals[i].clone().multiplyScalar(a * Math.cos(tau) - c * Math.sin(tau)).add(fr.binormals[i].clone().multiplyScalar(a * Math.sin(tau) + c * Math.cos(tau))); };
-    const hp = [V(f[0] - 0.1, h.at[0], h.at[1]), V(f[0] - 0.16, h.at[0] - 0.006, lerp(h.at[1], f[2], 0.3)), V(f[0] - 0.235, lerp(h.at[0], f[1] - 0.06, 0.6), lerp(h.at[1], f[2], 0.75))];
-    for (let i = 1; i <= N; i++) hp.push(curve.getPointAt(i / N).add(offAt(i)));
+    const offAt = (i) => { const s = i / N * Lt, tau = tau0 + 0.35 * s, [a, c] = h.off; return fr.normals[i].clone().multiplyScalar(a * Math.cos(tau) - c * Math.sin(tau)).add(fr.binormals[i].clone().multiplyScalar(a * Math.sin(tau) + c * Math.cos(tau))); };
+    const o0 = curve.getPointAt(0).add(offAt(0));
+    const hp = [V(PX - 0.135, PY, h.z), V(PX - 0.19, PY - 0.002, lerp(h.z, o0.z, 0.25)), V(PX - 0.25, PY - 0.016, lerp(h.z, o0.z, 0.55)), V(PX - 0.30, PY - 0.05, lerp(h.z, o0.z, 0.85))];
+    for (let i = 0; i <= N; i++) hp.push(curve.getPointAt(i / N).add(offAt(i)));
     const o1 = offAt(N), L1 = 0.3 + idx * 0.02;
     for (const s of [0.06, 0.13, 0.2, L1 - 0.03, L1]) {
       const t = Math.min(1, s / 0.2), p = E.clone().addScaledVector(TEh, s).addScaledVector(o1, 1 - t).addScaledVector(side, h.lat * t);
@@ -547,19 +555,19 @@ function buildTether() {
     }
     hp.forEach(q => { q.y = Math.max(q.y, h.r + 0.002); });
     hoses.push(m(G.sweep(hp, h.r, { radial: 7, seg: Math.ceil(hp.length * 1.4) }), 'hose'));
-    // côté machine : coupleur femelle (face d'accouplement à x = from), virole sertie
-    hoses.push(aim(coupler({ d: h.d, male: false }), [f[0] - 0.075, h.at[0], h.at[1]], [1, 0, 0]));
-    hoses.push(aim(grp([m(G.lathe([[0, 0], [h.r * 1.25, 0], [h.r * 1.25, 0.03], [h.r * 1.05, 0.036], [0, 0.036]], 20), 'zincClear')]), [f[0] - 0.092, h.at[0], h.at[1]], [-1, 0, 0]));
+    // côté socle : paire de coupleurs accouplée, vissée sur le raccord JIC du port (axe vers -X), puis virole sertie
+    hoses.push(aim(coupler({ d: h.d, male: true }), [PX - 0.016, PY, h.z], [-1, 0, 0]));
+    hoses.push(aim(ferrule(h), [PX - 0.128, PY, h.z], [-1, 0, 0]));
     // bout libre : virole, coupleur mâle et bouchon anti-poussière
     const tip = E.clone().addScaledVector(TEh, L1).addScaledVector(side, h.lat); tip.y = cR;
-    hoses.push(aim(grp([m(G.lathe([[0, 0], [h.r * 1.25, 0], [h.r * 1.25, 0.03], [h.r * 1.05, 0.036], [0, 0.036]], 20), 'zincClear')]), tip.clone(), TEh.clone().negate()));
+    hoses.push(aim(ferrule(h), tip.clone(), TEh.clone().negate()));
     const cp = grp([coupler({ d: h.d, male: true }), m(G.lathe([[0, 0.07], [h.d * 0.9 * 0.72, 0.07], [h.d * 0.9 * 0.72, 0.118], [h.d * 0.9 * 0.6, 0.122], [0, 0.122]], 20), 'plastic')]);
     hoses.push(aim(cp, tip.clone().addScaledVector(TEh, 0.017), TEh));
   });
   return asm({ id: 'tether', sec: '3', item: '11', pn: '278232', fr: 'Ombilical 10 m (4 boyaux gainés)', en: '10 m tether (4 wrapped hoses)', qty: '1', page: 7, explode: [0, 0, 0],
-    note: `Part du bloc de l'ombilical, à l'avant du socle, et s'enroule au sol. Longueur modélisée : ${(Lt + 0.6).toFixed(1)} m.` }, [
+    note: `Branché sur les ports P, T, Dr et LS du bloc de l'ombilical (avant du socle), puis enroulé au sol. Longueur modélisée : ${(Lt + 0.65).toFixed(1)} m.` }, [
     part({ id: 'acc-tether-hoses', fr: 'Boyaux (4) et coupleurs', en: 'Hoses (4) and couplers', approx: true, explode: [0, 0, 0],
-      note: 'Pièces de l\'ombilical 278232 sans repère. Boyaux #16, #12 et 2 x #6 comme les coupleurs de la plaque 278240 (p. 37).' }, hoses),
+      note: 'Pièces de l\'ombilical 278232 sans repère. Boyaux taille 12 (P, T) et taille 6 (Dr, LS), comme les ports du bloc 277898 (p. 75). La plaque 278240 (p. 37) montre un #16 : écart possible.' }, hoses),
     part({ id: 'acc-tether-wrap45', sec: '3', item: '9', pn: '245568', fr: 'Gaine 4-1/2 po x 25 pi', en: 'Hose wrap 4-1/2 in x 25 ft', qty: '1', page: 7, approx: true, explode: [0, 0.2, 0],
       note: 'Non dessinée p. 7. Placée sur la partie côté machine (estimation).' }, wrap45),
     part({ id: 'acc-tether-wrap35', sec: '3', item: '10', pn: '245567', fr: 'Gaine 3-1/2 po x 25 pi', en: 'Hose wrap 3-1/2 in x 25 ft', qty: '1', page: 7, approx: true, explode: [0, 0.2, 0],

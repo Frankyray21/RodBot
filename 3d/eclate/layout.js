@@ -58,13 +58,15 @@ export const L = {
     // flèche dans la pose de la p. 79 : presque horizontale vers +X
     outerFrom: [-1.36, 1.86], outerTo: [-0.05, 1.86],     // flèche extérieure (276527)
     innerTo: [0.20, 1.80],                                 // bout de la flèche intérieure (276502)
-    tip: [0.24, 1.83, 0],     // INTERFACE flèche / pince : centre de la face de la patte de bout de flèche (278122)
+    // INTERFACE flèche / pince : centre de la face de la patte de bout de flèche (278122).
+    // Recalé à x = -0,02 par superposition de la pince sur la p. 79 (axe du poignet à x ≈ 0,19).
+    tip: [-0.02, 1.83, 0],
     outerSection: [0.20, 0.24],                            // largeur Z x hauteur Y (estimation)
     innerSection: [0.15, 0.18],
   },
   /* Pince V2.0 (277179) : actionneur de poignet au bout de flèche, pince pendante. */
   // La plaque de poignet à 30° (276360) se boulonne sur la patte de bout de flèche (L.boom.tip).
-  gripper: { mountAt: [0.24, 1.83, 0], wristAxis: [0.19, 1.70, 0], rotateY: 1.40, jawTipY: 0.91, cx: 0.27 },
+  gripper: { mountAt: [-0.02, 1.83, 0], wristAxis: [0.19, 1.70, 0], rotateY: 1.40, jawTipY: 0.91, cx: 0.27 },
 
   /* Articles livrés à part (dessin p. 7 du manuel de pièces : repères 7, 11, 12, 14, 17 dessinés hors machine).
    * Zone au sol devant le flanc +Z. Chaque module y pose ses articles sans chevauchement :

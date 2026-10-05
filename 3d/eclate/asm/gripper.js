@@ -608,7 +608,7 @@ function buildRod(cid, e, item) {
     [cyl(0.0105, 0.096, 'machined', [0, TB.y, 0], 'x', 24), box(0.030, 0.012, 0.024, 'machined', [0, TB.y + 0.004, 0], 0.003)]);
   const kids = [piston, rod, bar];
   [[-0.034, 0], [-0.022, 1], [0.022, 2], [0.034, 3]].forEach(([dx, k]) => kids.push(part({ id: `${cid}-rod-bush-${k + 1}`, sec: '5.6.3.2', item: '10', pn: '281609', fr: 'Bague', en: 'Bushing', qty: '4', page: 29, spare: true,
-    explode: [Math.sign(dx) * (0.035 + Math.abs(dx) * 1.2), -0.04, 0] }, [ring(0.0115, 0.0105, 0.0122, 'bronze', [dx, TB.y, 0], 'x', 24)])));
+    explode: [+(Math.sign(dx) * (0.035 + Math.abs(dx) * 1.2)).toFixed(3), -0.04, 0] }, [ring(0.0115, 0.0105, 0.0122, 'bronze', [dx, TB.y, 0], 'x', 24)])));
   [-1, 1].forEach((sx, k) => kids.push(part({ id: `${cid}-rod-retwasher-${k + 1}`, sec: '5.6.3.2', item: '5', pn: '276925', fr: 'Rondelle de retenue usinée', en: 'Retaining washer, machined', qty: '2', page: 29,
     explode: [sx * 0.10, -0.04, 0] }, [disc(0.016, 0.004, 'machined', [sx * 0.0425, TB.y, 0], 'x', 28)])));
   const hw = [boltAt([-0.0445, TB.y, 0], [-1, 0, 0], { d: 0.375 * IN, L: 0.625 * IN, washer: true }), boltAt([0.0445, TB.y, 0], [1, 0, 0], { d: 0.375 * IN, L: 0.625 * IN, washer: true }),
@@ -672,7 +672,7 @@ function buildClamp() {
   // accumulateur 17
   const ac = [cyl(0.032, 0.090, 'black', [-0.090, 0.077, 0.030], 'z', 36), m(G.sphere(0.032, 28), 'black', { p: [-0.090, 0.077, 0.075], s: [1, 1, 0.45] }), m(G.sphere(0.032, 28), 'black', { p: [-0.090, 0.077, -0.015], s: [1, 1, 0.45] }),
     m(G.hex(0.022, 0.012), 'zincClear', { p: [-0.090, 0.077, -0.0355], r: [90, 0, 0] })];
-  for (const z of [0.005, 0.055]) ac.push(m(G.torus(0.0335, 0.0022, Math.PI, 8, 24), 'zincClear', { p: [-0.090, 0.077, z] }), box(0.080, 0.003, 0.012, 'zincClear', [-0.090, 0.0435, z], 0.001));
+  for (const z of [0.005, 0.055]) ac.push(m(G.torus(0.0335, 0.0022, Math.PI, 8, 24), 'zincClear', { p: [-0.090, 0.077, z] }), box(0.074, 0.016, 0.012, 'zincClear', [-0.090, FR.y1 + 0.008, z], 0.002));
   kids.push(part({ id: 'grip-clamp-accu', sec: '5.6', item: '17', pn: '277521', fr: 'Accumulateur', en: 'Accumulator assembly', qty: '1', page: 21, explode: [-0.05, 0.14, 0.12] }, ac));
   // valve de maintien de charge 8 sur son support soudé 25
   const vx = 0.090, vz = 0.045;
@@ -714,7 +714,7 @@ function buildClamp() {
     note: "Bloc sous la plaque du cadre : reçoit les boulons épaulés 10 de l'inclinaison (cales 14 de part et d'autre)." },
     [box(0.080, 0.026, 0.244, 'steel', [0, 0.0, 0], 0.003)]));
   kids.push(part({ id: 'grip-clamp-tuberet', sec: '5.6', item: '24', pn: '277706', fr: 'Retenue de tubes en caoutchouc', en: 'Rubber tube retainer', qty: '1', page: 22, spare: true, explode: [0, 0.08, -0.06] },
-    [box(0.030, 0.020, 0.024, 'rubber', [-0.045, 0.046, -0.112], 0.006)]));
+    [box(0.030, 0.024, 0.024, 'rubber', [-0.045, FR.y1 + 0.012, -0.112], 0.006)]));
   // boulons épaulés 10 de l'inclinaison
   [1, -1].forEach((s, k) => kids.push(part({ id: `grip-clamp-pivotbolt-${k + 1}`, sec: '5.6', item: '10', pn: '256107', fr: "Boulon épaulé 1 po x 2,5 po (inclinaison)", en: 'Shoulder bolt 1 x 2.5 in (tilt)', qty: '2', page: 21, explode: [0, 0, s * 0.16] },
     [grp([lathe([[0, 0], [0.019, 0], [0.019, 0.016], [0.016, 0.017], [0, 0.017]], 'blackOxide', [0, 0, 0], 'y', 28), cyl(0.0127, 0.0635, 'blackOxide', [0, -0.03175, 0], 'y', 24), cyl(0.0095, 0.015, 'blackOxide', [0, -0.071, 0], 'y', 20)],
@@ -726,19 +726,19 @@ function buildClamp() {
     [sideWall(-0.238, -0.120, 0.0655), sideWall(-0.238, -0.120, -0.0655), m(G.plate(rshape([[-0.0670, gy0], [0.0670, gy0], [0.0670, gy1], [-0.0670, gy1]], 0.003), gw, { holes: [{ c: [0.03, 0.12], r: 0.014 }] }), 'red', { p: [-0.2395, 0, 0], r: [0, -90, 0] }),
       ...[-0.05, 0.05].map(z => box(0.012, 0.016, 0.006, 'red', [-0.232, FR.y1 + 0.008, z], 0.001))]));
   kids.push(part({ id: 'grip-clamp-guard1-1', sec: '5.6', item: '28', pn: '277869', fr: 'Garde no 1 (vérin no 2)', en: 'Guard #1 weldment', qty: '2', page: 21, explode: [0.14, 0.16, 0], approx: true },
-    [sideWall(0.120, 0.232, 0.0655), sideWall(0.120, 0.232, -0.0655), box(0.016, gw, 0.134, 'red', [0.224, gy1 - gw / 2, 0], 0.001), ...[-0.0655, 0.0655].map(z => box(0.012, 0.016, 0.006, 'red', [0.15, FR.y1 + 0.008, z * 0.92], 0.001))]));
+    [sideWall(0.120, 0.232, 0.0655), sideWall(0.120, 0.232, -0.0655), box(0.016, gw, 0.134, 'red', [0.224, gy1 - gw / 2, 0], 0.001), ...[-0.0655, 0.0655].map(z => box(0.012, 0.016, 0.004, 'red', [0.15, FR.y1 + 0.008, z], 0.001))]));
   kids.push(part({ id: 'grip-clamp-guard2', sec: '5.6', item: '29', pn: '277883', fr: 'Garde no 2 (bout droit)', en: 'Guard #2 weldment', qty: '1', page: 21, explode: [0.28, 0.12, 0], approx: true },
     [m(G.plate(rshape([[-0.067, gy0], [0.067, gy0], [0.067, gy1], [-0.067, gy1]], [0.002, 0.002, 0.02, 0.02]), gw, {}), 'red', { p: [0.2435, 0, 0], r: [0, -90, 0] }), box(0.016, gw, 0.080, 'red', [0.236, FR.y1 + gw / 2, 0], 0.001), box(0.003, 0.016, 0.080, 'red', [0.2435, FR.y1 + 0.008, 0], 0.001)]));
   kids.push(part({ id: 'grip-clamp-guard1-2', sec: '5.6', item: '28', pn: '277869', fr: 'Garde no 1 (centre, sur la valve)', en: 'Guard #1 weldment (centre)', qty: '2', page: 21, explode: [0.03, 0.24, 0.10], approx: true },
-    [box(0.066, gw, 0.100, 'red', [vx, 0.162, vz], 0.001), box(0.066, 0.115, gw, 'red', [vx, 0.162 - 0.0575, vz + 0.0485], 0.001), box(0.066, 0.008, gw, 'red', [vx, FR.y1 + 0.004, vz + 0.0485 + 0.004], 0.001)]));
+    [box(0.066, gw, 0.100, 'red', [vx, 0.162, vz], 0.001), box(0.066, 0.1335, gw, 'red', [vx, FR.y1 + 0.0665, vz + 0.0485], 0.001), box(0.066, gw, 0.012, 'red', [vx, FR.y1 + gw / 2, vz + 0.0485 - 0.006], 0.001)]));
   // visserie du bloc de serrage
   const hw = [];
   for (const s of [-1, 1]) { hw.push(aim(washer({ d: 1 * IN, od: 0.040, t: 0.0016, mat: 'bronze' }), V(0, 0, s * (LEGZ + LEGT / 2)), V(0, 0, s))); hw.push(aim(washer({ d: 1 * IN, od: 0.040, t: 0.0016, mat: 'bronze' }), V(0, 0, s * FR.hz), V(0, 0, s))); }
   for (const e of [-1, 1]) for (const y of [0.075, 0.145]) { hw.push(boltAt([e * CYX, y, -0.035], [0, 0, -1], { d: 0.375 * IN, L: 3.25 * IN, washer: true })); hw.push(nutAt([e * CYX, y, 0.035], [0, 0, 1], { d: 0.375 * IN })); }
   for (const e of [-1, 1]) for (const x of [-0.045, 0.045]) for (const z of [-0.088, 0.088]) if (!(e > 0 && x > 0 && z < 0)) hw.push(boltAt([e * CYX + x, FR.y1, z], [0, 1, 0], { d: 0.375 * IN, L: 1 * IN, washer: true }));
   for (const x of [-0.048, 0.048]) for (const z of [-0.03, 0.03]) {
-    hw.push(cyl(0.0064, 0.098, 'zinc', [x, -0.012, z], 'y', 14));
-    for (const y of [FR.y1 + 0.008, -0.060]) hw.push(ring(0.0095, 0.0064, 0.0032, 'rubber', [x, y + 0.0016 * (y > 0 ? 1 : -1), z], 'y', 16));
+    hw.push(cyl(0.0064, 0.112, 'zinc', [x, -0.019, z], 'y', 14));
+    hw.push(ring(0.0095, 0.0064, 0.0032, 'rubber', [x, FR.y1 + 0.008 + 0.0016, z], 'y', 16), ring(0.0095, 0.0064, 0.0032, 'rubber', [x, -0.065 + 0.0016, z], 'y', 16));
   }
   for (const x of [-0.035, 0.035]) hw.push(boltAt([x, FR.y1 + 0.008, 0.0], [0, 1, 0], { d: 0.375 * IN, L: 0.625 * IN, washer: true }));
   for (const z of [-0.10, 0.10]) hw.push(boltAt([0, FR.y1, z], [0, 1, 0], { d: 0.3125 * IN, L: 2.5 * IN, head: 'shcs', mat: 'blackOxide' }));
