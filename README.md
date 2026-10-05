@@ -19,6 +19,12 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
+## Vue éclatée 3D v1.131.0
+
+La [vue éclatée](3d/eclate.html) montre la machine reconstruite d'après les dessins du manuel de pièces PM10654 R0. Chaque ensemble s'écarte avec un curseur. Chaque pièce porte son numéro du manuel. Une pièce touchée affiche sa fiche : numéro de pièce, quantité, tableau de nomenclature et pièces de rechange critiques.
+
+Le modèle est construit par code (dossier `3d/eclate/`), sans fichier GLB. Les boyaux hydrauliques sont dessinés pour référence. Les formes cachées ou non cotées sont estimées et signalées dans les fiches. La page fonctionne hors ligne une fois chargée.
+
 ## Réplique 3D v1.130.0
 
 La V40 corrige le boyau isolé du mât : le départ au connecteur jaune rejoint maintenant la bouche du porte-câbles par un trajet court. La reconstruction se termine dans le corridor protégé ; sa destination réelle masquée reste inconnue. Les autres pièces et mouvements sont conservés. Le repère des borniers vise désormais leur rangée dans le coffret ouvert. Le bilan de fidélité distingue les dimensions documentées, les estimations et les détails restant à vérifier.

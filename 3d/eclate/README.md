@@ -1,7 +1,7 @@
-# Vue éclatée 3D du LP RodBot (version de vérification)
+# Vue éclatée 3D du LP RodBot
 
-Page : `3d/eclate.html`. Elle n'est liée nulle part sur le site et n'est pas dans le cache hors ligne.
-Elle reste sur une branche de travail tant que le propriétaire ne l'a pas validée.
+Page : `3d/eclate.html`, publiée en 1.131.0. Liens depuis l'accueil (section 3D), l'atelier 3D
+et la réplique. Elle est dans le cache hors ligne (CORE de `sw.js`).
 
 ## Principe
 
@@ -28,4 +28,5 @@ Elle reste sur une branche de travail tant que le propriétaire ne l'a pas valid
 - Les formes cachées ou non cotées sont estimées (`approx` dans les métadonnées).
 - La pose de la grue suit la vue de côté p. 79 du manuel opérateur.
 - Les pages du manuel de pièces ne sont pas versionnées ici (document du fabricant).
-  L'aperçu privé les affiche à côté du modèle pour la vérification.
+  Si des images `manuel/pNNN.jpg` sont ajoutées, le bouton « Voir la page du manuel » apparaît.
+- Les boyaux hydrauliques (`asm/hoses.js`) sont dessinés pour référence : tracés estimés.

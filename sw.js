@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.130.0';
+const CACHE = 'rodbot-formation-v1.131.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -20,7 +20,44 @@ const CORE = [
   './3d/js/training-ui.js', './3d/js/simulation-state.js',
   './3d/replique.html', './3d/fidelite.html', './3d/js/replique.js', './3d/css/replique.css',
   './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js',
-  './fonts/fonts.css'
+  './fonts/fonts.css',
+  /* Vue éclatée (1.131.0) : modèle construit par code, three.js servi depuis le dépôt. */
+  './3d/eclate.html',
+  './3d/eclate/eclate.css',
+  './3d/eclate/main.js',
+  './3d/eclate/kit.js',
+  './3d/eclate/layout.js',
+  './3d/eclate/bom.js',
+  './3d/eclate/asm/index.js',
+  './3d/eclate/asm/frame.js',
+  './3d/eclate/asm/pedestal.js',
+  './3d/eclate/asm/crane.js',
+  './3d/eclate/asm/gripper.js',
+  './3d/eclate/asm/electrical.js',
+  './3d/eclate/asm/accessories.js',
+  './3d/eclate/asm/hoses.js',
+  './3d/vendor/three/three.module.min.js',
+  './3d/vendor/three/three.core.min.js',
+  './3d/vendor/three/addons/math/SimplexNoise.js',
+  './3d/vendor/three/addons/postprocessing/EffectComposer.js',
+  './3d/vendor/three/addons/postprocessing/GTAOPass.js',
+  './3d/vendor/three/addons/postprocessing/MaskPass.js',
+  './3d/vendor/three/addons/postprocessing/OutlinePass.js',
+  './3d/vendor/three/addons/postprocessing/OutputPass.js',
+  './3d/vendor/three/addons/postprocessing/Pass.js',
+  './3d/vendor/three/addons/postprocessing/RenderPass.js',
+  './3d/vendor/three/addons/postprocessing/SMAAPass.js',
+  './3d/vendor/three/addons/postprocessing/ShaderPass.js',
+  './3d/vendor/three/addons/controls/OrbitControls.js',
+  './3d/vendor/three/addons/loaders/HDRLoader.js',
+  './3d/vendor/three/addons/environments/RoomEnvironment.js',
+  './3d/vendor/three/addons/shaders/CopyShader.js',
+  './3d/vendor/three/addons/shaders/GTAOShader.js',
+  './3d/vendor/three/addons/shaders/OutputShader.js',
+  './3d/vendor/three/addons/shaders/PoissonDenoiseShader.js',
+  './3d/vendor/three/addons/shaders/SMAAShader.js',
+  './3d/vendor/three/addons/utils/BufferGeometryUtils.js',
+  './3d/vendor/three/addons/geometries/RoundedBoxGeometry.js'
 ];
 
 /* Polices : locales depuis la version 1.88.0 (dossier fonts/). Plus aucune

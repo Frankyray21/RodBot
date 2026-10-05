@@ -23,7 +23,7 @@ const $ = (s) => document.querySelector(s);
 /* ---------------- Textes ---------------- */
 const TXT = {
   fr: {
-    training: 'Formation', replica: 'Réplique 3D', eyebrow: 'Version à vérifier, non publiée', h1: 'Vue éclatée',
+    training: 'Formation', replica: 'Réplique 3D', eyebrow: 'Manuel de pièces PM10654', workshop: 'Atelier 3D', h1: 'Vue éclatée',
     intro: 'Chaque pièce porte le numéro du manuel de pièces. Touche une pièce pour voir sa nomenclature.',
     explode: 'Éclater', play: 'Éclater', gather: 'Rassembler', loading: 'Construction du modèle 3D',
     legend: 'Ensembles', parts: 'Pièces et sous-ensembles', options: 'Affichage', quality: 'Rendu réaliste', spin: 'Rotation lente', ghost: 'Voir à travers si la pièce est cachée',
@@ -38,7 +38,7 @@ const TXT = {
     loadError: 'Le modèle 3D ne peut pas s\'afficher. Recharge la page.', backTo: 'Retour',
   },
   en: {
-    training: 'Training', replica: '3D replica', eyebrow: 'Review version, not published', h1: 'Exploded view',
+    training: 'Training', replica: '3D replica', eyebrow: 'Parts manual PM10654', workshop: '3D workshop', h1: 'Exploded view',
     intro: 'Each part carries its parts manual number. Tap a part to see its bill of materials.',
     explode: 'Explode', play: 'Explode', gather: 'Assemble', loading: 'Building the 3D model',
     legend: 'Assemblies', parts: 'Parts and sub-assemblies', options: 'Display', quality: 'Realistic rendering', spin: 'Slow spin', ghost: 'See through when the part is hidden',

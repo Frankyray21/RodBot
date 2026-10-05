@@ -1,7 +1,7 @@
 /* Camera positions and independent clips match the shared training model. */
-import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js?v=1.130.0';
-import { attachPrecisionZoom } from './precision-zoom.js?v=1.130.0';
-import { VUES, hotspotById } from './hotspots-v40.js?v=1.130.0';
+import { MODEL_URL, ENVIRONMENT_URL, DRACO_URL } from './model-assets.js?v=1.131.0';
+import { attachPrecisionZoom } from './precision-zoom.js?v=1.131.0';
+import { VUES, hotspotById } from './hotspots-v40.js?v=1.131.0';
 const cameraView = (key, view) => ({
   key,
   orbit: `${view.yaw}deg ${90 - view.pitch}deg ${view.dist}m`,
@@ -41,7 +41,7 @@ export function motionTime(motion, value) {
 }
 const TEXT = {
   fr: {
-    title: 'LP RodBot | Réplique 3D', skip: 'Aller au modèle 3D', training: 'Formation', scan: 'Simulations guidées',
+    title: 'LP RodBot | Réplique 3D', skip: 'Aller au modèle 3D', training: 'Formation', scan: 'Simulations guidées', exploded: 'Vue éclatée',
     eyebrow: 'EXPLORATION DE L’ÉQUIPEMENT', replica: 'Réplique 3D', intro: 'Explore la télécommande, les marquages et les détails de la machine.',
     viewerLabel: 'Modèle 3D interactif', fullscreen: 'Plein écran', exitFullscreen: 'Quitter le plein écran',
     modelAlt: 'LP RodBot avec bras articulé, chenilles et télécommande noire sur un trépied jaune.',
@@ -60,7 +60,7 @@ const TEXT = {
     footer: 'Visualisation pour la formation. Les trajectoires de travail restent à valider.', lighting: 'Éclairage :', degrees: 'degrés', percent: 'pour cent', fullscreenUnavailable: 'Le plein écran est indisponible dans ce navigateur.'
   },
   en: {
-    title: 'LP RodBot | 3D replica', skip: 'Skip to the 3D model', training: 'Training', scan: 'Guided simulations',
+    title: 'LP RodBot | 3D replica', skip: 'Skip to the 3D model', training: 'Training', scan: 'Guided simulations', exploded: 'Exploded view',
     eyebrow: 'EXPLORE THE EQUIPMENT', replica: '3D replica', intro: 'Explore the remote control, markings and machine details.',
     viewerLabel: 'Interactive 3D model', fullscreen: 'Full screen', exitFullscreen: 'Exit full screen',
     modelAlt: 'LP RodBot with an articulated arm, tracks and a black radio remote on a yellow tripod.',
