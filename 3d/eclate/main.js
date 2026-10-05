@@ -95,10 +95,15 @@ function buildComposer() {
   gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
   gtao.blendIntensity = 0.9;
   composer.addPass(gtao);
-  // Contour de la pièce choisie : cyan vif, visible sur le rouge, le blanc et le noir ; plus pâle quand la pièce est cachée.
+  // Contour de la pièce choisie : mauve discret, peint par-dessus (mélange normal, pas additif)
+  // pour garder la même teinte sur le rouge, le blanc et le fond clair ; plus transparent quand la pièce est cachée.
   outline = new OutlinePass(new THREE.Vector2(size.x, size.y), scene, camera);
-  Object.assign(outline, { edgeStrength: 8, edgeGlow: 0.6, edgeThickness: 2.5 * renderer.getPixelRatio(), pulsePeriod: 0 });
-  outline.visibleEdgeColor.set('#00e5ff'); outline.hiddenEdgeColor.set('#0b6f80');
+  Object.assign(outline, { edgeStrength: 3, edgeGlow: 0.15, edgeThickness: 1.4 * renderer.getPixelRatio(), pulsePeriod: 0 });
+  outline.visibleEdgeColor.set('#8e6cc9'); outline.hiddenEdgeColor.set('#231b36');
+  const ov = outline.overlayMaterial; ov.blending = THREE.NormalBlending;
+  ov.fragmentShader = ov.fragmentShader.replace('gl_FragColor = finalColor;',
+    'float m = max(max(finalColor.r, finalColor.g), finalColor.b); gl_FragColor = vec4(finalColor.rgb / max(m, 1e-3), clamp(m * 0.9, 0.0, 0.75));');
+  ov.needsUpdate = true;
   outline.selectedObjects = selectedMeshes(); outline.enabled = outline.selectedObjects.length > 0;
   composer.addPass(outline); composer.addPass(new OutputPass());
 }
