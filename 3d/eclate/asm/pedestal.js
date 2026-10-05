@@ -12,7 +12,8 @@ import { L } from '../layout.js';
 /* ------------------------------------------------------------------ */
 const X0 = L.pedestal.xMin;          // -1.47 : face avant de la poutre haute
 const XF = -1.355;                   // face avant des montants (bas du caisson, en retrait de 115 mm, op. p. 79)
-const XB = -0.775;                   // face arrière (la semelle doit dépasser pour ses boulons ; le bac commence à -0.73)
+const XB = L.pedestal.xMax;          // -0.76 : face arrière (pattes de la rampe de garde du châssis)
+const TBK = 0.0095;                  // plaque arrière 3/8 po
 const ZW = L.pedestal.coreHalfWidth; // 0.45 : faces extérieures des flancs
 const TW = 0.0127;                   // tôles 1/2 po (passe-fil 280957 : « pour tôle 1/2 po »)
 const ZI = ZW - TW;                  // faces intérieures des flancs
@@ -21,17 +22,17 @@ const YB = Y0 + 0.019;               // dessus de la semelle
 const YT = L.pedestal.topY;          // 1.40 : dessus (couronne d'orientation)
 const YTi = YT - 0.019;              // dessous de la plaque du dessus
 const YBM = 1.22;                    // dessous de la poutre avant
-const SX = L.slew.x, SZ = L.slew.z, SR = 0.205; // cercle des 15 boulons de couronne (DE couronne 0.46)
-const SLEW_TOP = L.slew.topY;        // têtes des boulons 15 posées sur la couronne
+const SX = L.slew.x, SZ = L.slew.z, SR = 0.19;  // cercle des 15 boulons (trous de la semelle de couronne, module grue)
+const SLEW_TOP = YT + 0.015;         // têtes des boulons 15 sur la semelle de 15 mm de la couronne
 const WIN = 0.27;                    // demi-largeur de l'ouverture avant
 const PG = 69;
+const DL_BY = 1.25;                  // vis du bloc de délestage (au-dessus de la barre de la rampe de garde)
 
-/* Boulons de semelle (12 x 5/8) : 4 coins, 2 par côté. */
-const BASE_BOLTS = (() => {
-  const xs = [-1.3825, -1.174, -0.966, -0.7575], zs = [-0.4775, -0.159, 0.159, 0.4775], out = [];
-  for (const x of xs) for (const z of zs) if (Math.abs(z) > 0.3 || x === xs[0] || x === xs[3]) out.push([x, z]);
-  return out; // 12
-})();
+/* Boulons de semelle (12 x 5/8) : alignés sur les 12 trous du plateau du châssis (module frame). */
+const BASE_BOLTS = [[-1.11, -0.228], [-1.0, -0.228], [-0.89, -0.228], [-0.785, -0.228], [-1.11, 0.228], [-1.0, 0.228], [-0.89, 0.228], [-0.785, 0.228],
+  [-1.11, -0.076], [-1.11, 0.076], [-0.785, -0.076], [-0.785, 0.076]];
+/* Vis du support du panneau 24 V (module electrical) taraudées dans le flanc -Z. */
+const P24_BOLTS = [-1.298, -1.078, -0.858].flatMap((x) => [[x, 0.8937], [x, 1.2583]]);
 
 /* ------------------------------------------------------------------ */
 /* Outils locaux                                                        */
@@ -168,7 +169,7 @@ function pictos(rows, cols, kind) {
 /* Repère local : x = empilage, y = haut, z = vers l'opérateur.          */
 /* Corps en z ∈ [-depth, 0] ; leviers en haut, vers +z ; ports à l'arrière. */
 /* ------------------------------------------------------------------ */
-function haweBank({ n, pitch, yTop, depth = 0.085, wi = 0.07, we = 0.026, levers = [], leverL = 0.12, coverH = 0.12 }) {
+function haweBank({ n, pitch, yTop, depth = 0.085, wi = 0.07, we = 0.026, levers = [], leverL = 0.12, coverH = 0.12, rearAux = false }) {
   const steel = [], blk = [], misc = [];
   const y = (dy) => yTop + dy;
   // section d'entrée (x de -wi à 0), plus haute vers le bas
@@ -180,12 +181,11 @@ function haweBank({ n, pitch, yTop, depth = 0.085, wi = 0.07, we = 0.026, levers
   misc.push(cylA([cx, y(0.037), cz], [0, 1, 0], 0.004, 0.014, 'machined', 12));
   for (let k = 0; k < n; k++) {
     const xc = (k + 0.5) * pitch, hw = pitch / 2 - 0.0007;
-    steel.push(bx(xc - hw, xc + hw, y(-0.17), y(-0.055), -depth, 0, 'steel', 0.0025));                     // bloc des ports
-    blk.push(bx(xc - 0.0175, xc + 0.0175, y(-0.055), y(-0.004), -0.032, 0.024, 'black', 0.004));          // boîtier de levier
-    blk.push(bx(xc - 0.0185, xc + 0.0185, y(-0.055), y(0), -depth + 0.003, -0.036, 'black', 0.004));      // capot arrière
+    steel.push(bx(xc - hw, xc + hw, y(-0.17), y(-0.045), -depth, 0, 'steel', 0.0025));                     // bloc des ports
+    blk.push(bx(xc - 0.0175, xc + 0.0175, y(-0.044), y(-0.004), -0.032, 0.024, 'black', 0.004));          // boîtier de levier
+    blk.push(bx(xc - 0.0185, xc + 0.0185, y(-0.044), y(0), -depth + 0.003, -0.036, 'black', 0.004));      // capot arrière
     steel.push(bx(xc - 0.0165, xc + 0.0165, y(-0.17 - coverH), y(-0.17), -depth + 0.012, -0.012, 'steel', 0.004)); // couvercle bas
     for (const sx of [-0.009, 0.009]) misc.push(cylA([xc + sx, y(0), -depth * 0.7], [0, 1, 0], 0.0026, 0.002, 'blackOxide', 10));
-    for (const sy of [-0.07, -0.155]) misc.push(cylA([xc - 0.012, y(sy), 0], [0, 0, 1], 0.0024, 0.0018, 'blackOxide', 10)); // vis de face
     misc.push(cylA([xc - 0.0178, y(-0.024), 0.012], [1, 0, 0], 0.0035, 0.0356, 'machined', 12));           // axe du levier
   }
   const xe = n * pitch;
@@ -201,8 +201,8 @@ function haweBank({ n, pitch, yTop, depth = 0.085, wi = 0.07, we = 0.026, levers
   for (let k = 0; k < n; k++) { const xc = (k + 0.5) * pitch; ports.work.push({ k, p: [xc, y(-0.085), -depth], dir: [0, 0, -1] }, { k, p: [xc, y(-0.14), -depth], dir: [0, 0, -1] }); }
   ports.P = { p: [-wi * 0.73, y(-0.17 - coverH + 0.007), -depth - 0.005], dir: [0, 0, -1] };
   ports.T = { p: [-wi * 0.19, y(-0.17 - coverH + 0.007), -depth - 0.005], dir: [0, 0, -1] };
-  ports.G = { p: [-wi, y(-0.088), -depth * 0.5], dir: [-1, 0, 0] };
-  ports.LS = { p: [-wi, y(-0.2), -depth * 0.5], dir: [-1, 0, 0] };
+  ports.G = rearAux ? { p: [-wi * 0.5, y(-0.035), -depth - 0.005], dir: [0, 0, -1] } : { p: [-wi, y(-0.088), -depth * 0.5], dir: [-1, 0, 0] };
+  ports.LS = rearAux ? { p: [-wi * 0.5, y(-0.085), -depth - 0.005], dir: [0, 0, -1] } : { p: [-wi, y(-0.2), -depth * 0.5], dir: [-1, 0, 0] };
   return { meshes: [...steel, ...blk, ...misc, ...lv], ports };
 }
 
@@ -211,7 +211,7 @@ function haweBank({ n, pitch, yTop, depth = 0.085, wi = 0.07, we = 0.026, levers
 /* ------------------------------------------------------------------ */
 function weldment() {
   const red = [];
-  const baseOutline = rpoly([[-1.41, -0.505], [-0.74, -0.505], [-0.74, 0.505], [-1.41, 0.505], [-1.41, 0.15], [-1.475, 0.15], [-1.475, -0.15], [-1.41, -0.15]],
+  const baseOutline = rpoly([[-1.41, -0.505], [XB, -0.505], [XB, 0.505], [-1.41, 0.505], [-1.41, 0.15], [-1.475, 0.15], [-1.475, -0.15], [-1.41, -0.15]],
     [0.012, 0.012, 0.012, 0.012, 0.008, 0.012, 0.012, 0.008]);
   const baseHoles = BASE_BOLTS.map(([x, z]) => ({ c: [x, z], r: 0.0087 }))
     .concat(TETHER_BOLTS.map(([x, z]) => ({ c: [x, z], r: 0.0048 })));
@@ -222,14 +222,15 @@ function weldment() {
   red.push(plXY(rpoly(wallPts, wallR), -ZW, -ZI, 'red', [
     { c: [-1.432, 1.245], r: 0.0095 },                                           // passe-fil 26
     { c: [-1.415, 1.262], r: 0.0025 }, { c: [-1.385, 1.262], r: 0.0025 }, { c: [-1.40, 1.328], r: 0.0025 }, // support de gyrophare
-    { c: [-0.795, 1.19], r: 0.004 }, { c: [-0.795, 1.30], r: 0.004 },
+    ...P24_BOLTS.map((c) => ({ c, r: 0.0048 })),
   ]));
   red.push(plXY(rpoly(wallPts, wallR), ZI, ZW, 'red', [
     { c: [-1.10, 0.97], r: 0.012 }, { c: [-0.94, 0.97], r: 0.012 },              // passages de câbles
   ]));
   // plaque arrière avec grande fenêtre
-  red.push(plZY(G.rrect(2 * ZI, YTi - YB, 0.001, 0, (YB + YTi) / 2), XB - TW, XB, 'red', [{ rect: [0, 0.95, 0.78, 0.42, 0.035] },
-    { c: [-0.375, 1.19], r: 0.0045 }, { c: [-0.305, 1.19], r: 0.0045 }]));
+  red.push(plZY(G.rrect(2 * ZI, YTi - YB, 0.001, 0, (YB + YTi) / 2), XB - TBK, XB, 'red', [{ rect: [0, 0.93, 0.30, 0.38, 0.03] },
+    { c: [-0.375, DL_BY], r: 0.0045 }, { c: [-0.305, DL_BY], r: 0.0045 },
+    ...[-0.18, 0.18].flatMap((z) => [{ c: [z, 0.968], r: 0.0055 }, { c: [z, 0.992], r: 0.0055 }])]));
   // montants avant (de part et d'autre de l'ouverture du panneau)
   for (const s of [-1, 1]) {
     const holes = [{ c: [s * 0.285, 0.897], r: 0.0048 }, { c: [s * 0.285, 1.11], r: 0.0048 }];
@@ -243,19 +244,22 @@ function weldment() {
   const topHoles = [{ c: [SX, SZ], r: 0.10 }];
   for (let i = 0; i < 15; i++) { const a = (i + 0.5) * 2 * Math.PI / 15; topHoles.push({ c: [SX + SR * Math.cos(a), SZ + SR * Math.sin(a)], r: 0.0087 }); }
   red.push(plXZ(G.rrect(XB - X0, 2 * ZW, 0.004, (X0 + XB) / 2, 0), YTi, YT, 'red', topHoles));
+  // anneau usiné sous la plaque du dessus : reçoit les 15 vis de la couronne (taraudage)
+  red.push(m(G.tube(0.232, 0.112, YTi - 1.31, 64, 0.002), 'red', { p: [SX, (YTi + 1.31) / 2, SZ] }));
+  red.push(weld([[SX + 0.2335, YTi - 0.003, SZ]].concat(Array.from({ length: 48 }, (_, i) => { const a = (i + 1) / 48 * 2 * Math.PI; return [SX + 0.2335 * Math.cos(a), YTi - 0.003, SZ + 0.2335 * Math.sin(a)]; })), 0.0035));
   // traverse intérieure (support de la plaque de raccords tournants)
   red.push(bx(-1.17, -1.13, 0.845, 0.857, -ZI, ZI, 'red', 0.002));
   // cordons de soudure visibles
   const wr = 0.0045, o = wr * 0.55;
   red.push(weld([[XF, YB + o, -ZW - o], [XB, YB + o, -ZW - o]], wr));
   red.push(weld([[XF, YB + o, ZW + o], [XB, YB + o, ZW + o]], wr));
-  red.push(weld([[XF + TW, YB + o, -ZI + o], [XB - TW, YB + o, -ZI + o]], wr));
-  red.push(weld([[XF + TW, YB + o, ZI - o], [XB - TW, YB + o, ZI - o]], wr));
-  red.push(weld([[XB + o, YB + o, -ZW], [XB + o, YB + o, ZW]], wr));
+  red.push(weld([[XF + TW, YB + o, -ZI + o], [XB - TBK, YB + o, -ZI + o]], wr));
+  red.push(weld([[XF + TW, YB + o, ZI - o], [XB - TBK, YB + o, ZI - o]], wr));
+  red.push(weld([[XB - TBK - o, YB + o, -ZI], [XB - TBK - o, YB + o, ZI]], wr));
   for (const s of [-1, 1]) red.push(weld([[XF - o, YB + o, s * WIN], [XF - o, YB + o, s * ZW]], wr));
   for (const s of [-1, 1]) red.push(weld([[X0 + TW + o, YBM + 0.0127 + o, s * (ZI - 0.002)], [XF, YBM + 0.0127 + o, s * (ZI - 0.002)]], 0.003));
   return part({ id: 'ped-weldment', sec: '14', item: '4', pn: '276769', fr: 'Caisson du socle (mécano-soudé)', en: 'Pedestal weldment', qty: '1', page: PG, explode: [0, 0, 0],
-    note: 'PIPE HANDLER MNT MACH. Semelle, flancs, poutre avant à lumière oblongue, dessus percé pour la couronne. Largeur selon layout (le dessin p. 69 donne un caisson plus étroit).' }, red);
+    note: 'PIPE HANDLER MNT MACH. Semelle, flancs, poutre avant à lumière oblongue, dessus percé pour la couronne. Largeur selon layout (le dessin p. 69 donne un caisson plus étroit). Trous des pattes de la rampe de garde (châssis) dans la plaque arrière.' }, red);
 }
 
 /* ------------------------------------------------------------------ */
@@ -411,7 +415,7 @@ function tetherBlock() {
   f1212.push(jic(12, [TB.x0, ym, -0.075], [-1, 0, 0]), jic(12, [TB.x0, ym, -0.02], [-1, 0, 0]));
   f66.push(jic(6, [TB.x0, ym, 0.045], [-1, 0, 0]), jic(6, [TB.x0, ym, 0.095], [-1, 0, 0]));
   // face arrière (+X) : vers l'intérieur du caisson
-  f1212.push(jic(12, [TB.x1, ym, -0.03], [1, 0, 0]), jic(12, [TB.x1, ym, 0.0], [1, 0, 0]).translateZ(0));
+  f1212.push(jic(12, [TB.x1, ym, -0.03], [1, 0, 0]), jic(12, [TB.x1, ym, 0.0], [1, 0, 0]));
   f66.push(jic(6, [TB.x1, ym, 0.03], [1, 0, 0]), jic(6, [TB.x1, ym, 0.07], [1, 0, 0]), jic(6, [TB.x1, ym, 0.11], [1, 0, 0]));
   // dessus : PB, TB (coudes 12) ; PG (droit 6) ; CDB, LSB (coudes 6) ; bout +Z : coude 6
   const elb = TB_ELB.map(([x, z]) => elbowFit(12, [x, TB.y1, z], [0, 1, 0], [1, 0, 0]));
@@ -445,14 +449,15 @@ function gripperHook() {
     plZY(rpoly([[z0, 0.958], [z1, 0.958], [z1, 1.03], [z0, 1.03]], 0.004), XF - t, XF, 'red', [{ c: [0.345, 1.0], r: 0.0035 }, { c: [0.375, 1.0], r: 0.0035 }]),
     plXZ(rpoly([[XF - 0.05, z0], [XF - t, z0], [XF - t, z1], [XF - 0.05, z1]], 0.004), 0.958, 0.958 + t, 'red', [{ c: [XF - 0.03, zc], r: 0.0035 }]),
   ];
-  // crochet : plaque en J sous l'aile
-  const hookPts = [[XF - 0.045, 0.958], [XF - 0.015, 0.958], [XF - 0.015, 0.95], [XF - 0.03, 0.90], [XF - 0.045, 0.882], [XF - 0.07, 0.878], [XF - 0.085, 0.89], [XF - 0.086, 0.912], [XF - 0.076, 0.913], [XF - 0.074, 0.896], [XF - 0.064, 0.891], [XF - 0.048, 0.897], [XF - 0.045, 0.94]];
-  const hook = [plXY(rpoly(hookPts, [0.002, 0.002, 0.004, 0.01, 0.012, 0.012, 0.008, 0.003, 0.003, 0.006, 0.006, 0.008, 0.004]), zc - t / 2, zc + t / 2, 'red')];
+  // crochet : languette horizontale sous l'aile (vis verticale 5) prolongée par un J
+  const hook = [plXZ(rpoly([[XF - 0.047, zc - 0.014], [XF - 0.014, zc - 0.014], [XF - 0.014, zc + 0.014], [XF - 0.047, zc + 0.014]], 0.004), 0.958 - t, 0.958, 'red', [{ c: [XF - 0.026, zc], r: 0.0035 }])];
+  const J = [[XF - 0.047, 0.958 - t], [XF - 0.041, 0.958 - t], [XF - 0.041, 0.93], [XF - 0.044, 0.905], [XF - 0.054, 0.89], [XF - 0.07, 0.888], [XF - 0.082, 0.898], [XF - 0.084, 0.915], [XF - 0.077, 0.916], [XF - 0.075, 0.902], [XF - 0.067, 0.896], [XF - 0.056, 0.899], [XF - 0.049, 0.91], [XF - 0.047, 0.93]];
+  hook.push(plXY(rpoly(J, [0.001, 0.001, 0.006, 0.01, 0.01, 0.01, 0.006, 0.002, 0.002, 0.004, 0.006, 0.006, 0.006, 0.004]), zc - t / 2, zc + t / 2, 'red'));
   const hw = [
     bAt([XF - t, 1.0, 0.345], [-1, 0, 0], { d: 0.25 * IN, L: 1 * IN, washer: true }), bAt([XF - t, 1.0, 0.375], [-1, 0, 0], { d: 0.25 * IN, L: 1 * IN, washer: true }),
     ...nutStack([XF + TW, 1.0, 0.345], [1, 0, 0], 0.25 * IN, true), ...nutStack([XF + TW, 1.0, 0.375], [1, 0, 0], 0.25 * IN, true),
-    bAt([XF - 0.03, 0.958 - 0.0002, zc], [0, -1, 0], { d: 0.25 * IN, L: 0.75 * IN, washer: true }),
-    ...nutStack([XF - 0.03, 0.958 + t, zc], [0, 1, 0], 0.25 * IN, true),
+    bAt([XF - 0.026, 0.958 - t, zc], [0, -1, 0], { d: 0.25 * IN, L: 0.75 * IN, washer: true }),
+    ...nutStack([XF - 0.026, 0.958 + t, zc], [0, 1, 0], 0.25 * IN, true),
   ];
   const kids = [
     part({ id: 'ped-hook-mount', sec: '14.4', item: '1', pn: '276798', fr: 'Plaque de fixation du crochet', en: 'Hook mount plate', qty: '1', page: 76, explode: [0, 0, 0] }, mount),
@@ -472,10 +477,11 @@ const TR = { pitch: 0.0466, n: 5, xStart: -1.0963, yTop: 1.027, depth: 0.085 };
 const DIV = { x: -1.277, y: 0.8435, z0: DV.zIn - 0.06, z1: DV.zIn, s: 0.05 };
 const FOOT_Y = [0.868, 0.906, 0.944], FOOT_XTRA_Y = 0.83;
 const FOOT_X = [DV.x0 + 0.022, DV.x1 - 0.022];
+const DV_M8 = [[TR.xStart - 0.055, 0.86], [TR.xStart - 0.055, 0.93], [TR.xStart + 5 * TR.pitch + 0.013, 0.86], [TR.xStart + 5 * TR.pitch + 0.013, 0.93]];
 
 function tramBank() {
   const levers = [0, 1, 2, 3, 4].map((k) => ({ k }));
-  const b = haweBank({ n: TR.n, pitch: TR.pitch, yTop: TR.yTop, depth: TR.depth, levers, leverL: 0.17, coverH: 0.1 });
+  const b = haweBank({ n: TR.n, pitch: TR.pitch, yTop: TR.yTop, depth: TR.depth, levers, leverL: 0.17, coverH: 0.1, rearAux: true });
   const W = b.ports.work;
   const f66 = [], f810 = [];
   W.forEach((w, i) => ((i % 2 === 0 && w.k < 3) || (i % 2 === 1 && w.k === 0) ? f810 : f66).push(jic((i % 2 === 0 && w.k < 3) || (i % 2 === 1 && w.k === 0) ? 10 : 6, w.p, w.dir)));
@@ -519,21 +525,18 @@ function diverter() {
 function driveValves(tether) {
   const { x0, x1, y0, ySide, yTop, zIn, zOut, zFoot, t } = DV;
   const out = [];
-  // plaque en U : profil (vue de dessus) extrudé sur la hauteur des jambes, plus le bas chanfreiné de la face
-  const U = rpoly([[x0 + 0.038, zFoot], [x0, zFoot], [x0, zOut], [x1, zOut], [x1, zFoot], [x1 - 0.038, zFoot], [x1 - 0.038, zFoot + t], [x1 - t, zFoot + t], [x1 - t, zIn], [x0 + t, zIn], [x0 + t, zFoot + t], [x0 + 0.038, zFoot + t]],
-    [0.001, 0.008, 0.008, 0.008, 0.008, 0.001, 0.001, 0.002, 0.002, 0.002, 0.002, 0.001]);
-  const footHoles = [];
-  for (const fx of FOOT_X) for (const fy of [...FOOT_Y, FOOT_XTRA_Y]) footHoles.push({ fx, fy });
-  const plate = [plXZ(U, ySide, yTop, 'red')];
-  const lowHoles = [];
-  for (const dx of [-1, 1]) for (const dy of [-1, 1]) lowHoles.push({ c: [DIV.x + dx * 0.0405, DIV.y + dy * 0.0405], r: 0.0035 });
-  for (const [hx, hy] of [[TR.xStart - 0.055, 0.86], [TR.xStart - 0.055, 0.93], [TR.xStart + 5 * TR.pitch + 0.013, 0.86], [TR.xStart + 5 * TR.pitch + 0.013, 0.93]]) lowHoles.push({ c: [hx, hy], r: 0.0045 });
-  plate.push(plXY(rpoly([[x0, ySide + 0.0005], [x0 + 0.07, y0], [x1 - 0.038, y0], [x1, ySide + 0.0005], [x1, ySide + 0.04], [x0, ySide + 0.04]], [0.01, 0.015, 0.015, 0.01, 0, 0]), zIn, zOut, 'red', lowHoles));
-  // les pattes portent les trous des vis (perçage symbolique)
+  // plaque en U : face extérieure chanfreinée (trous) + deux jambes à pattes repliées vers l'intérieur
+  const holes = [];
+  for (const dx of [-1, 1]) for (const dy of [-1, 1]) holes.push({ c: [DIV.x + dx * 0.0405, DIV.y + dy * 0.0405], r: 0.0035 });
+  for (const [hx, hy] of DV_M8) holes.push({ c: [hx, hy], r: 0.0045 });
+  const plate = [plXY(rpoly([[x0, yTop], [x0, ySide], [x0 + 0.07, y0], [x1 - 0.038, y0], [x1, ySide], [x1, yTop]], [0.004, 0.012, 0.015, 0.015, 0.012, 0.004]), zIn, zOut, 'red', holes)];
+  const zj = zIn - 0.0002;
+  plate.push(plXZ(rpoly([[x0, zFoot], [x0 + 0.038, zFoot], [x0 + 0.038, zFoot + t], [x0 + t, zFoot + t], [x0 + t, zj], [x0, zj]], [0.006, 0.001, 0.001, 0.003, 0, 0]), ySide, yTop, 'red'));
+  plate.push(plXZ(rpoly([[x1, zFoot], [x1, zj], [x1 - t, zj], [x1 - t, zFoot + t], [x1 - 0.038, zFoot + t], [x1 - 0.038, zFoot]], [0.006, 0, 0, 0.003, 0.001, 0.001]), ySide, yTop, 'red'));
   out.push(part({ id: 'ped-dv-plate', sec: '14.5', item: '1', pn: '276886', fr: 'Plaque en U des valves de déplacement', en: 'Drive valve U-plate', qty: '1', page: 77, explode: [0, 0, 0.12],
     note: 'Pattes repliées vers l\'intérieur, 3 vis par patte (p. 77). Fixée sur le flanc +Z du caisson.' }, plate));
   out.push(part({ id: 'ped-dv-decal', sec: '14.5', item: '11', pn: '281654', fr: 'Autocollant des commandes hydrauliques (2 x 5)', en: 'Hydraulic controls decal (2 x 5)', qty: '1', page: 78, explode: [0, 0, 0.15] },
-    [lbl('dv-decal', { text: '', w: 0.244, h: 0.089, bg: '#f2f2ee', px: 1100, draw: pictos(2, 5, 'track'), p: [-0.962, 0.9065, zOut + 0.0007] })]));
+    [lbl('dv-decal', { text: '', w: 0.23, h: 0.089, bg: '#f2f2ee', px: 1100, draw: pictos(2, 5, 'track'), p: [-0.975, 0.9065, zOut + 0.0007] })]));
   const { a: tram, ports: tp } = tramBank();
   out.push(tram);
   const div = diverter();
@@ -541,7 +544,7 @@ function driveValves(tether) {
   // visserie propre à 14.5
   const hw = [];
   for (const fx of FOOT_X) for (const fy of FOOT_Y) hw.push(bAt([fx, fy, zFoot + t], [0, 0, 1], { d: 0.375 * IN, L: 1 * IN, washer: true }));
-  for (const [hx, hy] of [[TR.xStart - 0.055, 0.86], [TR.xStart - 0.055, 0.93], [TR.xStart + 5 * TR.pitch + 0.013, 0.86], [TR.xStart + 5 * TR.pitch + 0.013, 0.93]]) hw.push(bAt([hx, hy, zOut], [0, 0, 1], { d: 0.008, L: 0.016, washer: true }));
+  for (const [hx, hy] of DV_M8) hw.push(bAt([hx, hy, zOut], [0, 0, 1], { d: 0.008, L: 0.016, washer: true }));
   for (const dx of [-1, 1]) for (const dy of [-1, 1]) {
     const hx = DIV.x + dx * 0.0405, hy = DIV.y + dy * 0.0405;
     hw.push(bAt([hx, hy, zOut], [0, 0, 1], { d: 0.25 * IN, L: 2.75 * IN, washer: true }));
@@ -601,7 +604,7 @@ function bulkhead() {
 /* ------------------------------------------------------------------ */
 /* 14.1 : bloc de délestage de charge 281015                            */
 /* ------------------------------------------------------------------ */
-const DL = { x0: XB - TW - 0.0327, x1: XB - TW, y0: 1.175, y1: 1.241, z0: -0.39, z1: -0.29 };
+const DL = { x0: XB - TBK - 0.0327, x1: XB - TBK, y0: 1.235, y1: 1.301, z0: -0.39, z1: -0.29 };
 function dumpLoad() {
   const { x0, x1, y0, y1, z0, z1 } = DL, xc = (x0 + x1) / 2;
   const body = [bx(x0, x1, y0, y1, z0, z1, 'alu', 0.0015)];
@@ -614,7 +617,7 @@ function dumpLoad() {
   const ym = y0 + 0.042;
   const fits = [jic(6, [xc, ym, z0], [0, 0, -1]), jic(6, [xc, ym, z1], [0, 0, 1]), jic(6, [xc, y0, -0.362], [0, -1, 0]), jic(6, [xc, y0, -0.318], [0, -1, 0])];
   const d = 0.3125 * IN, hw = [];
-  for (const z of [-0.375, -0.305]) { hw.push(bAt([XB, 1.19, z], [1, 0, 0], { d, L: 2.25 * IN, washer: true })); hw.push(...nutStack([x0, 1.19, z], [-1, 0, 0], d)); }
+  for (const z of [-0.375, -0.305]) { hw.push(bAt([XB, DL_BY, z], [1, 0, 0], { d, L: 2.25 * IN, washer: true })); hw.push(...nutStack([x0, DL_BY, z], [-1, 0, 0], d)); }
   const kids = [
     part({ id: 'ped-dl-manifold', sec: '14.1', item: '1', pn: '269264', fr: 'Bloc à pilotage croisé', en: 'Cross pilot manifold', qty: '1', page: 71, explode: [0, 0, 0], note: 'Ports V1, V2 (côtés) et C1, C2 (dessous).' }, body),
     ...valves,
@@ -636,19 +639,18 @@ function chargerBox() {
     bx(x0 + t, x1 - t, y1 - t, y1, z0, z1, 'grey', 0.0012), bx(x0 + t, x1 - t, y0, y0 + t, z0, z1, 'grey', 0.0012),
     bx(x0 + t, x1 - t, y0 + t, y1 - t, z0, z0 + t, 'grey', 0.0012),
   ];
-  // porte (rabattue vers le haut, charnière en haut) et son rebord
+  // porte (charnière en haut) et son rebord
   const dz0 = z1 + 0.0005, dz1 = z1 + 0.0035;
-  grey.push(bx(x0 - 0.002, x1 + 0.002, y0 - 0.002, y1 + 0.002, dz0, dz1, 'grey', 0.0012));
-  grey.push(bx(x0 - 0.002, x0 - 0.0005, y0 - 0.002, y1 + 0.002, dz0 - 0.008, dz0, 'grey', 0.0006), bx(x1 + 0.0005, x1 + 0.002, y0 - 0.002, y1 + 0.002, dz0 - 0.008, dz0, 'grey', 0.0006));
-  grey.push(bx(x0 - 0.0005, x1 + 0.0005, y0 - 0.002, y0 - 0.0005, dz0 - 0.008, dz0, 'grey', 0.0006));
+  const door = [bx(x0 - 0.002, x1 + 0.002, y0 - 0.002, y1 + 0.002, dz0, dz1, 'grey', 0.0012)];
+  door.push(bx(x0 - 0.002, x0 - 0.0005, y0 - 0.002, y1 + 0.002, dz0 - 0.008, dz0, 'grey', 0.0006), bx(x1 + 0.0005, x1 + 0.002, y0 - 0.002, y1 + 0.002, dz0 - 0.008, dz0, 'grey', 0.0006));
+  door.push(bx(x0 - 0.0005, x1 + 0.0005, y0 - 0.002, y0 - 0.0005, dz0 - 0.008, dz0, 'grey', 0.0006));
   // pattes de fixation avec lumières
   for (const [xa, xb] of [[x0 - 0.03, x0], [x1, x1 + 0.03]]) for (const [ya, yb] of [[1.10, 1.135], [1.345, 1.38]]) {
     const xm = (xa + xb) / 2, ym = (ya + yb) / 2;
     grey.push(plXY(rpoly([[xa, ya], [xb, ya], [xb, yb], [xa, yb]], 0.003), z0, z0 + 0.0025, 'grey', [{ slot: [xm, ym - 0.007, xm, ym + 0.007], r: 0.0055 }]));
   }
-  const steel = [cylA([x0 + 0.01, y1 + 0.0015, dz1 - 0.0005], [1, 0, 0], 0.0035, x1 - x0 - 0.02, 'steel', 12)];
-  const knobs = [];
-  for (const xl of [x0 + 0.1, x1 - 0.1]) { knobs.push(cylA([xl, y0 + 0.02, dz1], [0, 0, 1], 0.0085, 0.012, 'plastic', 20)); knobs.push(lathA([xl, y0 + 0.02, dz1 + 0.012], [0, 0, 1], [[0, 0], [0.013, 0], [0.013, 0.006], [0.01, 0.01], [0, 0.011]], 'plastic', 24)); }
+  door.push(cylA([x0 + 0.01, y1 + 0.0015, dz1 - 0.0005], [1, 0, 0], 0.0035, x1 - x0 - 0.02, 'steel', 12));
+  for (const xl of [x0 + 0.1, x1 - 0.1]) { door.push(cylA([xl, y0 + 0.02, dz1], [0, 0, 1], 0.0085, 0.012, 'plastic', 20)); door.push(lathA([xl, y0 + 0.02, dz1 + 0.012], [0, 0, 1], [[0, 0], [0.013, 0], [0.013, 0.006], [0.01, 0.01], [0, 0.011]], 'plastic', 24)); }
   // mousses intérieures (3 feuilles)
   const fz0 = z0 + t, foams = [
     bx(x0 + t + 0.002, x1 - t - 0.002, y0 + t + 0.002, y1 - t - 0.002, fz0, fz0 + 0.0127, 'polymer', 0.003),
@@ -658,13 +660,15 @@ function chargerBox() {
   const cx = (x0 + x1) / 2, rx = x1 - 0.05, rz = z0 + 0.05;
   const kids = [
     part({ id: 'ped-cb-enclosure', sec: '14.7', item: '1', pn: '279852', fr: 'Boîtier du chargeur et de la télécommande', en: 'Charger and remote box enclosure', qty: '1', page: 82, explode: [0, 0, 0],
-      note: 'Porte à charnière en haut, 2 loquets en bas (photo p. 44 du manuel opérateur). 4 pattes de fixation.' }, [...grey, ...steel, ...knobs]),
+      note: 'Caisson et 4 pattes de fixation.' }, grey),
+    part({ id: 'ped-cb-door', sec: '14.7', item: '1', pn: '279852', fr: 'Porte du boîtier (fait partie de 279852)', en: 'Box door (part of 279852)', qty: '1', page: 82, explode: [0, 0, 0.45],
+      note: 'Charnière en haut, 2 loquets en bas (photo p. 44 du manuel opérateur).' }, door),
     part({ id: 'ped-cb-screw', sec: '14.7', item: '2', pn: '224833', fr: 'Vis CHC M4 x 15', en: 'SHCS M4 x 15', qty: '1', page: 82, explode: [0, 0.05, 0], approx: true, note: 'Non repérée sur le dessin ; placée sur le fond, près de la prise.' },
       [bAt([rx - 0.03, y0 + t, rz], [0, 1, 0], { d: 0.004, L: 0.015, head: 'shcs' })]),
-    ...foams.map((f, i) => part({ id: `ped-cb-foam-${i + 1}`, sec: '14.7', item: '3', pn: '250393', fr: 'Feuille de mousse néoprène 1/2 po', en: 'Neoprene foam sheet 1/2 in', qty: '3', page: 82, explode: i === 0 ? [0, 0, 0.30] : [i === 1 ? -0.06 : 0.06, 0, 0.24] }, [f])),
-    part({ id: 'ped-cb-label24', sec: '14.7', item: '4', pn: '245858', fr: 'Étiquette +24 VOLTS réfléchissante', en: '+24 VOLTS reflective label', qty: '1', page: 82, explode: [0, 0, 0.13] },
+    ...foams.map((f, i) => part({ id: `ped-cb-foam-${i + 1}`, sec: '14.7', item: '3', pn: '250393', fr: 'Feuille de mousse néoprène 1/2 po', en: 'Neoprene foam sheet 1/2 in', qty: '3', page: 82, explode: i === 0 ? [0, 0, 0.29] : [i === 1 ? -0.035 : 0.035, 0, 0.36] }, [f])),
+    part({ id: 'ped-cb-label24', sec: '14.7', item: '4', pn: '245858', fr: 'Étiquette +24 VOLTS réfléchissante', en: '+24 VOLTS reflective label', qty: '1', page: 82, explode: [0, 0, 0.45] },
       [lbl('cb-24v', { lines: ['+24', 'VOLTS'], w: 0.07, h: 0.045, bg: '#f5a400', fg: '#111111', p: [cx, 1.285, dz1 + 0.0007] })]),
-    part({ id: 'ped-cb-decal-1', sec: '14.7', item: '5', pn: '250795', fr: 'Autocollant chargeur et télécommande (porte)', en: 'Charger and remote decal (door)', qty: '2', page: 82, explode: [0, 0, 0.13] },
+    part({ id: 'ped-cb-decal-1', sec: '14.7', item: '5', pn: '250795', fr: 'Autocollant chargeur et télécommande (porte)', en: 'Charger and remote decal (door)', qty: '2', page: 82, explode: [0, 0, 0.45] },
       [lbl('cb-dec1', { lines: ['CHARGEUR DE BATTERIE', 'ET TÉLÉCOMMANDE'], w: 0.15, h: 0.03, bg: '#111111', fg: '#ffffff', p: [cx, 1.235, dz1 + 0.0007] })]),
     part({ id: 'ped-cb-decal-2', sec: '14.7', item: '5', pn: '250795', fr: 'Autocollant chargeur et télécommande (côté)', en: 'Charger and remote decal (side)', qty: '2', page: 82, explode: [-0.06, 0, 0] },
       [lbl('cb-dec2', { lines: ['CHARGEUR DE BATTERIE', 'ET TÉLÉCOMMANDE'], w: 0.15, h: 0.03, bg: '#111111', fg: '#ffffff', p: [x0 - 0.0007, 1.25, (z0 + z1) / 2], r: [0, -90, 0] })]),
@@ -675,7 +679,6 @@ function chargerBox() {
       discA([rx, y0 - 0.036, rz], [0, -1, 0], 0.0085, 0.0015, 'plastic', 20),
     ]),
   ];
-  // la porte et ses étiquettes sont dans l'enveloppe : on éclate la porte avec l'enveloppe (la porte fait partie de 279852)
   return asm({ id: 'ped-cb', sec: '14.7', item: '12', pn: '278733', fr: 'Boîte du chargeur et de la télécommande', en: 'Battery charger and remote box', qty: '1', page: 82, explode: [0, 0.08, 0.55] }, kids);
 }
 
@@ -685,8 +688,8 @@ function chargerBox() {
 function rootParts(vm, tb) {
   const out = [];
   // 12 boulons de semelle + 15 boulons de couronne, rondelles Nord-Lock (item 1 : 27 = 12 + 15)
-  out.push(part({ id: 'ped-hw-base', sec: '14', item: '1, 14', pn: '216795, B345', fr: 'Boulons de semelle 5/8-11 x 1 3/4 et Nord-Lock', en: 'Base bolts 5/8-11 x 1.75 and Nord-Lock', qty: '24', page: PG, explode: [0, 0.16, 0] },
-    BASE_BOLTS.map(([x, z]) => bAt([x, YB, z], [0, 1, 0], { d: 0.625 * IN, L: 1.75 * IN, washer: true }))));
+  out.push(part({ id: 'ped-hw-base', sec: '14', item: '1, 14', pn: '216795, B345', fr: 'Boulons de semelle 5/8-11 x 1 3/4 et Nord-Lock', en: 'Base bolts 5/8-11 x 1.75 and Nord-Lock', qty: '24', page: PG, explode: [0, 0.16, 0], note: 'Alignés sur les 12 trous du plateau du châssis, à l\'intérieur du caisson.' },
+    BASE_BOLTS.flatMap(([x, z]) => [wAt([x, YB, z], [0, 1, 0], { d: 0.625 * IN, od: 1.0 * IN, t: 0.0034 }), bAt([x, YB + 0.0034, z], [0, 1, 0], { d: 0.625 * IN, L: 1.75 * IN })])));
   const sb = [];
   for (let i = 0; i < 15; i++) { const a = (i + 0.5) * 2 * Math.PI / 15; sb.push(bAt([SX + SR * Math.cos(a), SLEW_TOP, SZ + SR * Math.sin(a)], [0, 1, 0], { d: 0.625 * IN, L: 3.75 * IN, washer: true })); }
   out.push(part({ id: 'ped-hw-slew', sec: '14', item: '1, 15', pn: '216795, B354', fr: 'Boulons de couronne 5/8-11 x 3 3/4 et Nord-Lock', en: 'Slew ring bolts 5/8-11 x 3.75 and Nord-Lock', qty: '30', page: PG, explode: [0, 0.42, 0],
@@ -771,13 +774,10 @@ function linkHoses(vm, tb, dv) {
   // bloc de l'ombilical (arrière) -> bloc de délestage (C1, C2)
   const ym = (TB.y0 + TB.y1) / 2, xt = TB.x1 + jicLen(6);
   const c1 = [(DL.x0 + DL.x1) / 2, DL.y0 - jicLen(6), -0.362], c2 = [(DL.x0 + DL.x1) / 2, DL.y0 - jicLen(6), -0.318];
-  out.push(...hoseP([[xt, ym, 0.03], [xt + 0.04, ym - 0.006, 0.025], [-1.10, 0.70, -0.12], [-0.90, 0.703, -0.31], [-0.83, 0.78, -0.355], [c1[0], 1.0, c1[2]], [c1[0], c1[1] - 0.03, c1[2]], c1], { d: 0.375 * IN }));
-  out.push(...hoseP([[xt, ym, 0.07], [xt + 0.04, ym - 0.006, 0.068], [-1.10, 0.70, -0.08], [-0.88, 0.703, -0.27], [-0.835, 0.78, -0.31], [c2[0], 1.0, c2[2]], [c2[0], c2[1] - 0.03, c2[2]], c2], { d: 0.375 * IN }));
-  // bloc de l'ombilical (coude bout +Z) -> dérivation manuelle (raccord du bas)
-  const e = tb.endElb, b = dv.botTip;
-  out.push(...hoseP([e.tip, add(e.tip, e.dir, 0.03), [-1.42, 0.80, 0.30], [-1.37, 0.735, 0.52], [-1.30, 0.725, 0.66], [b[0], b[1] - 0.04, b[2]], b], { d: 0.375 * IN }));
-  return part({ id: 'ped-hoses', sec: '14', item: '', pn: '', fr: 'Boyaux entre valves et raccords (tracé estimé)', en: 'Hoses between valves and fittings (estimated route)', qty: '6', page: PG, explode: [0, 0, 0], approx: true,
-    note: 'Boyaux non listés dans la nomenclature 14. Banc vers raccords tournants, ombilical vers délestage et vers la dérivation.' }, out);
+  out.push(...hoseP([[xt, ym, 0.03], [xt + 0.04, ym - 0.006, 0.025], [-1.10, 0.712, -0.12], [-0.90, 0.714, -0.31], [-0.83, 0.78, -0.355], [c1[0], 1.0, c1[2]], [c1[0], c1[1] - 0.03, c1[2]], c1], { d: 0.375 * IN }));
+  out.push(...hoseP([[xt, ym, 0.07], [xt + 0.04, ym - 0.006, 0.068], [-1.10, 0.712, -0.08], [-0.88, 0.714, -0.27], [-0.835, 0.78, -0.31], [c2[0], 1.0, c2[2]], [c2[0], c2[1] - 0.03, c2[2]], c2], { d: 0.375 * IN }));
+  return part({ id: 'ped-hoses', sec: '14', item: '', pn: '', fr: 'Boyaux entre valves et raccords (tracé estimé)', en: 'Hoses between valves and fittings (estimated route)', qty: '5', page: PG, explode: [0, 0, 0], approx: true,
+    note: 'Boyaux non listés dans la nomenclature 14. Banc vers raccords tournants, ombilical vers bloc de délestage.' }, out);
 }
 
 /* ------------------------------------------------------------------ */

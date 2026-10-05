@@ -99,7 +99,7 @@ function weldRect(cx, cy, hw, hh, z, r = 0.0026) {
 /* 7. Châssis soudé 276685                                             */
 /* ------------------------------------------------------------------ */
 /** Poutre d'extrémité (compartiment de rangement). Repère local : u = 0 face intérieure, u = D face extérieure. */
-function endBeam(stabU, lugTip) {
+function endBeam(stabU, lugTip, topHoles = []) {
   const { D, y0, ch, zs, ts } = EB, yc = Y0 - ch, zi = zs - ts, g = [];
   // flasques latérales : appui des brides des stabilisateurs (8 trous taraudés)
   const sh = []; for (const du of [-0.08, 0.08]) for (const y of [0.31, 0.386, 0.464, 0.542]) sh.push({ c: [stabU + du, y], r: 0.0066 });
@@ -107,7 +107,7 @@ function endBeam(stabU, lugTip) {
   for (const s of [-1, 1]) g.push(pXY(prof, ts, s * (zs - ts / 2), 'red', sh));
   // tôle intérieure, dessus, fond
   g.push(pYZ(rect(-zi + B, y0 + 0.008 + B, zi - B, Y0 - 0.008 - B), 0.008, 0.004));
-  g.push(pXZ(rect(0.0026, -zi + B, D - ch - 0.002, zi - B), 0.008, Y0 - 0.004));
+  g.push(pXZ(rect(0.0026, -zi + B, D - ch - 0.002, zi - B), 0.008, Y0 - 0.004, 'red', topHoles));
   g.push(pXZ(rect(0.0026, -zi + B, D - B, zi - B), 0.008, y0 + 0.004));
   // face extérieure : porte du compartiment, trous des feux de position
   const door = { rect: [0, 0.4375, 0.386, 0.201, 0.01] };
@@ -141,7 +141,8 @@ function weldment() {
   const holesA = [{ rect: [-0.931, 0, 0.243, 0.306, 0.035] }, { rect: [-0.634, 0, 0.16, 0.25, 0.03] }];
   for (const x of [-1.11, -1.0, -0.89, -0.785]) for (const z of [-0.228, 0.228]) holesA.push({ c: [x, z], r: 0.009 });
   for (const x of [-1.11, -0.785]) for (const z of [-0.076, 0.076]) holesA.push({ c: [x, z], r: 0.009 });
-  for (const s of [-1, 1]) for (const dz of [-0.03, 0.03]) holesA.push({ c: [-0.745, s * 0.27 + dz], r: 0.0056 });
+  for (const s of [-1, 1]) for (const dz of [-0.03, 0.03]) holesA.push({ c: [XR, s * ZP + dz], r: 0.0056 });
+  for (const z of [-0.159, 0.159]) holesA.push({ c: [-0.7575, z], r: 0.0087 }); // boulons de semelle du socle (pedestal.js)
   g.push(pXZ([[XI.n + 0.0026, -ZN], [XC.n[1], -ZN], [XC.n[0], -zw], [CH[0] - 0.119, -zw], [CH[0] - 0.119, zw], [XC.n[0], zw], [XC.n[1], ZN], [XI.n + 0.0026, ZN]], t, Y0 - t / 2, 'red', holesA));
   g.push(pXZ(rect(CH[0] + 0.119, -zw, CH[1] - 0.119, zw), t, Y0 - t / 2, 'red', [
     { rect: [0.16, -0.462, 0.30, 0.30, 0.045] }, { rect: [0.16, 0, 0.30, 0.33, 0.045] }, { rect: [0.16, 0.462, 0.30, 0.30, 0.045] }]));
@@ -179,14 +180,15 @@ function weldment() {
     for (const z of ZI) g.push(pXY(ib, t, s * z, 'red', ibh));
     const bh = []; for (const x of [-FP, FP]) for (const dx of [-0.05, 0.05]) for (const dz of [-0.035, 0.035]) bh.push({ c: [x + dx, s * 0.35 + dz], r: 0.0105 });
     g.push(pXZ(rect(x0, s * 0.2765, x1, s * 0.4235), t, YB + 0.004, 'red', bh));
-    for (const z of [0.2765, 0.4235]) g.push(weld([[x0 + 0.01, YB + 0.0085, s * z], [x1 - 0.01, YB + 0.0085, s * z]], 0.0024));
+    for (const z of [ZI[0] - 0.005, ZI[1] + 0.005]) g.push(weld([[x0 + 0.01, YB + 0.0088, s * z], [x1 - 0.01, YB + 0.0088, s * z]], 0.0024));
     // couvercles des caissons dans les cols (en retrait de 8 mm sous le plateau)
     g.push(pXZ([[xAt(XC.p, 0.4115) - 0.012, s * 0.4115], [x1, s * 0.4115], [x1, s * 0.2885], [xAt(XC.p, 0.2885) - 0.012, s * 0.2885]], t, Y0 - 0.012));
     g.push(pXZ([[ZPL.x1 + 0.004, s * 0.4115], [xAt(XC.n, 0.4115) + 0.012, s * 0.4115], [xAt(XC.n, 0.2885) + 0.012, s * 0.2885], [ZPL.x1 + 0.004, s * 0.2885]], t, Y0 - 0.012));
   }
   /* Poutres d'extrémité : +X (côté bac) et -X (côté socle, tournée de 180°). */
   g.push(grp(endBeam(ST.x[1] - XI.p, L.frame.lugTipX[1] - XI.p), { p: [XI.p, 0, 0] }));
-  g.push(grp(endBeam(XI.n - ST.x[0], XI.n - L.frame.lugTipX[0]), { p: [XI.n, 0, 0], r: [0, 180, 0] }));
+  // trous des boulons de semelle du socle (pedestal.js) qui tombent sur le dessus de la poutre -X
+  g.push(grp(endBeam(XI.n - ST.x[0], XI.n - L.frame.lugTipX[0], [-0.4775, 0.4775].map(z => ({ c: [XI.n + 1.174, z], r: 0.0087 }))), { p: [XI.n, 0, 0], r: [0, 180, 0] }));
   /* Patte de l'arrêt d'urgence (coin +X +Z), soudée sur le caisson +Z. */
   g.push(pXZ(rect(ES[0] - 0.06, 0.4215, ES[0] + 0.06, 0.53), t, ES[1] - 0.004, 'red', [{ c: [ES[0] - 0.045, ES[2] + 0.045], r: 0.0052 }, { c: [ES[0] + 0.045, ES[2] + 0.045], r: 0.0052 }]));
   g.push(weld([[ES[0] - 0.058, ES[1] - 0.0085, 0.4225], [ES[0] + 0.058, ES[1] - 0.0085, 0.4225]], 0.0024));
@@ -197,7 +199,7 @@ function weldment() {
     g.push(m(G.box(t, 0.10, ZPL.tab - 0.004 - ZI[1] - 0.004, 0.002), 'red', { p: [-0.8265, 0.57, s * (ZI[1] + 0.004 + (ZPL.tab - 0.004 - ZI[1] - 0.004) / 2)] }));
   }
   return part({ id: 'frame-weldment', sec: '11', item: '7', pn: '276685', fr: 'Châssis soudé', en: 'Frame weldment', qty: '1', page: 58, explode: [0, 0, 0],
-    note: "Plateau du bac et plaque du socle au même niveau. Deux fourreaux de fourche 7,5 x 2,5 po à 36 po d'entraxe (manuel opérateur p. 79). Compartiment de rangement avec porte à chaque bout (manuel opérateur p. 7). Portes et charnières dessinées avec le châssis (pas de repère au manuel)." }, g);
+    note: "Plateau du bac et plaque du socle au même niveau. Deux fourreaux de fourche 7,5 x 2,5 po à 36 po d'entraxe (manuel opérateur p. 79). Compartiment de rangement avec porte à chaque bout (manuel opérateur p. 7). Portes et charnières dessinées avec le châssis (pas de repère au manuel). Caissons intérieurs estimés d'après la coupe A-A p. 59." }, g);
 }
 
 /* ------------------------------------------------------------------ */
@@ -438,7 +440,9 @@ function lightAsm(n, p, X, Yv, ex, note) {
 /* ------------------------------------------------------------------ */
 /* Pièces directes de la nomenclature p. 60                            */
 /* ------------------------------------------------------------------ */
-const XR = -0.745, ZP = 0.27, YT = 1.18, YM = 1.02, RR = 0.0143; // rampe de garde
+// Rampe de garde : dans le jeu entre le socle (semelle jusqu'à x = -0,74 dans pedestal.js) et le corps du bac (x = -0,705),
+// sous le rebord du bac (y >= 1,178). Tube de 1 po.
+const XR = -0.7255, ZP = 0.27, YT = 1.16, YM = 1.0, RR = 0.0127, XT = -0.7595;
 function railPart() {
   const P = (z, y) => new THREE.Vector3(XR, y, z), yr = 0.80, zo = 0.57;
   const path = roundedPath([P(-ZP - 0.008, yr), P(-zo, yr), P(-zo, YT), P(zo, YT), P(zo, yr), P(ZP + 0.008, yr)], 0.06);
@@ -446,10 +450,12 @@ function railPart() {
   g.push(m(G.cyl(RR, 2 * ZP, 20), 'red', { p: [XR, YM, 0], r: [90, 0, 0] }));
   for (const s of [-1, 1]) {
     g.push(m(G.cyl(RR, YT - (Y0 + 0.006), 20), 'red', { p: [XR, (YT + Y0 + 0.006) / 2, s * ZP] }));
-    g.push(m(G.box(0.026, 0.006, 0.084, 0.0015), 'red', { p: [XR, Y0 + 0.0033, s * ZP] }));
-    const zt = s * 0.18, tab = new THREE.Shape();
-    tab.moveTo(zt - 0.022, YM + 0.006); tab.lineTo(zt + 0.022, YM + 0.006); tab.lineTo(zt + 0.022, YM - 0.06); tab.absarc(zt, YM - 0.06, 0.022, 0, -Math.PI, true); tab.closePath();
-    g.push(pYZ(tab, 0.006, -0.7565, 'red', [{ c: [zt, YM - 0.028], r: 0.0055 }, { c: [zt, YM - 0.052], r: 0.0055 }]));
+    g.push(m(G.box(0.026, 0.006, 0.084, 0.0015), 'red', { p: [XR + 0.0005, Y0 + 0.0033, s * ZP] }));
+    // patte pliée en L : rabat soudé sous la barre du milieu, aile verticale contre la face +X du socle
+    const zt = s * 0.18, tab = new THREE.Shape(), yb = YM - RR;
+    tab.moveTo(zt - 0.022, yb); tab.lineTo(zt + 0.022, yb); tab.lineTo(zt + 0.022, yb - 0.054); tab.absarc(zt, yb - 0.054, 0.022, 0, -Math.PI, true); tab.closePath();
+    g.push(pYZ(tab, 0.006, XT + 0.003, 'red', [{ c: [zt, yb - 0.020], r: 0.0055 }, { c: [zt, yb - 0.044], r: 0.0055 }]));
+    g.push(m(G.box(XR - XT, 0.006, 0.044, 0.0015), 'red', { p: [(XR + XT) / 2, yb - 0.003, zt] }));
   }
   return part({ id: 'frame-rail', sec: '11', item: '12', pn: '277535', fr: 'Rampe de garde', en: 'Guard rail', qty: '1', page: 58, explode: [0, 0.40, 0],
     note: "Entre le socle et le bac. Deux semelles boulonnées sur le plateau, deux pattes boulonnées sur la face +X du socle." }, g);
@@ -457,7 +463,7 @@ function railPart() {
 function railHw() {
   const g = [], o = { d: 0.375 * IN, grip: 0.014, nw: true, nk: 'hex', wt: 0.0025, wod: 0.0235 };
   for (const s of [-1, 1]) for (const dz of [-0.03, 0.03]) g.push(place(fastener({ ...o, len: 1.25 * IN }), [XR, Y0 + 0.0063, s * ZP + dz], [0, 1, 0]));
-  for (const s of [-1, 1]) for (const y of [YM - 0.028, YM - 0.052]) g.push(place(fastener({ ...o, len: 1.5 * IN }), [-0.7535, y, s * 0.18], [1, 0, 0]));
+  for (const s of [-1, 1]) for (const y of [YM - RR - 0.020, YM - RR - 0.044]) g.push(place(fastener({ ...o, len: 1.5 * IN }), [XT + 0.006, y, s * 0.18], [1, 0, 0]));
   return part({ id: 'frame-rail-hw', sec: '11', item: '2, 15, 16, 17', pn: '218153, B144, B146, N017', fr: 'Visserie de la rampe', en: 'Guard rail hardware', qty: '24', page: 58, explode: [0, 0.22, 0],
     note: "Items 15 (4 vis 3/8 x 1,25 po, semelles), 16 (4 vis 3/8 x 1,5 po, pattes du socle), 17 (8 écrous) et 2 (16 rondelles Nord-Lock). Écrous des pattes derrière la tôle du socle." }, g);
 }
@@ -512,7 +518,7 @@ function formedPlates() {
   for (const [s, item, pn, n] of [[-1, '18', '281037', 18], [1, '19', '281347', 19]]) {
     const holes = []; for (const x of bx) for (const y of by) holes.push({ c: [x, y], r: 0.0056 });
     const g = [pXY(rect(x0, 0.50, x1, 0.6505), 0.006, s * web, 'red', holes),
-      pXZ(rect(x0, s * 0.283, x1, s * (web - 0.002)), 0.006, 0.653, 'red'),
+      pXZ(rect(x0, s * 0.283, x1, s * (web - 0.002)), 0.006, 0.653, 'red', [{ c: [-0.966, s * 0.4775], r: 0.0087 }]), // trou d'un boulon de semelle du socle
       m(G.cyl(0.006, x1 - x0, 12), 'red', { p: [(x0 + x1) / 2, 0.6505, s * (web - 0.0005)], r: [0, 0, 90] })];
     out.push(part({ id: `frame-plate${n}`, sec: '11', item, pn, fr: 'Plaque pliée', en: 'Formed plate', qty: '1', page: 58, explode: [0, 0, s * 0.28], approx: true,
       note: `Capot en L à côté de la plaque du socle, côté ${s < 0 ? '-Z (écran)' : '+Z (leviers)'}. Forme estimée (vue éclatée p. 58, vue de dessus p. 59).` }, g));

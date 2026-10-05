@@ -86,22 +86,43 @@ function slotShape([x1, y1], [x2, y2], r) {
   const s = new THREE.Shape(), a = Math.atan2(y2 - y1, x2 - x1);
   s.absarc(x2, y2, r, a - Math.PI / 2, a + Math.PI / 2, false); s.absarc(x1, y1, r, a + Math.PI / 2, a + 3 * Math.PI / 2, false); s.closePath(); return s;
 }
-function ring(ro, ri, h, seg = 32) { return G.tube(ro, ri, h, seg, Math.min(0.0008, h / 4)); }
+/** Révolution à arêtes nettes : points ajoutés près des angles pour que les normales restent justes. */
+function lath(profile, seg = 40) {
+  const out = [];
+  for (let i = 0; i < profile.length; i++) {
+    const [r, y] = profile[i]; out.push([r, y]);
+    if (i < profile.length - 1) {
+      const [r2, y2] = profile[i + 1], d = Math.hypot(r2 - r, y2 - y);
+      if (d > 0.003) { const e = 0.0005 / d; out.push([r + (r2 - r) * e, y + (y2 - y) * e], [r2 - (r2 - r) * e, y2 - (y2 - y) * e]); }
+    }
+  }
+  return G.lathe(out, seg);
+}
+function ring(ro, ri, h, seg = 32) { const c = Math.min(0.0008, h / 4), y0 = -h / 2, y1 = h / 2; return lath([[ri + c, y0], [ro - c, y0], [ro, y0 + c], [ro, y1 - c], [ro - c, y1], [ri + c, y1], [ri, y1 - c], [ri, y0 + c], [ri + c, y0]], seg); }
+function discR(r, h, seg = 40) { const c = Math.min(0.001, h / 3, r / 3); return lath([[0, -h / 2], [r - c, -h / 2], [r, -h / 2 + c], [r, h / 2 - c], [r - c, h / 2], [0, h / 2]], seg); }
 function octa(w, h, c) { return [[-w / 2 + c, -h / 2], [w / 2 - c, -h / 2], [w / 2, -h / 2 + c], [w / 2, h / 2 - c], [w / 2 - c, h / 2], [-w / 2 + c, h / 2], [-w / 2, h / 2 - c], [-w / 2, -h / 2 + c]]; }
 
-/* Vérin à œil aux deux bouts, le long de +Y (pied en 0, tête en Lp). Axes des œils selon Z local.
- * Bossages de raccords sur la face +Z locale. */
-function liftCylinder({ Lp, bore, rodD, barrel, y0 = 0.045, eyeR = 0.032, eyeW = 1.5 * IN, pinD = 1.25 * IN, mk = 'grey', ports = [] }) {
-  const od = bore + 0.5 * IN, g = [];
-  g.push(m(alongZ(ring(eyeR, pinD / 2 + 0.0006, eyeW)), mk));
-  g.push(m(G.box(eyeW * 0.95, y0 - eyeR * 0.5 + 0.004, eyeW * 0.95, 0.004), mk, { p: [0, (y0 + eyeR * 0.5) / 2, 0] }));
-  const y1 = y0 + barrel;
-  g.push(m(G.lathe([[0, y0], [od / 2 + 0.003, y0], [od / 2 + 0.003, y0 + 0.022], [od / 2, y0 + 0.026], [od / 2, y1 - 0.026], [od / 2 + 0.003, y1 - 0.022], [od / 2 + 0.003, y1], [rodD / 2 + 0.004, y1 + 0.012], [rodD / 2 + 0.001, y1 + 0.012]], 32), mk));
-  const yE = Lp - eyeR * 0.75;
-  g.push(m(G.cyl(rodD / 2, yE - y1 + 0.01, 28), 'chrome', { p: [0, (yE + y1) / 2, 0] }));
-  g.push(m(G.cyl(rodD * 0.55, eyeR * 0.9, 24), mk, { p: [0, Lp - eyeR * 0.85, 0] }));
-  g.push(m(alongZ(ring(eyeR, pinD / 2 + 0.0006, eyeW)), mk, { p: [0, Lp, 0] }));
-  for (const py of ports) g.push(m(G.box(0.026, 0.024, 0.02, 0.003), mk, { p: [0, py, od / 2 + 0.006] }));
+/* Vérin de levage 278117 le long de +Y (pied en 0, tête en Lp), axes des œils selon Z local.
+ * Pied : bloc à 2 orifices (p. 45, op79) ; tête : œil à rotule ; tube rigide le long du fût vers la tête.
+ * up = signe de X local qui pointe vers le haut (pour garder le tube sur le dessus). */
+const LC = { od: 3 * IN, rodD: 1.5 * IN, eyeR: 0.032, eyeW: 1.5 * IN, yB: 0.040, yF: 0.115, yG: 0.375, ports: [[-0.016, 0.070], [0.016, 0.088]] };
+function liftCylinder(Lp, up) {
+  const { od, rodD, eyeR, eyeW, yB, yF, yG } = LC, mk = 'grey', pr = 0.625 * IN + 0.0006, g = [];
+  const eye = earShape(-0.029, 0.029, yB + 0.002, 0, 0, eyeR); eye.holes.push(circ(0, 0, pr));
+  g.push(m(G.plate(eye, eyeW, { curve: 20 }), mk));
+  g.push(m(G.box(0.066, yF - yB, 0.056, 0.005), mk, { p: [0, (yB + yF) / 2, 0] }));
+  g.push(m(lath([[0, yF - 0.003], [od / 2 - 0.002, yF - 0.003], [od / 2, yF - 0.001], [od / 2, yG], [0, yG]], 36), mk));
+  g.push(m(lath([[0, yG - 0.001], [0.044, yG - 0.001], [0.044, yG + 0.014], [rodD / 2 + 0.003, yG + 0.018], [rodD / 2 + 0.001, yG + 0.018], [rodD / 2 + 0.001, yG - 0.001]], 36), mk));
+  const yE = Lp - eyeR * 0.8;
+  g.push(m(G.cyl(rodD / 2, yE - yG - 0.012, 28), 'chrome', { p: [0, (yE + yG + 0.012) / 2, 0] }));
+  g.push(m(G.cyl(rodD * 0.6, eyeR * 0.7, 24), mk, { p: [0, Lp - eyeR * 0.8, 0] }));
+  g.push(m(alongZ(ring(eyeR, 0.0205, eyeW)), mk, { p: [0, Lp, 0] }));
+  g.push(m(G.sphere(0.0205, 20), 'machined', { p: [0, Lp, 0], s: [1, 1, 0.62] }));
+  for (const [px, py] of LC.ports) g.push(m(alongZ(G.cyl(0.010, 0.006, 16)), mk, { p: [px, py, 0.031] }));
+  // tube rigide vers la chambre de tige
+  const tx = up * (od / 2 + 0.009);
+  g.push(m(G.sweep([[up * 0.033, yF - 0.012, 0], [tx, yF + 0.006, 0], [tx, yG - 0.02, 0], [up * 0.042, yG + 0.006, 0]], 0.0048, { radial: 10 }), 'zincClear'));
+  g.push(m(G.box(0.016, 0.014, 0.016, 0.003), mk, { p: [up * 0.040, yG + 0.006, 0] }));
   return grp(g);
 }
 /** Axe 1 1/4 x 3 po avec languette soudée, entre les joues ZE1..ZE2 du côté s ; vis d'arrêt en (x+0,0243, y+dy). */
@@ -109,7 +130,7 @@ function cylPin(x, y, s, dy) {
   const z0 = s * (ZE1[0] - 0.0015), z1 = s * (ZE2[1] + 0.0015), zc = (z0 + z1) / 2, Lp = Math.abs(z1 - z0);
   const a = Math.atan2(dy, 0.0243);
   return grp([
-    m(alongZ(G.lathe([[0, -Lp / 2], [0.0153, -Lp / 2], [0.0159, -Lp / 2 + 0.001], [0.0159, Lp / 2], [0, Lp / 2]], 28)), 'machined', { p: [x, y, zc] }),
+    m(alongZ(lath([[0, -Lp / 2], [0.0153, -Lp / 2], [0.0159, -Lp / 2 + 0.001], [0.0159, Lp / 2], [0, Lp / 2]], 28)), 'machined', { p: [x, y, zc] }),
     m(tr(G.plate(slotShape([0, 0], [0.0243, dy], 0.0145), 0.006, { holes: [{ c: [0.0243, dy], r: 0.0068 }] }), x, y, s * (ZE2[1] + 0.003)), 'machined'),
   ]);
 }
@@ -122,14 +143,14 @@ function buildSlew() {
   const sole = new THREE.Shape(); sole.absarc(0, 0, 0.21, 0, Math.PI * 2, false); sole.holes.push(circ(0, 0, 0.09));
   const H = [
     m(tr(plateXZ(sole, 0.015, { holes: holes15, curve: 48 }), SX, Y0 + 0.0075, SZ), 'blackCast'),
-    m(G.lathe([[0.1065, Y0 + 0.015], [0.172, Y0 + 0.015], [0.172, 1.452], [0.168, 1.456], [0.16, 1.456], [0.16, 1.4575], [0.1065, 1.4575], [0.1065, Y0 + 0.015]], 64), 'blackCast', { p: [SX, 0, SZ] }),
+    m(lath([[0.1065, Y0 + 0.015], [0.172, Y0 + 0.015], [0.172, 1.452], [0.168, 1.456], [0.16, 1.456], [0.16, 1.4575], [0.1065, 1.4575], [0.1065, Y0 + 0.015]], 64), 'blackCast', { p: [SX, 0, SZ] }),
     // carter de la vis sans fin, tangent côté +Z (op07), moteur au bout +X, codeur au bout -X
     m(G.box(WX1 - WX0, 0.066, 0.095, 0.012), 'blackCast', { p: [(WX0 + WX1) / 2, Y0 + 0.034, 0.1975] }),
     m(G.cyl(0.045, WX1 - WX0 - 0.012, 32), 'blackCast', { p: [(WX0 + WX1) / 2, WY, WZ], r: [0, 0, 90] }),
-    m(G.disc(0.047, 0.008, 32), 'blackCast', { p: [WX0 + 0.004, WY, WZ], r: [0, 0, 90] }),
-    m(G.disc(0.047, 0.008, 32), 'blackCast', { p: [WX1 - 0.004, WY, WZ], r: [0, 0, 90] }),
+    m(discR(0.047, 0.008, 32), 'blackCast', { p: [WX0 + 0.004, WY, WZ], r: [0, 0, 90] }),
+    m(discR(0.047, 0.008, 32), 'blackCast', { p: [WX1 - 0.004, WY, WZ], r: [0, 0, 90] }),
     // bague tournante (reçoit la bride de la base de levage)
-    m(G.lathe([[0.092, 1.430], [0.105, 1.430], [0.105, 1.4578], [0.156, 1.4578], [0.157, 1.459], [0.157, Y1 - 0.0008], [0.156, Y1], [0.092, Y1], [0.092, 1.430]], 64), 'black', { p: [SX, 0, SZ] }),
+    m(lath([[0.092, 1.430], [0.105, 1.430], [0.105, 1.4578], [0.156, 1.4578], [0.157, 1.459], [0.157, Y1 - 0.0008], [0.156, Y1], [0.092, Y1], [0.092, 1.430]], 64), 'black', { p: [SX, 0, SZ] }),
   ];
   const drive = part({ id: 'crane-slew-drive', sec: '10.1', item: '1', pn: '276947', fr: 'Couronne à vis sans fin', en: 'Slew drive', qty: '1', page: 46, explode: [0, 0, 0], approx: true, note: 'Diamètres relevés sur op07 et op79 (semelle 0,42 m, corps 0,344 m). Les 15 vis de semelle sont du socle (B354).' }, H);
 
@@ -138,8 +159,8 @@ function buildSlew() {
   const M = [
     m(G.box(0.012, 0.104, 0.106, 0.005), 'black', { p: [mx + 0.006, WY + 0.002, WZ] }),
     m(G.box(0.040, 0.066, 0.07, 0.006), 'grey', { p: [mx + 0.032, WY, WZ] }),
-    m(G.lathe([[0, 0], [0.047, 0], [0.050, 0.004], [0.050, 0.075], [0.047, 0.079], [0.040, 0.082], [0, 0.082]], 40), 'grey', { p: [mx + 0.052, WY, WZ], r: [0, 0, -90] }),
-    m(G.lathe([[0, 0], [0.046, 0], [0.046, 0.016], [0.042, 0.020], [0.012, 0.020], [0.012, 0.024], [0, 0.024]], 40), 'black', { p: [mx + 0.134, WY, WZ], r: [0, 0, -90] }),
+    m(lath([[0, 0], [0.047, 0], [0.050, 0.004], [0.050, 0.075], [0.047, 0.079], [0.040, 0.082], [0, 0.082]], 40), 'grey', { p: [mx + 0.052, WY, WZ], r: [0, 0, -90] }),
+    m(lath([[0, 0], [0.046, 0], [0.046, 0.016], [0.042, 0.020], [0.012, 0.020], [0.012, 0.024], [0, 0.024]], 40), 'black', { p: [mx + 0.134, WY, WZ], r: [0, 0, -90] }),
   ];
   for (let i = 0; i < 7; i++) { const a = i * 2 * Math.PI / 7; M.push(aim(bolt({ d: 0.3125 * IN, L: 0.4 * IN, mat: 'zinc' }), V(mx + 0.150, WY + 0.033 * Math.cos(a), WZ + 0.033 * Math.sin(a)), V(1, 0, 0))); }
   const motor = part({ id: 'crane-slew-motor', sec: '10.1', item: '8', pn: '278096', fr: 'Moteur hydraulique', en: 'Hydraulic motor', qty: '1', page: 46, explode: [0.24, 0, 0], spare: true, approx: true, note: 'Moteur 127,5 cm3 en bout de vis sans fin, côté +X et +Z (relevé op07).' }, M);
@@ -180,7 +201,7 @@ function buildJ1() {
   const plate = part({ id: 'crane-j1-plate', sec: '10.1.1', item: '2', pn: '277564', fr: 'Étrier du codeur', en: 'Encoder plate', qty: '1', page: 47, explode: [0, 0, 0], approx: true }, U);
   const enc = part({ id: 'crane-j1-encoder', sec: '10.1.1', item: '1', pn: '269901', fr: 'Codeur rotatif J1', en: 'Rotary encoder J1', qty: '1', page: 47, explode: [-0.07, 0, 0], spare: true },
     [m(G.cyl(0.021, 0.030, 32), 'alu', { p: [x1 - 0.024, WY, WZ], r: [0, 0, 90] }),
-     m(G.disc(0.024, 0.004, 32), 'alu', { p: [x1 - 0.008, WY, WZ], r: [0, 0, 90] }),
+     m(discR(0.024, 0.004, 32), 'alu', { p: [x1 - 0.008, WY, WZ], r: [0, 0, 90] }),
      m(G.cyl(0.0075, 0.018, 16), 'zinc', { p: [x1 - 0.026, WY, WZ - 0.028], r: [90, 0, 0] }),
      m(G.hex(0.017, 0.006), 'zinc', { p: [x1 - 0.026, WY, WZ - 0.021], r: [90, 0, 0] })]);
   const stud = part({ id: 'crane-j1-stud', sec: '10.1.1', item: '7', pn: '277425', fr: "Goujon d'entraînement", en: 'Drive stud', qty: '1', page: 47, explode: [-0.03, 0, 0] },
@@ -225,7 +246,7 @@ function buildHoist() {
   const base = part({ id: 'crane-hoist-base', sec: '10.2', item: '1', pn: '277067', fr: 'Base de levage usinée', en: 'Hoist base, machined', qty: '1', page: 48, explode: [0, 0, 0], approx: true, note: 'Profil des flasques relevé sur op79 ; caisson intérieur estimé.' }, B);
 
   const pinJ2 = part({ id: 'crane-hoist-pinj2', sec: '10.2', item: '7', pn: '277742', fr: 'Axe de levage J2', en: 'Hoist pin J2', qty: '1', page: 48, explode: [0, 0, -0.30] },
-    [m(alongZ(G.lathe([[0, -0.1125], [0.0185, -0.1125], [0.01905, -0.1115], [0.01905, 0.1095], [0.0185, 0.1105], [0, 0.1105]], 32)), 'machined', { p: [J2X, J2Y, 0] })]);
+    [m(alongZ(lath([[0, -0.1125], [0.0185, -0.1125], [0.01905, -0.1115], [0.01905, 0.1095], [0.0185, 0.1105], [0, 0.1105]], 32)), 'machined', { p: [J2X, J2Y, 0] })]);
   const ret = part({ id: 'crane-hoist-plate', sec: '10.2', item: '8', pn: '277421', fr: "Plaque d'arrêt d'axe", en: 'Pin retaining plate', qty: '1', page: 48, explode: [0, 0, -0.36] },
     [m(G.box(0.022, 0.075, 0.006, 0.002), 'zinc', { p: [J2X - 0.030, J2Y, -0.1056 - 0.003] })]);
   const pins = [-1, 1].map((s, i) => part({ id: `crane-hoist-pin-${i + 1}`, sec: '10.2', item: '2', pn: '277266', fr: 'Axe de pied de vérin', en: 'Cylinder base pin', qty: '2', page: 48, explode: [0, 0, s * 0.22] },
@@ -283,6 +304,7 @@ function buildOuterBoom() {
     B.push(weld([[-0.95, gTop + 0.0045, s * (gz + gt / 2 + 0.0025)], [XR + 0.004, gTop + 0.0045, s * (gz + gt / 2 + 0.0025)]], 0.0055));
   }
   B.push(m(alongZ(ring(0.0365, 0.0223, 0.154, 36)), 'red', { p: [J2X, J2Y, 0] }));
+  for (const s of [-1, 1]) B.push(m(G.torus(0.0372, 0.003, Math.PI * 2, 6, 40), 'red', { p: [J2X, J2Y, s * (gz - gt / 2 - 0.001)] }));
   B.push(m(G.box(0.085, 0.008, 2 * (gz - gt / 2), 0.002), 'red', { p: [-1.33, 1.704, 0] }));
   // Languette arrière (œil du pied du vérin télescopique) et 2 bras en V (vue de dessus p. 49)
   const tg = new THREE.Shape(); tg.moveTo(XR + 0.004, AY - 0.075); tg.lineTo(XTB, AY - 0.075); tg.lineTo(XTB, YT - 0.034);
@@ -305,7 +327,7 @@ function buildOuterBoom() {
   kids.push(part({ id: 'crane-outer-bearing', sec: '10.3.2', item: '5', pn: '227884', fr: 'Rotule 1 po', en: 'Spherical bearing 1 in', qty: '1', page: 52, explode: [0, 0.12, 0] },
     [m(alongZ(ring(0.0204, 0.0128, 0.0175)), 'steel', { p: [XTB, YT, 0] }), m(G.sphere(0.0165, 24), 'machined', { p: [XTB, YT, 0], s: [1, 1, 0.6] })]));
   kids.push(part({ id: 'crane-outer-pin1', sec: '10.3.2', item: '12', pn: '277585', fr: 'Axe 1 po', en: 'Pin 1 in', qty: '1', page: 52, explode: [0, 0, 0.16] },
-    [m(alongZ(G.lathe([[0, -0.0255], [0.0122, -0.0255], [0.0127, -0.0245], [0.0127, 0.0245], [0.0122, 0.0255], [0, 0.0255]], 24)), 'machined', { p: [XTB, YT, 0] })]));
+    [m(alongZ(lath([[0, -0.0255], [0.0122, -0.0255], [0.0127, -0.0245], [0.0127, 0.0245], [0.0122, 0.0255], [0, 0.0255]], 24)), 'machined', { p: [XTB, YT, 0] })]));
   kids.push(part({ id: 'crane-outer-spacer', sec: '10.3.2', item: '14', pn: '277058', fr: 'Entretoise 1,75 po', en: 'Spacer 1.75 in', qty: '1', page: 52, explode: [0, -0.16, 0] },
     [m(alongZ(ring(0.0222, 0.0195, 0.0768)), 'steel', { p: [J2X, J2Y, 0] })]));
   [-1, 1].forEach((s, i) => kids.push(part({ id: `crane-outer-iglide-${i + 1}`, sec: '10.3.2', item: '16', pn: '280138', fr: 'Coussinet iglide', en: 'iglide sleeve bearing', qty: '2', page: 52, explode: [0, 0, s * 0.24] },
@@ -313,7 +335,7 @@ function buildOuterBoom() {
   for (let f = 0; f < 4; f++) {
     const n = FACES[f], c = onFace(f, -0.050, SO / 2 + 0.006, PS[f]);
     const blk = frame([m(G.plate(octa(0.064, 0.034, 0.008), 0.012), 'steel', { r: [90, 0, 0] })], c.toArray(), [1, 0, 0], n.toArray());
-    kids.push(part({ id: `crane-outer-stopper-${f + 1}`, sec: '10.3.2', item: '17', pn: '277717', fr: 'Butée de flèche', en: 'Boom stopper', qty: '4', page: 51, explode: n.clone().multiplyScalar(0.05).add(V(0.05, 0, 0)).toArray() }, [blk]));
+    kids.push(part({ id: `crane-outer-stopper-${f + 1}`, sec: '10.3.2', item: '17', pn: '277717', fr: 'Butée de flèche', en: 'Boom stopper', qty: '4', page: 51, explode: n.clone().multiplyScalar(0.05).add(V(0.05, 0, 0)).toArray().map(v => +v.toFixed(3)) }, [blk]));
   }
   let k = 0;
   for (const x of [XPT, XPM]) for (let f = 0; f < 4; f++) kids.push(buildPuck(++k, f, x));
@@ -323,14 +345,15 @@ function buildOuterBoom() {
   for (const s of [-1, 1]) hw.push(bw([LRX + 0.0243, LRY + 0.0223, s * (ZE2[1] + 0.006)], [0, 0, s], 0.5 * IN, 1 * IN));
   for (const s of [-1, 1]) for (const zz of [ZE1[1] + 0.0008, ZE2[0] - 0.0008]) hw.push(m(alongZ(ring(1 * IN, 0.635 * IN, 0.0625 * IN)), 'bronze', { p: [LRX, LRY, s * zz] }));
   for (const s of [-1, 1]) hw.push(m(alongZ(ring(0.0150, 0.0127, 0.0012)), 'blackOxide', { p: [XTB, YT, s * 0.0215] }));
-  for (let i = 0; i < 3; i++) { // brides en P (3) sous la traverse arrière
-    const x = -1.302 - i * 0.028, z = (i - 1) * 0.032;
-    hw.push(m(G.torus(0.0125, 0.0018, Math.PI * 1.65, 8, 24), 'zinc', { p: [x, 1.700 - 0.0142, z], r: [0, 90, 0] }));
-    hw.push(m(G.box(0.004, 0.0016, 0.018, 0.0005), 'zinc', { p: [x, 1.6992, z + 0.004] }));
-    hw.push(bw([x, 1.708, z + 0.006], [0, 1, 0], 0.25 * IN, 1.375 * IN));
-    hw.push(nw([x, 1.6984, z + 0.006], [0, -1, 0], 0.25 * IN, { lock: true }));
+  for (let i = 0; i < 3; i++) { // brides en P 252433 (3) sous la traverse arrière, avec vis (10), rondelles (9), écrous (11)
+    const x = -1.302 - i * 0.028, z = (i - 1) * 0.030 - 0.008;
+    kids.push(part({ id: `crane-outer-pclamp-${i + 1}`, sec: '10.3.2', item: '8', pn: '252433', fr: 'Bride en P', en: 'P-clamp', qty: '3', page: 51, explode: [0, -0.10, 0] },
+      [m(G.torus(0.0125, 0.0018, Math.PI * 1.65, 8, 24), 'zinc', { p: [x, 1.6852, z], r: [0, 90, 139] }),
+       m(G.box(0.012, 0.0016, 0.024, 0.0005), 'zinc', { p: [x, 1.6992, z + 0.012] })]));
+    hw.push(bw([x, 1.708, z + 0.016], [0, 1, 0], 0.25 * IN, 1.375 * IN));
+    hw.push(nw([x, 1.6984, z + 0.016], [0, -1, 0], 0.25 * IN, { lock: true }));
   }
-  kids.push(part({ id: 'crane-outer-hw', sec: '10.3.2', item: '7', pn: 'B140', fr: 'Visserie', en: 'Hardware', qty: '-', page: 52, explode: [0, -0.06, 0], approx: true, note: 'Repères 3 (224166 x10), 4 (B265 x2), 6 (277428 x4), 7 (B140 x8), 8 (brides en P 252433 x3), 9 (W001 x6), 10 (B047 x3), 11 (262114 x3), 13 (277586 x2).' }, hw));
+  kids.push(part({ id: 'crane-outer-hw', sec: '10.3.2', item: '7', pn: 'B140', fr: 'Visserie', en: 'Hardware', qty: '-', page: 52, explode: [0, -0.06, 0], approx: true, note: 'Repères 3 (224166 x10), 4 (B265 x2), 6 (277428 x4), 7 (B140 x8), 9 (W001 x6), 10 (B047 x3), 11 (262114 x3), 13 (277586 x2).' }, hw));
   return asm({ id: 'crane-outer', sec: '10.3.2', item: '1', pn: '276527', fr: 'Flèche extérieure', en: 'Outer boom', qty: '1', page: 51, explode: [0, 0, 0] }, kids);
 }
 
@@ -352,15 +375,15 @@ function buildPuck(k, f, x) {
   const plate = part({ id: `crane-puck-${k}-plate`, sec: '10.3.2.2', item: '7', pn: '277668', fr: 'Couvercle trilobé', en: 'Puck cover plate', qty: '1', page: 54, explode: [0, 0.06, 0] },
     [m(puckPlateGeo(), 'redDark', { p: [0, rb + 0.0065, 0], r: [90, 0, 0] })]);
   const puck = part({ id: `crane-puck-${k}-puck`, sec: '10.3.2.2', item: '2', pn: '277658', fr: "Patin d'usure", en: 'Wear puck', qty: '1', page: 54, explode: [0, 0, 0], spare: true },
-    [m(G.lathe([[0, 0], [0.0232, 0], [0.024, 0.001], [0.024, 0.014], [0.0222, 0.0155], [0.0222, 0.0175], [0.024, 0.019], [0.024, 0.0230], [0.0232, 0.024], [0, 0.024]], 32), 'polymer', { p: [0, SI / 2 + 0.0035, 0] })]);
+    [m(lath([[0, 0], [0.0232, 0], [0.024, 0.001], [0.024, 0.014], [0.0222, 0.0155], [0.0222, 0.0175], [0.024, 0.019], [0.024, 0.0230], [0.0232, 0.024], [0, 0.024]], 32), 'polymer', { p: [0, SI / 2 + 0.0035, 0] })]);
   const disc = part({ id: `crane-puck-${k}-disc`, sec: '10.3.2.2', item: '1', pn: '277654', fr: 'Rondelle de poussée', en: 'Puck plate', qty: '1', page: 54, explode: [0, 0.03, 0] },
-    [m(G.disc(0.0235, 0.003, 32), 'steel', { p: [0, SI / 2 + 0.0035 + 0.0255, 0] })]);
+    [m(discR(0.0235, 0.003, 32), 'steel', { p: [0, SI / 2 + 0.0035 + 0.0255, 0] })]);
   const yTop = rb + 0.0125;
   const jam = grp([nut({ d: 0.75 * IN })], { p: [0, yTop, 0], s: [1, 0.5, 1] });
   const hw = [jam, aim(bolt({ d: 0.75 * IN, L: yTop + 0.0082 - (SI / 2 + 0.0035 + 0.027) }), V(0, yTop + 0.0082, 0), V(0, 1, 0))];
   for (const [lx, ly] of LOBES) hw.push(bw([lx, yTop, ly], [0, 1, 0], 0.375 * IN, 1.25 * IN));
   const vis = part({ id: `crane-puck-${k}-hw`, sec: '10.3.2.2', item: '4', pn: 'B414', fr: 'Visserie', en: 'Hardware', qty: '-', page: 54, explode: [0, 0.10, 0], note: 'Repères 3 (contre-écrou mince 3/4), 4 (B414), 5 (224166 x3), 6 (B146 x3).' }, hw);
-  const a = asm({ id: `crane-puck-${k}`, sec: '10.3.2.2', item: '15', pn: '277656', fr: `Patin de flèche (${x === XPT ? 'avant' : 'milieu'}, ${faceName[f]})`, en: 'Boom wear puck', qty: '8', page: 54, explode: n.clone().multiplyScalar(0.11).toArray() }, [plate, puck, disc, vis]);
+  const a = asm({ id: `crane-puck-${k}`, sec: '10.3.2.2', item: '15', pn: '277656', fr: `Patin de flèche (${x === XPT ? 'avant' : 'milieu'}, ${faceName[f]})`, en: 'Boom wear puck', qty: '8', page: 54, explode: (n.y > 0 ? n.clone().multiplyScalar(0.11) : n.clone().multiplyScalar(0.05).add(V(0, -0.08, 0))).toArray().map(v => +v.toFixed(3)) }, [plate, puck, disc, vis]);
   a.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V(1, 0, 0), n, across(n)));
   a.position.copy(V(x, AY, 0).addScaledVector(across(n), PU[f]));
   return a;
@@ -415,7 +438,7 @@ function buildBulkhead() {
   const hw = [];
   for (const dx of [-0.017, 0.017]) hw.push(bw([-0.185 + dx, 1.775, -0.040 - t8], [0, 0, -1], 0.4375 * IN, 0.75 * IN));
   for (const [x, z] of tie) { hw.push(bw([x, yP + 0.005, z], [0, 1, 0], 0.25 * IN, 1 * IN)); hw.push(nw([x, yP - t8 - 0.005, z], [0, -1, 0], 0.25 * IN)); }
-  for (const x of gx) hw.push(m(G.lathe([[0.0048, -0.0045], [0.010, -0.0045], [0.010, -0.0032], [0.0082, -0.0032], [0.0082, 0.0032], [0.010, 0.0032], [0.010, 0.0045], [0.0048, 0.0045], [0.0048, -0.0045]], 20), 'rubber', { p: [x, yP - t8 / 2, -0.180] }));
+  for (const x of gx) hw.push(m(lath([[0.0048, -0.0045], [0.010, -0.0045], [0.010, -0.0032], [0.0082, -0.0032], [0.0082, 0.0032], [0.010, 0.0032], [0.010, 0.0045], [0.0048, 0.0045], [0.0048, -0.0045]], 20), 'rubber', { p: [x, yP - t8 / 2, -0.180] }));
   const vis = part({ id: 'crane-bh-hw', sec: '10.3.2.1', item: '2', pn: 'B203', fr: 'Visserie et passe-fils', en: 'Hardware and grommets', qty: '-', page: 53, explode: [0, -0.05, -0.05], note: 'Repères 1 (218014 x6), 2 (B203 x2), 6 (B044 x2), 7 (N015 x2), 9 (280159 x3), 10 (280160 x1).' }, hw);
   return asm({ id: 'crane-bulkhead', sec: '10.3.2.1', item: '19', pn: '278120', fr: 'Plaque de raccords de flèche', en: 'Boom bulkhead', qty: '1', page: 53, explode: [0, -0.16, -0.10] }, [plate, rib4, rib5, ...fits, vis]);
 }
@@ -442,7 +465,7 @@ function buildInner() {
   }
   for (const s of [-1, 1]) g.push(m(G.box(0.07, 0.07, 0.012, 0.003), 'red', { p: [XTR + 0.005, YT, s * 0.026] }));
   g.push(m(alongZ(G.cyl(0.0127, 0.064, 20)), 'machined', { p: [XTR, YT, 0] }));
-  return part({ id: 'crane-inner', sec: '10.3', item: '2', pn: '276502', fr: 'Flèche intérieure usinée', en: 'Inner boom, machined', qty: '1', page: 49, explode: [0.78, 0.44, 0], approx: true, note: "Tube carré de 148 mm sur la pointe ; bandes d'usure vertes (p. 49, op07) ; oreilles de l'œil de tige estimées." }, g);
+  return part({ id: 'crane-inner', sec: '10.3', item: '2', pn: '276502', fr: 'Flèche intérieure usinée', en: 'Inner boom, machined', qty: '1', page: 49, explode: [1.25, 0, 0], approx: true, note: "Tube carré de 148 mm sur la pointe ; bandes d'usure vertes (p. 49, op07) ; oreilles de l'œil de tige estimées." }, g);
 }
 
 function buildTele() {
@@ -451,13 +474,13 @@ function buildTele() {
   g.push(m(G.box(0.044, 0.008, 0.041, 0.002), 'black', { p: [0, 0.040, 0] }));
   g.push(m(G.box(0.072, 0.07, 0.064, 0.005), 'alu', { p: [0, 0.079, 0] }));
   const od = 2.5 * IN, y0 = 0.114, y1 = y0 + 1.016;
-  g.push(m(G.lathe([[0, y0], [od / 2 + 0.002, y0], [od / 2 + 0.002, y0 + 0.02], [od / 2, y0 + 0.024], [od / 2, y1 - 0.004], [od / 2 + 0.0025, y1], [od / 2 + 0.0025, y1 + 0.02], [0.0175, y1 + 0.024], [0.0162, y1 + 0.024]], 32), 'black'));
+  g.push(m(lath([[0, y0], [od / 2 + 0.002, y0], [od / 2 + 0.002, y0 + 0.02], [od / 2, y0 + 0.024], [od / 2, y1 - 0.004], [od / 2 + 0.0025, y1], [od / 2 + 0.0025, y1 + 0.02], [0.0175, y1 + 0.024], [0.0162, y1 + 0.024]], 32), 'black'));
   g.push(m(G.cyl(0.625 * IN, Lp - 0.022 - (y1 + 0.02), 28), 'chrome', { p: [0, (Lp - 0.022 + y1 + 0.02) / 2, 0] }));
   g.push(m(G.cyl(0.012, 0.022, 20), 'black', { p: [0, Lp - 0.020, 0] }));
   g.push(m(alongZ(ring(0.025, 0.0128, 0.032)), 'black', { p: [0, Lp, 0] }));
   g.push(m(G.sweep([[-0.036, 0.105, 0], [-0.0395, 0.13, 0], [-0.0395, 1.10, 0], [-0.034, 1.128, 0]], 0.005, { radial: 8 }), 'black'));
   const c = grp(g); between(c, [XTB, YT, 0], [XTR, YT, 0], 0);
-  return part({ id: 'crane-tele', sec: '10.3', item: '3', pn: '278118', fr: 'Vérin télescopique 36 po', en: 'Telescopic cylinder 36 in', qty: '1', page: 49, explode: [0.30, 0.22, 0], approx: true, note: 'Course 36 po, alésage 2 po, tige 1 1/4 po. Sorti de 0,19 m dans cette pose ; bloc de valve au pied (p. 49).' }, [c]);
+  return part({ id: 'crane-tele', sec: '10.3', item: '3', pn: '278118', fr: 'Vérin télescopique 36 po', en: 'Telescopic cylinder 36 in', qty: '1', page: 49, explode: [0.35, 0.26, 0], approx: true, note: 'Course 36 po, alésage 2 po, tige 1 1/4 po. Sorti de 0,19 m dans cette pose ; bloc de valve au pied (p. 49).' }, [c]);
 }
 
 /* 10.3.4 Codeur de levage 277383 (p. 57), coaxial à l'axe J2, côté +Z. Support plié vissé sur le gousset. */
@@ -474,7 +497,7 @@ function buildHoistEncoder() {
   const plate = part({ id: 'crane-henc-plate', sec: '10.3.4', item: '1', pn: '277379', fr: 'Support plié', en: 'Formed plate', qty: '1', page: 57, explode: [0, 0, 0], approx: true, note: `Plié en Z, vissé sur le gousset du pivot (z = ${zm.toFixed(3)} env.).` }, P);
   const ze = zb + t;
   const enc = part({ id: 'crane-henc-encoder', sec: '10.3.4', item: '2', pn: '269903', fr: 'Codeur rotatif J2', en: 'Rotary encoder J2', qty: '1', page: 57, explode: [0, 0, 0.06], spare: true },
-    [m(alongZ(G.disc(0.022, 0.006, 32)), 'black', { p: [J2X, J2Y, ze + 0.003] }),
+    [m(alongZ(discR(0.022, 0.006, 32)), 'black', { p: [J2X, J2Y, ze + 0.003] }),
      m(G.box(0.040, 0.040, 0.034, 0.004), 'black', { p: [J2X, J2Y, ze + 0.006 + 0.017] }),
      m(G.cyl(0.0075, 0.018, 16), 'zinc', { p: [J2X + 0.028, J2Y + 0.008, ze + 0.024], r: [0, 0, 90] }),
      m(G.cyl(0.0075, 0.018, 16), 'zinc', { p: [J2X + 0.028, J2Y - 0.010, ze + 0.024], r: [0, 0, 90] })]);
@@ -484,7 +507,7 @@ function buildHoistEncoder() {
   for (const dx of [-0.016, 0.016]) hw.push(bw([xt + dx, yt - 0.022, 0.077 + t], [0, 0, 1], 0.25 * IN, 0.75 * IN));
   for (const s of [-1, 1]) hw.push(bw([J2X + s * 0.021, J2Y - s * 0.021, ze], [0, 0, 1], 0.138 * IN, 0.4375 * IN, { head: 'shcs' }));
   const vis = part({ id: 'crane-henc-hw', sec: '10.3.4', item: '7', pn: 'B042', fr: 'Visserie', en: 'Hardware', qty: '-', page: 57, explode: [0, 0.04, 0.03], note: 'Repères 3 (236667 x2), 4 (248143 x4), 5 (253708 x2), 7 (B042 x2), 8 (116142 x2).' }, hw);
-  return asm({ id: 'crane-henc', sec: '10.3.4', item: '4', pn: '277383', fr: 'Codeur de levage J2', en: 'Hoist encoder J2', qty: '1', page: 57, explode: [0, 0, 0.20] }, [plate, enc, stud, vis]);
+  return asm({ id: 'crane-henc', sec: '10.3.4', item: '4', pn: '277383', fr: 'Codeur de levage J2', en: 'Hoist encoder J2', qty: '1', page: 57, explode: [0, 0.10, 0.20] }, [plate, enc, stud, vis]);
 }
 
 /* 10.3.1 Chaîne porte-câbles 279066 (p. 50) : plan vertical z = EZ0, brin bas dans le bac, boucle à l'arrière. */
@@ -551,7 +574,7 @@ function buildLug() {
   }
   { const [z, y] = at(LLOCK); hw.push(bw([xTab + 0.003, y, z], [1, 0, 0], 0.375 * IN, 0.75 * IN)); }
   const vis = part({ id: 'crane-lug-hw', sec: '10.3.3', item: '2', pn: 'B151', fr: 'Visserie et entretoises', en: 'Hardware and spacers', qty: '-', page: 56, explode: [0.16, 0, 0], note: 'Repères 2 (B151 x6), 3 (B140 x1), 4 (218153 x6), 5 (224166 x1), 7 (entretoises 281190 x6).' }, hw);
-  return asm({ id: 'crane-lug', sec: '10.3.3', item: '6', pn: '278122', fr: 'Patte de bout de flèche', en: 'Boom tip lug', qty: '1', page: 56, explode: [1.00, 0.44, 0] }, [plate, pinw, vis]);
+  return asm({ id: 'crane-lug', sec: '10.3.3', item: '6', pn: '278122', fr: 'Patte de bout de flèche', en: 'Boom tip lug', qty: '1', page: 56, explode: [1.47, 0, 0] }, [plate, pinw, vis]);
 }
 
 function buildBoom() {
@@ -565,20 +588,19 @@ function buildBoom() {
 function buildLiftCylinders() {
   const out = [];
   [1, -1].forEach((s, i) => {
-    const a = [LBX, LBY, s * LZ], b = [LRX, LRY, s * LZ], Lp = V(...a).distanceTo(V(...b)), ports = [0.068, 0.345];
-    const c = liftCylinder({ Lp, bore: 2.5 * IN, rodD: 1.5 * IN, barrel: 0.32, ports });
-    between(c, a, b, s > 0 ? 0 : 180);
-    out.push(part({ id: `crane-lift-${i + 1}`, sec: '10', item: '3', pn: '278117', fr: 'Vérin de levage', en: 'Lift cylinder', qty: '2', page: 45, explode: [0.04, 0.40, s * 0.42], approx: true, note: 'Course 8 1/2 po, alésage 2 1/2 po, tige 1 1/2 po.' }, [c]));
-    ports.forEach((py, j) => {
-      const e = grp([aim(elbow({ d: 0.375 * IN }), V(0, py, 1.5 * IN + 0.016), V(0, 0, 1), -90)]);
-      between(e, a, b, s > 0 ? 0 : 180);
+    const a = [LBX, LBY, s * LZ], b = [LRX, LRY, s * LZ], Lp = V(...a).distanceTo(V(...b)), roll = s > 0 ? 0 : 180;
+    const c = liftCylinder(Lp, -s); between(c, a, b, roll);
+    out.push(part({ id: `crane-lift-${i + 1}`, sec: '10', item: '3', pn: '278117', fr: 'Vérin de levage', en: 'Lift cylinder', qty: '2', page: 45, explode: [0.04, 0.40, s * 0.42], approx: true, note: 'Course 8 1/2 po, alésage 2 1/2 po, tige 1 1/2 po. Pied à bloc à 2 orifices, tête à rotule (p. 45).' }, [c]));
+    LC.ports.forEach(([px, py], j) => {
+      const e = grp([aim(elbow({ d: 0.375 * IN }), V(px, py, 0.034), V(0, 0, 1), -90)]);
+      between(e, a, b, roll);
       out.push(part({ id: `crane-elbow-${2 * i + j + 1}`, sec: '10', item: '5', pn: 'FA01052-06', fr: 'Coude 90° ORB-JIC', en: '90° elbow adapter', qty: '4', page: 45, explode: [0.04, 0.40, s * 0.50] }, [e]));
     });
   });
   return out;
 }
 function buildFittings6() { // raccords 6ORBM-6JICM (x2) sur le bloc de valve du vérin télescopique
-  return [0, 1].map(i => part({ id: `crane-fit6-${i + 1}`, sec: '10', item: '6', pn: '202702-6-6', fr: 'Raccord droit', en: 'Straight fitting', qty: '2', page: 45, explode: [0.30, 0.68 + 0.22 + 0.06, 0] },
+  return [0, 1].map(i => part({ id: `crane-fit6-${i + 1}`, sec: '10', item: '6', pn: '202702-6-6', fr: 'Raccord droit', en: 'Straight fitting', qty: '2', page: 45, explode: [0.35, 0.68 + 0.26 + 0.06, 0] },
     [aim(fitting({ d: 0.375 * IN, L: 0.03 }), V(XTB + 0.079 + (i ? 0.018 : -0.018), YT + 0.036, 0), V(0, 1, 0))]));
 }
 
