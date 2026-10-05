@@ -4,7 +4,7 @@
    éclairage sont conservés après leur premier chargement complet. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.131.0';
+const CACHE = 'rodbot-formation-v1.131.1';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -21,7 +21,7 @@ const CORE = [
   './3d/replique.html', './3d/fidelite.html', './3d/js/replique.js', './3d/css/replique.css',
   './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js',
   './fonts/fonts.css',
-  /* Vue éclatée (1.131.0) : modèle construit par code, three.js servi depuis le dépôt. */
+  /* Vue éclatée (1.131.1) : modèle construit par code, three.js servi depuis le dépôt. */
   './3d/eclate.html',
   './3d/eclate/eclate.css',
   './3d/eclate/main.js',

@@ -192,10 +192,11 @@ function haweBank({ n, pitch, yTop, depth = 0.085, wi = 0.07, we = 0.026, levers
   steel.push(bx(xe + 0.0006, xe + we, y(-0.17 - coverH - 0.01), y(-0.02), -depth, 0, 'steel', 0.003));
   blk.push(bx(xe + we, xe + we + 0.02, y(-0.2), y(-0.15), -0.068, -0.02, 'plastic', 0.003));              // connecteur
   for (const [dy, dz] of [[-0.05, -0.02], [-0.05, -0.065], [-0.24, -0.02], [-0.24, -0.065]]) misc.push(hexA([xe + we, y(dy), dz], [1, 0, 0], 0.013, 0.008, 'zinc'));
+  // leviers séparés : chacun pivote autour de l'axe X de son boîtier (pivot = point d'attache)
   const lv = [];
   for (const o of levers) {
-    const xc = (o.k + 0.5) * pitch + (o.dx || 0), a = (o.tilt || 0) * DEG;
-    lv.push(aim(lever({ L: o.L || leverL, knob: 0.021 }), [xc, y(-0.024), 0.012], [0, Math.sin(a), Math.cos(a)]));
+    const xc = (o.k + 0.5) * pitch + (o.dx || 0), a = (o.tilt || 0) * DEG, p = [xc, y(-0.024), 0.012];
+    lv.push({ k: o.k, pivot: p, mesh: aim(lever({ L: o.L || leverL, knob: 0.021 }), p, [0, Math.sin(a), Math.cos(a)]) });
   }
   const ports = { work: [] };
   for (let k = 0; k < n; k++) { const xc = (k + 0.5) * pitch; ports.work.push({ k, p: [xc, y(-0.085), -depth], dir: [0, 0, -1] }, { k, p: [xc, y(-0.14), -depth], dir: [0, 0, -1] }); }
@@ -203,7 +204,7 @@ function haweBank({ n, pitch, yTop, depth = 0.085, wi = 0.07, we = 0.026, levers
   ports.T = { p: [-wi * 0.19, y(-0.17 - coverH + 0.007), -depth - 0.005], dir: [0, 0, -1] };
   ports.G = rearAux ? { p: [-wi * 0.5, y(-0.035), -depth - 0.005], dir: [0, 0, -1] } : { p: [-wi, y(-0.088), -depth * 0.5], dir: [-1, 0, 0] };
   ports.LS = rearAux ? { p: [-wi * 0.5, y(-0.085), -depth - 0.005], dir: [0, 0, -1] } : { p: [-wi, y(-0.2), -depth * 0.5], dir: [-1, 0, 0] };
-  return { meshes: [...steel, ...blk, ...misc, ...lv], ports };
+  return { meshes: [...steel, ...blk, ...misc], levers: lv, ports };
 }
 
 /* ------------------------------------------------------------------ */
@@ -282,14 +283,18 @@ function panelOutline() {
 }
 
 function bankValveMount() {
-  const levers = [{ k: 0, tilt: 17, dx: -0.009 }, { k: 0 }, { k: 0, tilt: -17, dx: 0.009 }, { k: 1 }, { k: 2 }, { k: 3 }, { k: 4 }, { k: 5 }, { k: 6, dx: -0.006 }, { k: 6, tilt: 21, dx: 0.007, L: 0.15 }];
+  // 7 leviers, un par section, comme sur la machine filmée et la vue CAO p. 52 du manuel opérateur
+  // (le dessin p. 72 et 74 du manuel de pièces montre 3 leviers gris de plus, absents de la machine).
+  const levers = [0, 1, 2, 3, 4, 5, 6].map((k) => ({ k }));
   const b = haweBank({ n: BK.n, pitch: BK.pitch, yTop: BK.yTop, depth: BK.depth, levers, leverL: 0.12 });
   const W = b.ports.work;
   const f66 = [], f88 = [];
   W.forEach((w) => (w.k >= 5 ? f88 : f66).push(jic(w.k >= 5 ? 8 : 6, w.p, w.dir)));
   const kids = [
     part({ id: 'ped-vb7-bank', sec: '14.2.1', item: '1', pn: '276877', fr: 'Banc de valves HAWE à 7 sections', en: 'HAWE 7-section valve bank', qty: '1', page: 74, explode: [0, 0, 0],
-      note: '10 leviers sur 7 sections (3 sur la 1re, 2 sur la 7e), comme p. 72 et 74. Ports A et B à l\'arrière.' }, b.meshes),
+      note: '7 sections, 7 leviers (photos et vidéo de la machine, CAO p. 52 du manuel opérateur). Ports A et B à l\'arrière.' }, b.meshes),
+    ...b.levers.map((l) => part({ id: `ped-lever-${l.k + 1}`, sec: '14.2.1', item: '1', pn: '276877', fr: `Levier ${l.k + 1} du panneau avant`, en: `Front panel lever ${l.k + 1}`, qty: '1', page: 74,
+      explode: [0, 0.05, 0.06], pivot: l.pivot, axis: [1, 0, 0], note: 'Levier manuel du distributeur. Utilisé en commande LOCAL seulement (manuel opérateur p. 50).' }, [l.mesh])),
     part({ id: 'ped-vb7-fit-8-12', sec: '14.2.1', item: '2', pn: '202702-8-12', fr: 'Raccords 8 ORB - 12 JIC (P et T)', en: 'Fittings 8ORB-12JIC (P, T)', qty: '2', page: 74, explode: [0, 0, -0.06] },
       [jic(12, b.ports.P.p, b.ports.P.dir), jic(12, b.ports.T.p, b.ports.T.dir)]),
     part({ id: 'ped-vb7-fit-4-6', sec: '14.2.1', item: '3', pn: '202702-4-6', fr: 'Raccord 4 ORB - 6 JIC (manomètre)', en: 'Fitting 4ORB-6JIC (gauge)', qty: '1', page: 74, explode: [-0.05, 0, 0] },
@@ -492,6 +497,8 @@ function tramBank() {
   const kids = [
     part({ id: 'ped-tram-bank', sec: '14.5.1', item: '1', pn: '276876', fr: 'Banc de valves HAWE à 5 sections', en: 'HAWE 5-section valve bank', qty: '1', page: 79, explode: [0, 0, 0],
       note: '5 leviers à pommeau, ports A et B vers le caisson (p. 77, vues de dessus et de dessous).' }, b.meshes),
+    ...b.levers.map((l) => part({ id: `ped-tram-lever-${l.k + 1}`, sec: '14.5.1', item: '1', pn: '276876', fr: `Levier ${l.k + 1} des chenilles et vérins`, en: `Tracks and jacks lever ${l.k + 1}`, qty: '1', page: 79,
+      explode: [0, 0.05, 0.06], pivot: l.pivot, axis: [1, 0, 0], note: 'Pour l\'entretien des chenilles seulement (manuel opérateur p. 51 et 52).' }, [l.mesh])),
     part({ id: 'ped-tram-fit-6-6', sec: '14.5.1', item: '2', pn: '202702-6-6', fr: 'Raccords 6 ORB - 6 JIC', en: 'Fittings 6ORB-6JIC', qty: '6', page: 79, explode: [0, 0, -0.05] }, f66),
     part({ id: 'ped-tram-fit-8-10', sec: '14.5.1', item: '3', pn: '202702-8-10', fr: 'Raccords 8 ORB - 10 JIC', en: 'Fittings 8ORB-10JIC', qty: '4', page: 79, explode: [0, 0, -0.05] }, f810),
     part({ id: 'ped-tram-elb-6-6', sec: '14.5.1', item: '4', pn: '2062-6-6', fr: 'Coudes 90° ORB - JIC femelle taille 6', en: '90° elbows MORB-FJIC size 6', qty: '2', page: 79, explode: [0, 0, -0.05] }, [e1.g, e2.g]),

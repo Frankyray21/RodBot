@@ -19,7 +19,7 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Vue éclatée 3D v1.131.0
+## Vue éclatée 3D v1.131.1
 
 La [vue éclatée](3d/eclate.html) montre la machine reconstruite d'après les dessins du manuel de pièces PM10654 R0. Chaque ensemble s'écarte avec un curseur. Chaque pièce porte son numéro du manuel. Une pièce touchée affiche sa fiche : numéro de pièce, quantité, tableau de nomenclature et pièces de rechange critiques.
 
