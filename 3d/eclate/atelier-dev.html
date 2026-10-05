@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Banc de l'atelier 3D</title>
+<script type="importmap">{"imports":{"three":"../vendor/three/three.module.min.js","three/addons/":"../vendor/three/addons/"}}</script>
+<style>html,body{margin:0;height:100%;background:#1a2230}#stage{position:relative;width:100vw;height:100vh;background:linear-gradient(#2a3446,#141a24)}canvas{width:100%;height:100%;display:block}#ov{position:absolute;inset:0;pointer-events:none}.hs{position:absolute;left:0;top:0;pointer-events:auto;background:none;border:0;padding:0}.hs-dot,.hs-ring{display:block;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#e8322c;color:#fff;font:bold 11px sans-serif;text-align:center;line-height:22px;border:2px solid #fff}.hs-lb{display:none}.is-occluded .hs-dot,.is-occluded .hs-ring{opacity:.45}</style>
+</head>
+<body>
+<div id="stage"><canvas id="c" tabindex="0"></canvas><div id="ov"></div></div>
+<script type="module">
+import RodbotViewer from '../js/viewer-v6.js';
+const q = new URLSearchParams(location.search);
+const v = await RodbotViewer.create({ canvas: '#c', overlay: '#ov', quality: q.get('q') || 'hq' });
+window.v = v;
+v.on('error', e => { window.__err = String(e && e.message || e); });
+await v.ready; window.__ready = true;
+</script>
+</body>
+</html>

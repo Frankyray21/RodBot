@@ -3,6 +3,7 @@
 .hero p{max-width:480px}.hero h1{max-width:570px}.hero{min-height:650px}
 .training-workbench{display:block}.training-workbench>model-viewer{min-width:0}
 #canvas3d{display:block;width:100%;height:100%;outline-offset:-5px;background:#e1e2dc;--poster-color:#e1e2dc;--progress-bar-height:0;touch-action:pan-y}
+.viewer-fullscreen #canvas3d{touch-action:none}
 .viewer-wrap{background:#e1e2dc}.viewer-status{color:#33443c;background:#f3f5eef0;border-radius:5px;padding:6px 10px;max-width:calc(100% - 76px)}
 .hs-commande .hs-dot{background:#256f99;border-color:#d6f5ff}.hs-commande.is-active .hs-dot{background:#ddf8ff;color:#15527a}
 .mode-btn--sim.is-on{background:#21607d;border-color:#509fc1}.training-active .training-workbench{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:16px;align-items:start}

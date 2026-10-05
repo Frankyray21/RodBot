@@ -12,8 +12,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { finalize } from './kit.js';
-import { ASSEMBLIES } from './asm/index.js';
+import { buildModel } from './model.js';
 import { BY_NUM } from './bom.js';
 
 const HDR_URL = new URL('../assets/warehouse-v5.hdr', import.meta.url).href;
@@ -138,29 +137,11 @@ function within(n, f) { let p = n; while (p) { if (p === f) return true; p = p.u
 /* ---------------- Chargement ---------------- */
 async function load() {
   const bar = $('#loadBar'), txt = $('#loadTxt');
-  const missing = [];
   const only = new URLSearchParams(location.search).get('asm');
-  const LIST = only ? only.split(',') : ASSEMBLIES;
-  for (let i = 0; i < LIST.length; i++) {
-    const name = LIST[i];
-    txt.textContent = `${t('loadingMod')} ${i + 1} / ${LIST.length}`;
-    bar.value = Math.round(100 * i / (LIST.length + 1));
-    await new Promise(r => setTimeout(r, 0));
-    try {
-      const mod = await import(`./asm/${name}.js`);
-      [].concat(mod.build()).forEach(o => root.add(o));
-    } catch (e) { console.error('Ensemble', name, e); missing.push(name); }
-  }
-  txt.textContent = '…'; bar.value = 92; await new Promise(r => setTimeout(r, 0));
-  // boyaux et autres éléments rattachés à un ensemble existant (userData.attachTo) : ils le suivent à l'éclatement
-  root.updateMatrixWorld(true);
-  const byId = new Map(); root.traverse(o => { if (isNode(o) && o.userData.id) byId.set(o.userData.id, o); });
-  const hasAttachedAncestor = (o) => { for (let p = o.parent; p; p = p.parent) if (isNode(p) && p.userData.attachTo) return true; return false; };
-  const toAttach = []; root.traverse(o => { if (isNode(o) && o.userData.attachTo && byId.has(o.userData.attachTo) && !hasAttachedAncestor(o)) toAttach.push(o); });
-  toAttach.forEach(o => byId.get(o.userData.attachTo).attach(o));
-  // retirer les ensembles de 1er niveau devenus vides
-  root.children.slice().forEach(c => { let has = false; c.traverse(o => { if (o.isMesh) has = true; }); if (!has) root.remove(c); });
-  const st = finalize(root);
+  const built = await buildModel({ only: only ? only.split(',') : null, onProgress: (f, k, n) => { txt.textContent = `${t('loadingMod')} ${k} / ${n}`; bar.value = Math.round(100 * f); } });
+  const missing = built.missing, st = built.stats;
+  txt.textContent = '…'; bar.value = 96;
+  built.root.children.slice().forEach(c => root.add(c));
   root.updateMatrixWorld(true);
   // arbre
   root.traverse(o => { if (isNode(o)) nodes.push(o); });

@@ -315,7 +315,7 @@ function mastCircuit() {
     part({ id: 'hose-mast-hoist', sec: '10', fr: 'Boyaux de levage', en: 'Hoist hoses', qty: '2', page: 45, approx: true, explode: [0, 0.08, 0.12], note: 'Boyaux 1/2 po vers les tés du vérin de levage +Z.' }, out.hoist),
     part({ id: 'hose-mast-slew', sec: '10.1', fr: 'Boyaux du moteur de rotation', en: 'Slew motor hoses', qty: '2', page: 46, approx: true, explode: [0, 0.06, 0.20], note: 'Le moteur est fixe (côté socle de la couronne) : pas de raccord tournant.' }, out.slew),
   ];
-  return asm({ id: 'hose-mast', sec: '10', fr: 'Boyaux du socle vers la grue', en: 'Pedestal to crane hoses', qty: '14', page: 45, approx: true,
+  return asm({ id: 'hose-mast', rig: 'turret', sec: '10', fr: 'Boyaux du socle vers la grue', en: 'Pedestal to crane hoses', qty: '14', page: 45, approx: true,
     explode: [-0.45, 0.25, 0], note: 'Relie le socle à la grue : masqué quand la machine est éclatée.' }, kids);
 }
 
@@ -340,7 +340,7 @@ function liftCircuit() {
     via: [[b1[0], b1[1], 0.33], [-1.37, 1.58, 0.33], [-1.37, 1.58, -0.33], [-1.26, 1.616, -0.33], [-1.17, 1.616, -0.205]] }));
   hs.push(...hoseLine('lift-cross-2', { a: { tip: b2, dir: [0, 0, 1], cover: 0.010 }, b: { tip: LIFT_EL[4], dir: LIFT_U, cover: 0.0 }, d: D38, R: 0.05,
     via: [[b2[0], b2[1], 0.30], [-1.34, 1.58, 0.30], [-1.34, 1.58, -0.21], [-1.30, 1.655, -0.30], [-1.17, 1.655, -0.205]] }));
-  return asm({ id: 'hose-lift', sec: '10', fr: 'Boyaux de liaison des vérins de levage', en: 'Lift cylinder cross-over hoses', qty: '2', page: 45, approx: true, attachTo: 'lowerCrane',
+  return asm({ id: 'hose-lift', rig: 'turret', sec: '10', fr: 'Boyaux de liaison des vérins de levage', en: 'Lift cylinder cross-over hoses', qty: '2', page: 45, approx: true, attachTo: 'lowerCrane',
     explode: [-0.20, 0.45, 0], note: 'Deux tés sur les coudes du vérin +Z ; les boyaux passent derrière la base de levage vers le vérin -Z.' }, [
     part({ id: 'hose-lift-tees', sec: '10', fr: 'Tés de raccordement', en: 'Run tees', qty: '2', page: 45, approx: true, explode: [0, 0.05, 0.08] }, [...t1.meshes, ...t2.meshes]),
     part({ id: 'hose-lift-cross', sec: '10', fr: 'Boyaux de liaison', en: 'Cross-over hoses', qty: '2', page: 45, approx: true, explode: [-0.10, 0.10, 0] }, hs),
@@ -422,7 +422,7 @@ function gripCircuit() {
     part({ id: 'hose-grip-misc', sec: '5', fr: 'Attaches et adaptateur de valve', en: 'Ties and valve adapter', qty: '-', page: 21, approx: true, explode: [-0.06, 0, 0],
       note: 'Adaptateur droit ajouté sur le 2e orifice de la valve de maintien (non dessiné au module pince).' }, extra),
   ];
-  return asm({ id: 'hose-grip', sec: '10.3.1', fr: 'Boyaux de la flèche vers la pince', en: 'Boom to gripper hoses', qty: '8', page: 50, approx: true,
+  return asm({ id: 'hose-grip', rig: 'arm', sec: '10.3.1', fr: 'Boyaux de la flèche vers la pince', en: 'Boom to gripper hoses', qty: '8', page: 50, approx: true,
     explode: [0.45, 0.30, 0], note: 'Du dessus de la plaque de raccords de flèche (10.3.2.1) à la pince, par la chaîne porte-câbles. Relie la grue à la pince.' }, kids);
 }
 

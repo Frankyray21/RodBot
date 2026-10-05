@@ -138,7 +138,7 @@ export function mat(key) {
 export const MATERIAL_KEYS = () => Object.keys(MAT);
 
 /* Étiquettes / autocollants : texture canvas propre à chaque libellé. */
-export function labelMat({ text = '', lines, w = 0.2, h = 0.05, bg = '#ffffff', fg = '#111111', font = 'bold', border = null, align = 'center', px = 512, draw }) {
+export function labelMat({ text = '', lines, w = 0.2, h = 0.05, bg = '#ffffff', fg = '#111111', font = 'bold', border = null, align = 'center', px = 512, draw, key }) {
   const c = document.createElement('canvas'); const ratio = w / h;
   c.width = px; c.height = Math.max(16, Math.round(px / ratio));
   const ctx = c.getContext('2d');
@@ -152,7 +152,8 @@ export function labelMat({ text = '', lines, w = 0.2, h = 0.05, bg = '#ffffff', 
   L.forEach((s, i) => ctx.fillText(s, x, c.height * (i + 0.5) / L.length));
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
   const m = new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.45, clearcoat: 0.3, polygonOffset: true, polygonOffsetFactor: -2 });
-  m.userData.key = 'label:' + (L.join('|')) + ':' + bg; m.userData.keepUV = true; m.name = 'label';
+  // key : à donner aux autocollants dessinés (draw) d'un même nœud, sinon ils partagent une texture à la fusion
+  m.userData.key = 'label:' + (key || (L.join('|') + ':' + bg)); m.userData.keepUV = true; m.name = 'label';
   return m;
 }
 
@@ -489,6 +490,13 @@ export function part(meta, children = [], tf = {}) {
   const g = grp(children, tf); g.name = meta.id || meta.pn || 'part';
   g.userData = { type: 'part', ...meta }; return g;
 }
+/** Segment mobile d'une pièce (tige de vérin, champignon d'arrêt...) : fusionné à part,
+ *  sans ligne de nomenclature. La pièce qui le contient reste la pièce choisie au clic.
+ *  meta : { seg: 'rod', joint: {...} } (voir rig.js). */
+export function seg(meta, children = [], tf = {}) {
+  const g = grp(children, tf); g.name = meta.seg || 'seg';
+  g.userData = { type: 'seg', ...meta }; return g;
+}
 
 /* ------------------------------------------------------------------ */
 /* Finalisation : fusion par matériau, UV en projection cubique         */
@@ -514,7 +522,9 @@ export function boxUV(g, scale = 4) {
 export function finalize(root) {
   const stats = { parts: 0, meshes: 0, tris: 0 };
   root.updateMatrixWorld(true);
-  const isNode = (o) => o.userData && (o.userData.type === 'asm' || o.userData.type === 'part');
+  const isNode = (o) => o.userData && (o.userData.type === 'asm' || o.userData.type === 'part' || o.userData.type === 'seg');
+  // un segment appartient à la pièce qui le contient (clic, contour, transparence)
+  const ownerOf = (n) => { let p = n; while (p && !(p.userData && (p.userData.type === 'asm' || p.userData.type === 'part'))) p = p.parent; return p || n; };
   const process = (node) => {
     // collecter les meshes appartenant directement à ce nœud (sans traverser les nœuds asm/part enfants)
     const meshes = []; const subNodes = [];
@@ -538,7 +548,7 @@ export function finalize(root) {
       for (const { mat: mt, geos } of byMat.values()) {
         const merged = mergeGeometries(geos, false); if (!merged) continue;
         const mesh = new THREE.Mesh(merged, mt); mesh.castShadow = true; mesh.receiveShadow = true;
-        mesh.userData.owner = node; node.add(mesh); stats.meshes++; stats.tris += merged.attributes.position.count / 3;
+        mesh.userData.owner = ownerOf(node); node.add(mesh); stats.meshes++; stats.tris += merged.attributes.position.count / 3;
       }
       keep.forEach(k => { if (k.parent !== node) node.add(k); });
       stats.parts++;

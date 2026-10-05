@@ -360,8 +360,18 @@ function buildTripod() {
   ]);
 }
 
-/* Télécommande 279174 : repère local, origine au fond du berceau, +Z = côté opérateur, X = largeur. */
+/* Télécommande 279174 : repère local, origine au fond du berceau, +Z = côté opérateur, X = largeur.
+ * Disposition relevée sur la photo annotée du manuel opérateur (p. 21) et la photo de la machine :
+ * 3 manettes (JS1 inclinaison, JS2 bascule de la pince, JS3 rotation), 8 interrupteurs,
+ * bouton jaune TRAJ, arrêt d'urgence au centre, bouton vert PINCE, voyant d'état, écran d'état,
+ * 4 boutons sur le côté gauche (COMMENCER et 3 modes) et 3 boutons de mode à droite. */
 const RM = { w: 0.38, h: 0.085, d: 0.19 };
+const RC = {           // positions sur la face (x, z), face à y = RM.h
+  js1: [-0.118, -0.012], js2: [0, -0.024], js3: [0.118, -0.012],
+  pts: [-0.052, -0.004], enr: [0.052, -0.004],
+  tgl: [-0.142, -0.108, -0.074, 0.074, 0.108, 0.142], tglZ: 0.052,
+  traj: [-0.042, 0.05], estop: [0, 0.038], grip: [0.042, 0.05], led: [0, 0.067],
+};
 function loopPt(th) {
   const c = Math.cos(th), s = Math.sin(th);
   return V(0.2 * Math.sign(c) * Math.abs(c) ** 0.55, 0.145 - 0.045 * s, 0.117 * Math.sign(s) * Math.abs(s) ** 0.55);
@@ -370,29 +380,52 @@ function drawFace(ctx, W, H) {
   const X = (x) => (x / 0.33 + 0.5) * W, Z = (z) => (z / 0.15 + 0.5) * H, S = W / 0.33;
   ctx.fillStyle = '#17181a'; ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = '#3a3c40'; ctx.lineWidth = 3; rr(ctx, 4, 4, W - 8, H - 8, 14); ctx.stroke();
-  const tag = (x, z, w, h, col, txt, fg = '#ffffff') => {
+  const tag = (x, z, w, h, col, txt, fg = '#ffffff', size = 0.62) => {
     ctx.fillStyle = col; rr(ctx, X(x - w / 2), Z(z - h / 2), w * S, h * S, 4); ctx.fill();
-    if (txt) { ctx.fillStyle = fg; ctx.font = `bold ${h * S * 0.62}px "Arial Narrow", Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, X(x), Z(z), w * S * 0.9); }
+    if (txt) { ctx.fillStyle = fg; ctx.font = `bold ${h * S * size}px "Arial Narrow", Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, X(x), Z(z), w * S * 0.92); }
   };
-  const txt = (x, z, s, col = '#f2f2f2', size = 0.0047) => { ctx.fillStyle = col; ctx.font = `bold ${size * S}px "Arial Narrow", Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, X(x), Z(z), 0.03 * S); };
-  tag(0, -0.02, 0.07, 0.085, '#62b34f'); tag(0, 0.03, 0.05, 0.01, '#62b34f', 'PINCE OUVRIR', '#101010');
-  tag(-0.143, 0.022, 0.042, 0.012, '#2d6fd2', 'HAUT INCLIN.'); tag(-0.078, 0.028, 0.05, 0.013, '#e5862b', 'HAUT LINÉAIRE');
-  tag(0.078, 0.028, 0.05, 0.013, '#2d6fd2', 'BAS INCLIN.'); tag(0.143, 0.022, 0.042, 0.012, '#e5862b', 'BAS LINÉAIRE');
-  tag(-0.055, 0.073, 0.03, 0.009, '#efb000', 'TRAJ', '#101010'); tag(0.055, 0.073, 0.03, 0.009, '#62b34f', 'POMPE', '#101010');
-  txt(-0.156, 0.041, 'TENSION'); txt(-0.156, 0.069, 'AIMANT'); txt(-0.123, 0.069, 'PINCE'); txt(-0.09, 0.041, 'KLAXON'); txt(-0.09, 0.069, 'GYRO');
-  txt(0.09, 0.069, 'AUX 1'); txt(0.123, 0.069, 'VITESSE'); txt(0.156, 0.069, 'LENT'); txt(0.123, 0.041, 'TRAVAIL');
-  txt(-0.03, 0.025, 'GSS', '#efb000', 0.007); txt(-0.035, -0.013, 'PTS AUTO'); txt(0.035, -0.013, 'DÉBIT');
-  ctx.strokeStyle = '#f2f2f2'; ctx.lineWidth = 2;
-  for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(X(-0.035), Z(s * 0.022 + 0.005)); ctx.lineTo(X(-0.035), Z(s * 0.014 + 0.005)); ctx.stroke(); }
+  const txt = (x, z, s, col = '#f2f2f2', size = 0.0046, maxW = 0.034) => { ctx.fillStyle = col; ctx.font = `bold ${size * S}px "Arial Narrow", Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, X(x), Z(z), maxW * S); };
+  // zone verte de JS2 (bascule de la pince)
+  tag(RC.js2[0], RC.js2[1] + 0.002, 0.05, 0.05, '#62b34f'); tag(RC.js2[0], RC.js2[1] + 0.022, 0.044, 0.008, '#3f8a30', 'PINCE OUVRIR', '#ffffff', 0.7);
+  // étiquettes de couleur autour de JS1 (inclinaison, linéaire) et de JS3 (poignet, linéaire)
+  const [j1x, j1z] = RC.js1, [j3x, j3z] = RC.js3;
+  tag(j1x + 0.034, j1z - 0.036, 0.04, 0.011, '#e5862b', 'LINÉAIRE');
+  tag(j1x - 0.04, j1z, 0.011, 0.04, '#e5862b'); tag(j1x + 0.04, j1z + 0.006, 0.011, 0.034, '#e5862b');
+  tag(j1x - 0.02, j1z + 0.034, 0.04, 0.01, '#2d6fd2', 'HAUT INCLIN.'); tag(j1x + 0.024, j1z + 0.034, 0.044, 0.01, '#e5862b', 'HAUT LINÉAIRE');
+  tag(j3x - 0.022, j3z - 0.036, 0.04, 0.011, '#2d6fd2', 'POIGNET'); tag(j3x + 0.034, j3z - 0.026, 0.022, 0.011, '#e5862b', 'MAG');
+  tag(j3x - 0.04, j3z + 0.004, 0.011, 0.036, '#e5862b'); tag(j3x + 0.04, j3z + 0.004, 0.011, 0.036, '#d6402b');
+  tag(j3x, j3z + 0.034, 0.05, 0.01, '#2d6fd2', 'POIGNET HAUT');
+  ctx.save(); for (const [x, z, s] of [[j1x - 0.04, j1z, 'LINÉAIRE G'], [j1x + 0.04, j1z + 0.006, 'LINÉAIRE D'], [j3x - 0.04, j3z + 0.004, 'LIN. RENT.'], [j3x + 0.04, j3z + 0.004, 'LIN. SORT.']]) {
+    ctx.save(); ctx.translate(X(x), Z(z)); ctx.rotate(-Math.PI / 2); ctx.fillStyle = '#ffffff'; ctx.font = `bold ${0.0068 * S}px "Arial Narrow", Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, 0, 0, 0.034 * S); ctx.restore();
+  } ctx.restore();
+  // interrupteurs : texte au-dessus (vers l'écran) et au-dessous (vers l'opérateur)
+  const up = ['SOUS TENSION', 'RAPIDE', 'KLAXON', 'AUX 1', 'TRAVAIL AV', 'DÉP. LENTE'], dn = ['ARRÊT AIMANT', 'LENT', 'GYROPHARE', 'AUX 2', 'TRAVAIL AR', 'MÂT'];
+  RC.tgl.forEach((x, i) => { txt(x, RC.tglZ - 0.0135, up[i]); txt(x, RC.tglZ + 0.016, dn[i]); });
+  txt(RC.pts[0], RC.pts[1] - 0.016, 'PTS AUTO'); txt(RC.pts[0] + 0.012, RC.pts[1] - 0.004, '⇧', '#f2f2f2', 0.008); txt(RC.pts[0] + 0.012, RC.pts[1] + 0.008, '⇩', '#f2f2f2', 0.008);
+  txt(RC.enr[0], RC.enr[1] - 0.016, 'ENR'); txt(RC.enr[0], RC.enr[1] + 0.017, 'SUPPRIMER');
+  // boutons ronds et arrêt d'urgence
+  ctx.strokeStyle = '#efb000'; ctx.lineWidth = 0.0016 * S; ctx.beginPath(); ctx.arc(X(RC.traj[0]), Z(RC.traj[1]), 0.0175 * S, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#62b34f'; ctx.beginPath(); ctx.arc(X(RC.grip[0]), Z(RC.grip[1]), 0.0175 * S, 0, Math.PI * 2); ctx.stroke();
+  tag(RC.traj[0], RC.traj[1] + 0.023, 0.026, 0.008, '#efb000', 'TRAJ', '#101010');
+  tag(RC.grip[0], RC.grip[1] + 0.023, 0.026, 0.008, '#62b34f', 'PINCE', '#101010');
+  txt(RC.estop[0] - 0.03, RC.estop[1] - 0.023, 'GSS', '#efb000', 0.0062); txt(RC.estop[0] + 0.03, RC.estop[1] - 0.023, 'GSS', '#efb000', 0.0062);
 }
-function drawCap(lines, bg, fg) {
+function drawCap(lines, bg, fg, letters) {
   return (ctx, W, H) => {
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
     ctx.strokeStyle = fg; ctx.lineWidth = W * 0.035;
     ctx.beginPath(); ctx.arc(W / 2, H / 2, W * 0.4, -2.6, -0.55); ctx.stroke(); ctx.beginPath(); ctx.arc(W / 2, H / 2, W * 0.4, 0.55, 2.6); ctx.stroke();
     ctx.fillStyle = fg; ctx.font = `bold ${H * 0.16}px "Arial Narrow", Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     lines.forEach((s, i) => ctx.fillText(s, W / 2, H * (0.42 + 0.18 * i)));
+    if (letters) { ctx.font = `bold ${H * 0.12}px "Arial Narrow", Arial, sans-serif`; ctx.fillText(letters[0], W * 0.27, H * 0.16); ctx.fillText(letters[1], W * 0.73, H * 0.16); }
   };
+}
+function drawScreen(ctx, W, H) {
+  ctx.fillStyle = '#0d1114'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#9aa3aa'; ctx.font = `bold ${H * 0.075}px "Arial Narrow", Arial, sans-serif`; ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left'; ['AIMANT', 'TRAJ', 'LINÉAIRE'].forEach((s, i) => ctx.fillText(s, W * 0.04, H * (0.26 + 0.17 * i)));
+  ctx.textAlign = 'right'; ['DIRECT', 'STABS', 'DÉP. LENTE'].forEach((s, i) => ctx.fillText(s, W * 0.96, H * (0.26 + 0.17 * i)));
+  ctx.fillStyle = '#d6b400'; ctx.fillRect(W * 0.04, H * 0.86, W * 0.05, H * 0.06); ctx.fillRect(W * 0.86, H * 0.86, W * 0.08, H * 0.06);
 }
 function toggle(x, z) {
   return grp([
@@ -401,54 +434,106 @@ function toggle(x, z) {
     grp([m(G.cyl(0.0019, 0.017, 10, 0.0026), 'chrome', { p: [0, 0.0085, 0] }), m(G.sphere(0.0032, 10), 'chrome', { p: [0, 0.018, 0] })], { p: [0, 0.009, 0], r: [16, 0, 0] }),
   ], { p: [x, RM.h, z] });
 }
-function pushButton(x, z, mk) {
-  return grp([m(G.tube(0.0145, 0.0112, 0.006, 24), 'black', { p: [0, 0.003, 0] }), m(G.disc(0.011, 0.009, 24, 0.002), mk, { p: [0, 0.0045, 0] })], { p: [x, RM.h, z] });
+function pushButton(mk) {
+  return [m(G.tube(0.0145, 0.0112, 0.006, 24), 'black', { p: [0, 0.003, 0] }), m(G.disc(0.011, 0.009, 24, 0.002), mk, { p: [0, 0.0045, 0] })];
 }
-function knob(x, z, r = 0.011) {
-  return grp([m(G.lathe([[0, 0], [r, 0], [r, 0.012], [r * 0.85, 0.016], [0, 0.016]], 24), 'plastic'), m(G.box(0.002, 0.001, r * 0.8, 0.0003), 'plasticLight', { p: [0, 0.0164, r * 0.4] })], { p: [x, RM.h, z] });
-}
-function joystick(x, z, left) {
+/** Manette à pommeau rond (JS1, JS3), pommeau incliné vers l'opérateur. */
+function joystick(cap) {
   const k = [
     m(G.lathe([[0.028, 0], [0.026, 0.006], [0.02, 0.009], [0.024, 0.014], [0.017, 0.018], [0.02, 0.023], [0.013, 0.027], [0.015, 0.031], [0.009, 0.036], [0, 0.037]], 28), 'rubber'),
     m(G.cyl(0.0065, 0.032, 16), 'black', { p: [0, 0.052, 0] }),
   ];
-  if (left) {
-    k.push(m(G.lathe([[0, 0.066], [0.03, 0.066], [0.032, 0.07], [0.032, 0.096], [0.03, 0.098], [0, 0.098]], 32), 'plastic'));
-    k.push(m(G.disc(0.0275, 0.003, 32), 'plasticLight', { p: [0, 0.0995, 0] }));
-    k.push(decal({ text: '', w: 0.038, h: 0.038, px: 256, bg: '#d9d9d4', draw: drawCap(['INCL', 'PINCE'], '#d9d9d4', '#1a1a1a'), p: [0, 0.1016, 0], r: [-90, 0, 0] }));
-  } else {
-    k.push(m(G.lathe([[0, -0.025], [0.022, -0.025], [0.024, -0.02], [0.024, 0.02], [0.022, 0.025], [0, 0.025]], 28), 'plastic', { p: [0, 0.09, 0], r: [0, 0, -90] }));
-    k.push(m(G.box(0.03, 0.02, 0.03, 0.006), 'plastic', { p: [0, 0.072, 0] }));
-    k.push(decal({ text: '', w: 0.03, h: 0.03, px: 256, bg: '#2b2c2e', draw: drawCap(['ROTATION', 'PINCE'], '#2b2c2e', '#e6e6e6'), p: [0.0256, 0.09, 0], r: [0, 90, 0] }));
-  }
-  return grp(k, { p: [x, RM.h, z] });
+  const top = [
+    m(G.lathe([[0, 0], [0.0225, 0], [0.024, 0.003], [0.024, 0.024], [0.0225, 0.026], [0, 0.026]], 32), cap.mat),
+    m(G.disc(0.0205, 0.003, 32), cap.ring, { p: [0, 0.0275, 0] }),
+    decal({ text: '', w: 0.029, h: 0.029, px: 256, bg: cap.bg, key: 'cap:' + cap.lines.join(' '), draw: drawCap(cap.lines, cap.bg, cap.fg, cap.letters), p: [0, 0.0296, 0], r: [-90, 0, 0] }),
+  ];
+  k.push(grp(top, { p: [0, 0.058, 0], r: [24, 0, 0] }));
+  return k;
 }
-function remoteUnit() {
+/** Bascule JS2 : palette noire au-dessus de la zone verte. */
+function paddle() {
   const k = [
+    m(G.lathe([[0.02, 0], [0.018, 0.005], [0.013, 0.008], [0.016, 0.012], [0.011, 0.016], [0.0075, 0.02], [0, 0.021]], 24), 'rubber'),
+    m(G.cyl(0.0055, 0.022, 14), 'black', { p: [0, 0.028, 0] }),
+    m(G.box(0.03, 0.062, 0.014, 0.006, 3), 'rubber', { p: [0, 0.066, 0] }),
+  ];
+  for (const y of [0.05, 0.062, 0.074]) k.push(m(G.box(0.031, 0.003, 0.0155, 0.001), 'black', { p: [0, y, 0] }));
+  return k;
+}
+/** Bouton de côté : touche rectangulaire dans la paroi, normale (sx, 0,4, 0). */
+function sideKey(sx, z, mk) {
+  const n = V(sx, 0.4, 0).normalize();
+  return aim(grp([m(G.box(0.022, 0.004, 0.016, 0.0015), 'black', { p: [0, 0.002, 0] }), m(G.box(0.017, 0.004, 0.011, 0.0015), mk, { p: [0, 0.005, 0] })]), V(sx * (RM.w / 2 - 0.004), 0.062, z), n);
+}
+/** Étiquette d'un bouton de côté, sur la bande plate du dessus, le long du bord (texte selon Z). */
+function sideLabel(sx, z, text, bg, fg = '#ffffff') {
+  return decal({ text, w: 0.024, h: 0.0085, px: 256, bg, fg, p: [sx * 0.1705, RM.h + 0.0008, z], r: [-90, 0, sx * 90] });
+}
+/** Pièces de la télécommande (repère local de la télécommande). */
+function remoteParts() {
+  const P = (id, fr, en, kids, o = {}) => part({ id, sec: '7', item: '4', pn: '279174', fr, en, qty: '1', page: 36, explode: o.explode || [0, 0.08, 0], ...o.meta }, kids);
+  const body = [
     m(G.box(RM.w, RM.h, RM.d, 0.015, 3), 'plastic', { p: [0, RM.h / 2, 0] }),
     m(G.box(RM.w + 0.004, 0.012, RM.d + 0.004, 0.005), 'polymer', { p: [0, 0.028, 0] }), // joint de boîtier
-    decal({ text: '', w: 0.33, h: 0.15, px: 1024, bg: '#17181a', draw: drawFace, p: [0, RM.h + 0.0008, 0], r: [-90, 0, 0] }),
+    decal({ text: '', w: 0.33, h: 0.15, px: 1024, bg: '#17181a', key: 'remote-face', draw: drawFace, p: [0, RM.h + 0.0008, 0], r: [-90, 0, 0] }),
+    m(G.cyl(0.0032, 0.003, 16), 'green', { p: [RC.led[0], RM.h + 0.0015, RC.led[1]] }),   // voyant d'état
+    m(G.tube(0.025, 0.0125, 0.007, 36), 'black', { p: [RC.estop[0], RM.h + 0.0035, RC.estop[1]] }),   // collerette de l'arrêt d'urgence
   ];
   // cadre de protection en caoutchouc (anse)
   const lp = []; for (let i = 0; i < 48; i++) lp.push(loopPt(i / 48 * Math.PI * 2));
-  k.push(m(G.sweep(lp, 0.013, { closed: true, radial: 12, seg: 120 }), 'rubber'));
+  body.push(m(G.sweep(lp, 0.013, { closed: true, radial: 12, seg: 120 }), 'rubber'));
   for (const th of [35, 145, 215, 325]) {
     const Pq = loopPt(th * D2R), B = V(Pq.x * 0.86, RM.h - 0.004, Pq.z * 0.72);
-    k.push(barBetween(B.toArray(), Pq.toArray(), 0.026, 0.018, 'rubber', 0.005, V(Pq.x, 0, Pq.z)));
+    body.push(barBetween(B.toArray(), Pq.toArray(), 0.026, 0.018, 'rubber', 0.005, V(Pq.x, 0, Pq.z)));
   }
-  for (const s of [-1, 1]) k.push(m(G.box(0.05, 0.01, 0.014, 0.004), 'yellow', { p: [s * 0.085, 0.092, 0.116] })); // patins jaunes
-  // écran
-  k.push(grp([m(G.box(0.16, 0.1, 0.028, 0.006), 'plastic'), m(G.box(0.13, 0.072, 0.002, 0.0008), 'screen', { p: [0, 0.006, 0.0145] }),
-    m(G.box(0.006, 0.006, 0.002, 0.001), 'ledWhite', { p: [0.07, -0.042, 0.0145] })], { p: [0, RM.h + 0.046, -0.07], r: [-18, 0, 0] }));
-  k.push(joystick(-0.105, -0.005, true), joystick(0.105, -0.005, false));
-  for (const x of [-0.156, -0.123, -0.09, 0.09, 0.123, 0.156]) k.push(toggle(x, 0.055));
-  k.push(toggle(-0.035, 0.005), knob(0.035, 0.005, 0.013), knob(-0.17, -0.045), knob(-0.17, -0.012));
-  k.push(pushButton(-0.055, 0.055, 'yellow'), pushButton(0.055, 0.055, 'green'));
-  k.push(grp([estopButton({ D: 0.042 })], { p: [0, RM.h, 0.055] }));
-  // anneaux de bandoulière et prise latérale
-  for (const s of [-1, 1]) k.push(m(G.torus(0.011, 0.0028, Math.PI * 2, 8, 20), 'zinc', { p: [s * (RM.w / 2 + 0.008), 0.06, -0.06], r: [0, 90, 0] }));
-  k.push(m(G.cyl(0.0095, 0.012, 20), 'zinc', { p: [RM.w / 2 + 0.006, 0.042, 0.035], r: [0, 0, 90] }), m(G.disc(0.0105, 0.006, 20), 'plastic', { p: [RM.w / 2 + 0.014, 0.042, 0.035], r: [0, 0, 90] }));
-  return k;
+  for (const s of [-1, 1]) body.push(m(G.box(0.05, 0.01, 0.014, 0.004), 'yellow', { p: [s * 0.085, 0.092, 0.116] })); // patins jaunes
+  // anneaux de bandoulière (arrière) et prise de charge (dos)
+  for (const s of [-1, 1]) body.push(m(G.torus(0.011, 0.0028, Math.PI * 2, 8, 20), 'zinc', { p: [s * (RM.w / 2 + 0.008), 0.03, -0.075], r: [0, 90, 0] }));
+  body.push(m(G.cyl(0.0095, 0.012, 20), 'zinc', { p: [0.12, 0.042, -RM.d / 2 - 0.006], r: [90, 0, 0] }), m(G.disc(0.0105, 0.006, 20), 'plastic', { p: [0.12, 0.042, -RM.d / 2 - 0.014], r: [90, 0, 0] }));
+  // étiquettes des boutons de côté
+  body.push(sideLabel(-1, -0.05, 'DÉP. LENTE', '#2d6fd2'), sideLabel(-1, -0.022, 'STABS', '#2b2c2e'), sideLabel(-1, 0.006, 'BALAYAGE', '#2b2c2e'), sideLabel(-1, 0.045, 'COMMENCER', '#3f8a30'));
+  body.push(sideLabel(1, -0.05, 'ATTENTE', '#2b2c2e'), sideLabel(1, -0.022, 'DIRECT', '#2d6fd2'), sideLabel(1, 0.006, 'LINÉAIRE', '#e5862b'));
+  // écran d'état (non tactile), incliné vers l'opérateur, deux touches sur le dessus
+  const screen = grp([m(G.box(0.16, 0.1, 0.028, 0.006), 'plastic'),
+    decal({ text: '', w: 0.13, h: 0.072, px: 512, bg: '#0d1114', key: 'remote-screen', draw: drawScreen, p: [0, 0.006, 0.0145] }),
+    m(G.box(0.006, 0.006, 0.002, 0.001), 'ledWhite', { p: [0.07, -0.042, 0.0145] }),
+    m(G.box(0.014, 0.004, 0.008, 0.0015), 'plasticGrey', { p: [-0.062, 0.051, 0] }), m(G.box(0.014, 0.004, 0.008, 0.0015), 'plasticGrey', { p: [0.062, 0.051, 0] })],
+  { p: [0, RM.h + 0.046, -0.07], r: [-18, 0, 0] });
+  const tg = (x, z) => toggle(x, z);
+  const [j1x, j1z] = RC.js1, [j2x, j2z] = RC.js2, [j3x, j3z] = RC.js3;
+  const jy = RM.h + 0.008;
+  const at = (kids, x, z) => grp(kids, { p: [x, RM.h, z] });
+  return [
+    P('acc-remote-body', 'Boîtier et anse de la télécommande', 'Remote housing and guard', body, { explode: [0, 0, 0] }),
+    P('acc-remote-screen', "Écran d'état (non tactile)", 'Status display', [screen], { explode: [0, 0.07, -0.05], meta: { note: 'Témoins de mode et de batterie faible. Touches luminosité et aide (photo du manuel p. 21).' } }),
+    P('acc-remote-js1', 'Manette JS1 (gauche) : inclinaison de la pince', 'JS1 joystick (left): gripper tilt', [at(joystick({ mat: 'plastic', ring: 'plasticLight', bg: '#d9d9d4', fg: '#1a1a1a', lines: ['INCL', 'PINCE'], letters: ['G', 'D'] }), j1x, j1z)],
+      { explode: [0, 0.12, 0], meta: { joints: [{ id: 'ctl:js1x', type: 'rot', pivot: [j1x, jy, j1z], axis: [0, 0, -1], scale: 18 }, { id: 'ctl:js1y', type: 'rot', pivot: [j1x, jy, j1z], axis: [-1, 0, 0], scale: 18 }] } }),
+    P('acc-remote-js2', 'Manette JS2 (centre) : bascule de la pince', 'JS2 paddle (centre): gripper open and close', [at(paddle(), j2x, j2z)],
+      { explode: [0, 0.12, 0], meta: { note: 'Avec le bouton vert PINCE maintenu (manuel opérateur p. 55).', joint: { id: 'ctl:js2', type: 'rot', pivot: [j2x, RM.h + 0.006, j2z], axis: [-1, 0, 0], scale: 18 } } }),
+    P('acc-remote-js3', 'Manette JS3 (droite) : rotation de la pince', 'JS3 joystick (right): gripper rotation', [at(joystick({ mat: 'plastic', ring: 'plastic', bg: '#2b2c2e', fg: '#e6e6e6', lines: ['ROTATION', 'PINCE'], letters: ['B', 'H'] }), j3x, j3z)],
+      { explode: [0, 0.12, 0], meta: { joints: [{ id: 'ctl:js3x', type: 'rot', pivot: [j3x, jy, j3z], axis: [0, 0, -1], scale: 18 }, { id: 'ctl:js3y', type: 'rot', pivot: [j3x, jy, j3z], axis: [-1, 0, 0], scale: 18 }] } }),
+    P('acc-remote-estop', "Arrêt d'urgence de la télécommande", 'Remote e-stop', [at([m(G.cyl(0.0115, 0.014, 24), 'plastic', { p: [0, 0.009, 0] }), m(G.lathe([[0, 0], [0.021, 0], [0.0218, 0.006], [0.0195, 0.014], [0, 0.0165]], 36), 'redLens', { p: [0, 0.015, 0] })], RC.estop[0], RC.estop[1])],
+      { explode: [0, 0.1, 0.03], meta: { note: 'Actif seulement en mode À DISTANCE (manuel opérateur p. 12).', joint: { id: 'btn:u2', type: 'slide', axis: [0, -1, 0], scale: 0.006 } } }),
+    P('acc-remote-grip', 'Bouton vert PINCE', 'Green GRIP button', [at(pushButton('green'), RC.grip[0], RC.grip[1])],
+      { explode: [0, 0.08, 0.03], meta: { joint: { id: 'btn:grip', type: 'slide', axis: [0, -1, 0], scale: 0.003 } } }),
+    P('acc-remote-traj', 'Bouton jaune TRAJECTOIRE', 'Yellow PATH button', [at(pushButton('yellow'), RC.traj[0], RC.traj[1])],
+      { explode: [0, 0.08, 0.03], meta: { joint: { id: 'btn:traj', type: 'slide', axis: [0, -1, 0], scale: 0.003 } } }),
+    P('acc-remote-horn', 'Interrupteur KLAXON / GYROPHARE', 'HORN / BEACON switch', [tg(RC.tgl[2], RC.tglZ)], { explode: [0, 0.06, 0.03] }),
+    P('acc-remote-toggles', 'Interrupteurs (aimant, vitesse, trajectoire, AUX, travail, mât)', 'Switches (magnet, speed, path, AUX, work, mast)',
+      [tg(RC.tgl[0], RC.tglZ), tg(RC.tgl[1], RC.tglZ), tg(RC.tgl[3], RC.tglZ), tg(RC.tgl[4], RC.tglZ), tg(RC.tgl[5], RC.tglZ), tg(RC.pts[0], RC.pts[1]), tg(RC.enr[0], RC.enr[1])],
+      { explode: [0, 0.06, 0], meta: { note: '7 interrupteurs : sous tension / arrêt aimant, rapide / lent, AUX, travail AV / AR, déplacement lent / mât, PTS AUTO, ENR / SUPPRIMER.' } }),
+    P('acc-remote-start', 'Bouton COMMENCER (côté gauche)', 'START button (left side)', [sideKey(-1, 0.045, 'green')],
+      { explode: [-0.06, 0, 0], meta: { joint: { id: 'btn:start', type: 'slide', axis: [1, 0, 0], scale: 0.003 } } }),
+    P('acc-remote-modes-left', 'Boutons de mode MARCHE, STABS, BALAYAGE', 'Mode buttons: drive, outriggers, sweep', [sideKey(-1, -0.05, 'blue'), sideKey(-1, -0.022, 'plasticLight'), sideKey(-1, 0.006, 'plasticLight')],
+      { explode: [-0.06, 0, 0] }),
+    P('acc-remote-mode-standby', 'Bouton de mode ATTENTE (veille)', 'STANDBY mode button', [sideKey(1, -0.05, 'plasticLight')],
+      { explode: [0.06, 0, 0], meta: { joint: { id: 'btn:mode_standby', type: 'slide', axis: [-1, 0, 0], scale: 0.003 } } }),
+    P('acc-remote-mode-direct', 'Bouton de mode DIRECT', 'DIRECT mode button', [sideKey(1, -0.022, 'blue')],
+      { explode: [0.06, 0, 0], meta: { joint: { id: 'btn:mode_direct', type: 'slide', axis: [-1, 0, 0], scale: 0.003 } } }),
+    P('acc-remote-mode-linear', 'Bouton de mode LINÉAIRE', 'LINEAR mode button', [sideKey(1, 0.006, 'orange')],
+      { explode: [0.06, 0, 0], meta: { joint: { id: 'btn:mode_linear', type: 'slide', axis: [-1, 0, 0], scale: 0.003 } } }),
+  ];
 }
 /* Batterie Autec 264305 : repère local, posée à plat, longueur selon X. */
 function battery() {
@@ -488,12 +573,12 @@ function buildRemote() {
     receiver.push(m(G.lathe([[0, 0], [0.0135, 0], [0.0135, 0.014], [0.012, 0.016], [0, 0.016]], 24), i === 1 ? 'redDark' : 'plastic', { p: [x, 0.032, 0.093], r: [90, 0, 0] }));
   });
   const kidsAt = (arr, x, z, ry = 0) => [grp(arr, { p: [x, KZ.y, z], r: [0, ry, 0] })];
-  const remote = grp(remoteUnit(), { p: [P[0], crY + 0.004, P[2]], r: [0, yaw, 0] }); // posée sur 4 patins de 4 mm
+  const remote = grp(remoteParts(), { p: [P[0], crY + 0.004, P[2]], r: [0, yaw, 0] }); // posée sur 4 patins de 4 mm
   const bat1 = grp([grp(battery(), { p: [0, 0, -0.05], r: [0, 90, 0] })], { p: [P[0], crY + 0.008, P[2]], r: [0, yaw, 0] });
   return asm({ id: 'radioRemote', sec: '7', item: '12', pn: '278245', fr: 'Télécommande radio', en: 'Radio remote kit', qty: '1', page: 36, explode: [0, 0, 0],
     note: 'Télécommande posée sur le trépied. Chargeur, batteries, récepteur et bandoulière posés au sol avec les articles livrés à part.' }, [
-    part({ id: 'acc-remote-unit', sec: '7', item: '4', pn: '279174', fr: 'Télécommande (française)', en: 'Remote control (French)', qty: '1', page: 36, explode: [0, 0.32, 0],
-      note: 'Deux manettes, écran, interrupteurs, arrêt d\'urgence au centre en bas (photo de la télécommande).' }, [remote]),
+    asm({ id: 'acc-remote-unit', sec: '7', item: '4', pn: '279174', fr: 'Télécommande (française)', en: 'Remote control (French)', qty: '1', page: 36, explode: [0, 0.32, 0],
+      note: 'Trois manettes (JS1, JS2, JS3), 8 interrupteurs, arrêt d\'urgence au centre en bas, 7 boutons de côté (photo annotée du manuel opérateur p. 21).' }, [remote]),
     part({ id: 'acc-remote-battery-1', sec: '7', item: '3', pn: '264305', fr: 'Batterie (dans la télécommande)', en: 'Battery (in the remote)', qty: '4', page: 36, approx: true,
       explode: back.clone().multiplyScalar(0.16).add(V(0, 0.32, 0)).toArray() }, [bat1]),
     part({ id: 'acc-remote-charger', sec: '7', item: '1', pn: '264306', fr: 'Chargeur de batterie', en: 'Battery charger', qty: '1', page: 36, approx: true, explode: [0, 0, 0] }, kidsAt(charger, 0.72, 1.22)),

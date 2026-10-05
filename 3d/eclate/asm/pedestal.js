@@ -4,7 +4,7 @@
  * Les sous-ensembles ne sont pas tournés, sauf le banc de valves 14.2.1 (tourné de -90° autour de Y) :
  * ses éclatements de niveau 4 sont donnés dans son repère local (z local = vers l'opérateur, donc -X monde).
  */
-import { THREE, G, m, grp, aim, bolt, nut, washer, lever, weld, decal, labelMat, asm, part, IN, DEG } from '../kit.js';
+import { THREE, G, m, grp, aim, bolt, nut, washer, lever, weld, decal, labelMat, asm, part, seg, IN, DEG } from '../kit.js';
 import { L } from '../layout.js';
 
 /* ------------------------------------------------------------------ */
@@ -294,7 +294,7 @@ function bankValveMount() {
     part({ id: 'ped-vb7-bank', sec: '14.2.1', item: '1', pn: '276877', fr: 'Banc de valves HAWE à 7 sections', en: 'HAWE 7-section valve bank', qty: '1', page: 74, explode: [0, 0, 0],
       note: '7 sections, 7 leviers (photos et vidéo de la machine, CAO p. 52 du manuel opérateur). Ports A et B à l\'arrière.' }, b.meshes),
     ...b.levers.map((l) => part({ id: `ped-lever-${l.k + 1}`, sec: '14.2.1', item: '1', pn: '276877', fr: `Levier ${l.k + 1} du panneau avant`, en: `Front panel lever ${l.k + 1}`, qty: '1', page: 74,
-      explode: [0, 0.05, 0.06], pivot: l.pivot, axis: [1, 0, 0], note: 'Levier manuel du distributeur. Utilisé en commande LOCAL seulement (manuel opérateur p. 50).' }, [l.mesh])),
+      explode: [0, 0.05, 0.06], pivot: l.pivot, axis: [1, 0, 0], joint: { id: `ctl:front${String(l.k + 1).padStart(2, '0')}`, type: 'rot', pivot: l.pivot, axis: [1, 0, 0], scale: 18 }, note: 'Levier manuel du distributeur. Utilisé en commande LOCAL seulement (manuel opérateur p. 50).' }, [l.mesh])),
     part({ id: 'ped-vb7-fit-8-12', sec: '14.2.1', item: '2', pn: '202702-8-12', fr: 'Raccords 8 ORB - 12 JIC (P et T)', en: 'Fittings 8ORB-12JIC (P, T)', qty: '2', page: 74, explode: [0, 0, -0.06] },
       [jic(12, b.ports.P.p, b.ports.P.dir), jic(12, b.ports.T.p, b.ports.T.dir)]),
     part({ id: 'ped-vb7-fit-4-6', sec: '14.2.1', item: '3', pn: '202702-4-6', fr: 'Raccord 4 ORB - 6 JIC (manomètre)', en: 'Fitting 4ORB-6JIC (gauge)', qty: '1', page: 74, explode: [-0.05, 0, 0] },
@@ -336,7 +336,8 @@ function valveMount() {
   const E = [PX0, ESTOP.y, ESTOP.z];
   out.push(part({ id: 'ped-vm-estop', sec: '14.2', item: '5', pn: '269897', fr: 'Arrêt d\'urgence 22 mm', en: 'E-stop 22 mm', qty: '1', page: 72, explode: [-0.36, 0, 0] }, [
     discA(add(E, [-0.0008, 0, 0]), [-1, 0, 0], 0.0165, 0.006, 'black'),
-    lathA(add(E, [-0.0068, 0, 0]), [-1, 0, 0], [[0, 0], [0.012, 0], [0.012, 0.008], [0.019, 0.009], [0.0205, 0.013], [0.018, 0.019], [0.01, 0.0215], [0, 0.022]], 'redLens'),
+    seg({ seg: 'cap', joint: { id: 'btn:u4', type: 'slide', axis: [1, 0, 0], scale: 0.006 } }, [
+      lathA(add(E, [-0.0068, 0, 0]), [-1, 0, 0], [[0, 0], [0.012, 0], [0.012, 0.008], [0.019, 0.009], [0.0205, 0.013], [0.018, 0.019], [0.01, 0.0215], [0, 0.022]], 'redLens')]),
     bx(PX1, PX1 + 0.05, ESTOP.y - 0.016, ESTOP.y + 0.016, ESTOP.z - 0.016, ESTOP.z + 0.016, 'plasticGrey', 0.003),
     cylA([PX1 + 0.05, ESTOP.y, ESTOP.z], [1, 0, 0], 0.0075, 0.016, 'machined', 16),
   ]));
@@ -498,7 +499,7 @@ function tramBank() {
     part({ id: 'ped-tram-bank', sec: '14.5.1', item: '1', pn: '276876', fr: 'Banc de valves HAWE à 5 sections', en: 'HAWE 5-section valve bank', qty: '1', page: 79, explode: [0, 0, 0],
       note: '5 leviers à pommeau, ports A et B vers le caisson (p. 77, vues de dessus et de dessous).' }, b.meshes),
     ...b.levers.map((l) => part({ id: `ped-tram-lever-${l.k + 1}`, sec: '14.5.1', item: '1', pn: '276876', fr: `Levier ${l.k + 1} des chenilles et vérins`, en: `Tracks and jacks lever ${l.k + 1}`, qty: '1', page: 79,
-      explode: [0, 0.05, 0.06], pivot: l.pivot, axis: [1, 0, 0], note: 'Pour l\'entretien des chenilles seulement (manuel opérateur p. 51 et 52).' }, [l.mesh])),
+      explode: [0, 0.05, 0.06], pivot: l.pivot, axis: [1, 0, 0], joint: { id: `ctl:side${String(l.k + 1).padStart(2, '0')}`, type: 'rot', pivot: l.pivot, axis: [1, 0, 0], scale: 18 }, note: 'Pour l\'entretien des chenilles seulement (manuel opérateur p. 51 et 52).' }, [l.mesh])),
     part({ id: 'ped-tram-fit-6-6', sec: '14.5.1', item: '2', pn: '202702-6-6', fr: 'Raccords 6 ORB - 6 JIC', en: 'Fittings 6ORB-6JIC', qty: '6', page: 79, explode: [0, 0, -0.05] }, f66),
     part({ id: 'ped-tram-fit-8-10', sec: '14.5.1', item: '3', pn: '202702-8-10', fr: 'Raccords 8 ORB - 10 JIC', en: 'Fittings 8ORB-10JIC', qty: '4', page: 79, explode: [0, 0, -0.05] }, f810),
     part({ id: 'ped-tram-elb-6-6', sec: '14.5.1', item: '4', pn: '2062-6-6', fr: 'Coudes 90° ORB - JIC femelle taille 6', en: '90° elbows MORB-FJIC size 6', qty: '2', page: 79, explode: [0, 0, -0.05] }, [e1.g, e2.g]),

@@ -6,7 +6,7 @@
  * La flèche est un tube carré posé sur la pointe (section en losange, coupe A-A p. 52).
  * Cotes relevées sur op79 (3,244 mm/px), p. 49 (vue de dessus) et p. 51 (vue de côté).
  */
-import { THREE, G, m, grp, aim, between, bolt, nut, washer, greaseNipple, fitting, elbow, weld, asm, part, IN } from '../kit.js';
+import { THREE, G, m, grp, aim, between, bolt, nut, washer, greaseNipple, fitting, elbow, weld, asm, part, seg, IN } from '../kit.js';
 import { L } from '../layout.js';
 
 const D2R = Math.PI / 180;
@@ -118,11 +118,14 @@ function liftCylinder(Lp, up) {
   g.push(m(G.box(0.066, yF - yB, 0.056, 0.005), mk, { p: [0, (yB + yF) / 2, 0] }));
   g.push(m(lath([[0, yF - 0.003], [od / 2 - 0.002, yF - 0.003], [od / 2, yF - 0.001], [od / 2, yG], [0, yG]], 36), mk));
   g.push(m(lath([[0, yG - 0.001], [0.044, yG - 0.001], [0.044, yG + 0.014], [rodD / 2 + 0.003, yG + 0.018], [rodD / 2 + 0.001, yG + 0.018], [rodD / 2 + 0.001, yG - 0.001]], 36), mk));
-  const yE = Lp - eyeR * 0.8;
-  g.push(m(G.cyl(rodD / 2, yE - yG - 0.012, 28), 'chrome', { p: [0, (yE + yG + 0.012) / 2, 0] }));
-  g.push(m(G.cyl(rodD * 0.6, eyeR * 0.7, 24), mk, { p: [0, Lp - eyeR * 0.8, 0] }));
-  g.push(m(alongZ(ring(eyeR, 0.0205, eyeW)), mk, { p: [0, Lp, 0] }));
-  g.push(m(G.sphere(0.0205, 20), 'machined', { p: [0, Lp, 0], s: [1, 1, 0.62] }));
+  // tige mobile (atelier) : elle se prolonge, cachée, dans le fût pour sortir sans laisser de vide
+  const yE = Lp - eyeR * 0.8, yR = yG - 0.07;
+  g.push(seg({ seg: 'rod' }, [
+    m(G.cyl(rodD / 2, yE - yR, 28), 'chrome', { p: [0, (yE + yR) / 2, 0] }),
+    m(G.cyl(rodD * 0.6, eyeR * 0.7, 24), mk, { p: [0, Lp - eyeR * 0.8, 0] }),
+    m(alongZ(ring(eyeR, 0.0205, eyeW)), mk, { p: [0, Lp, 0] }),
+    m(G.sphere(0.0205, 20), 'machined', { p: [0, Lp, 0], s: [1, 1, 0.62] }),
+  ]));
   for (const [px, py] of LC.ports) g.push(m(alongZ(G.cyl(0.010, 0.006, 16)), mk, { p: [px, py, 0.031] }));
   // tube rigide vers la chambre de tige
   const tx = up * (od / 2 + 0.009);
@@ -262,7 +265,8 @@ function buildHoist() {
   for (const s of [-1, 1]) hw.push(m(alongZ(ring(1 * IN, 0.76 * IN, 0.125 * IN)), 'bronze', { p: [J2X, J2Y, s * (0.077 + 0.0016)] }));
   for (const s of [-1, 1]) for (const zz of [ZE1[1] + 0.0008, ZE2[0] - 0.0008]) hw.push(m(alongZ(ring(1 * IN, 0.635 * IN, 0.0625 * IN)), 'bronze', { p: [LBX, LBY, s * zz] }));
   const hhw = part({ id: 'crane-hoist-hw', sec: '10.2', item: '12', pn: 'B343', fr: 'Visserie', en: 'Hardware', qty: '-', page: 48, explode: [0, 0.07, 0], note: 'Repères 3 (B263 x2), 4 (216795 x12), 5 (117753 x2), 6 (224166 x2), 9 (B140 x2), 10 (277428 x4), 11 (277431 x2), 12 (B343 x12, serrer à 216 lb-pi).' }, hw);
-  return asm({ id: 'crane-hoist', sec: '10.2', item: '2', pn: '277068', fr: 'Base de levage', en: 'Hoist base', qty: '1', page: 48, explode: [0, 0.26, 0] }, [base, pinJ2, ret, ...pins, hhw]);
+  return asm({ id: 'crane-hoist', sec: '10.2', item: '2', pn: '277068', fr: 'Base de levage', en: 'Hoist base', qty: '1', page: 48, explode: [0, 0.26, 0],
+    joint: { id: 'turret', type: 'rot', pivot: [SX, Y1, SZ], axis: [0, 1, 0] } }, [base, pinJ2, ret, ...pins, hhw]);
 }
 
 /* ------------------------------------------------------------------ */
@@ -594,7 +598,8 @@ function buildLug() {
 }
 
 function buildBoom() {
-  return asm({ id: 'crane-boom', sec: '10.3', item: '1', pn: '276476', fr: 'Flèche télescopique', en: 'Telescopic boom', qty: '1', page: 49, explode: [0, 0.68, 0] },
+  return asm({ id: 'crane-boom', sec: '10.3', item: '1', pn: '276476', fr: 'Flèche télescopique', en: 'Telescopic boom', qty: '1', page: 49, explode: [0, 0.68, 0],
+    joint: { id: 'arm', type: 'rot', pivot: [J2X, J2Y, 0], axis: [0, 0, 1], parent: 'turret' } },
     [buildOuterBoom(), buildInner(), buildTele(), buildHoistEncoder(), buildEchain(), buildLug()]);
 }
 
@@ -606,17 +611,19 @@ function buildLiftCylinders() {
   [1, -1].forEach((s, i) => {
     const a = [LBX, LBY, s * LZ], b = [LRX, LRY, s * LZ], Lp = V(...a).distanceTo(V(...b)), roll = s > 0 ? 0 : 180;
     const c = liftCylinder(Lp, -s); between(c, a, b, roll);
-    out.push(part({ id: `crane-lift-${i + 1}`, sec: '10', item: '3', pn: '278117', fr: 'Vérin de levage', en: 'Lift cylinder', qty: '2', page: 45, explode: [0.04, 0.40, s * 0.42], approx: true, note: 'Course 8 1/2 po, alésage 2 1/2 po, tige 1 1/2 po. Pied à bloc à 2 orifices, tête à rotule (p. 45).' }, [c]));
+    out.push(part({ id: `crane-lift-${i + 1}`, sec: '10', item: '3', pn: '278117', fr: 'Vérin de levage', en: 'Lift cylinder', qty: '2', page: 45, explode: [0.04, 0.40, s * 0.42], approx: true, note: 'Course 8 1/2 po, alésage 2 1/2 po, tige 1 1/2 po. Pied à bloc à 2 orifices, tête à rotule (p. 45).',
+      rig: 'turret', cyl: { end: 'arm', A: a, B: b } }, [c]));
     LC.ports.forEach(([px, py], j) => {
       const e = grp([aim(elbow({ d: 0.375 * IN }), V(px, py, 0.034), V(0, 0, 1), -90)]);
       between(e, a, b, roll);
-      out.push(part({ id: `crane-elbow-${2 * i + j + 1}`, sec: '10', item: '5', pn: 'FA01052-06', fr: 'Coude 90° ORB-JIC', en: '90° elbow adapter', qty: '4', page: 45, explode: [0.04, 0.40, s * 0.50] }, [e]));
+      out.push(part({ id: `crane-elbow-${2 * i + j + 1}`, sec: '10', item: '5', pn: 'FA01052-06', fr: 'Coude 90° ORB-JIC', en: '90° elbow adapter', qty: '4', page: 45, explode: [0.04, 0.40, s * 0.50],
+        rig: `cyl:crane-lift-${i + 1}` }, [e]));
     });
   });
   return out;
 }
 function buildFittings6() { // raccords 6ORBM-6JICM (x2) sur le bloc de valve du vérin télescopique
-  return [0, 1].map(i => part({ id: `crane-fit6-${i + 1}`, sec: '10', item: '6', pn: '202702-6-6', fr: 'Raccord droit', en: 'Straight fitting', qty: '2', page: 45, explode: [0.35, 0.68 + 0.26 + 0.06, 0] },
+  return [0, 1].map(i => part({ id: `crane-fit6-${i + 1}`, sec: '10', item: '6', pn: '202702-6-6', fr: 'Raccord droit', en: 'Straight fitting', qty: '2', page: 45, explode: [0.35, 0.68 + 0.26 + 0.06, 0], rig: 'arm' },
     [aim(fitting({ d: 0.375 * IN, L: 0.03 }), V(XTB + 0.079 + (i ? 0.018 : -0.018), YT + 0.036, 0), V(0, 1, 0))]));
 }
 

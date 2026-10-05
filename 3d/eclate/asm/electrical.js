@@ -5,7 +5,7 @@
  * et de l'intérieur), p. 11 (arrêt d'urgence sous l'écran) et p. 79 (vue de côté cotée).
  * Repère : Y vers le haut, X = longueur (socle à -X), Z = largeur (porte du panneau 24 V vers -Z).
  */
-import { THREE, G, m, grp, aim, bolt, nut, washer, asm, part, IN } from '../kit.js';
+import { THREE, G, m, grp, aim, bolt, nut, washer, asm, part, seg, IN } from '../kit.js';
 import { L } from '../layout.js';
 
 /* ------------------------------------------------------------------ */
@@ -456,7 +456,8 @@ function buildDoor() {
   pb.push(cylAxis(0.0145, 0.016, 'plastic', D(pu, pv, ZDB + 0.008), [0, 0, 1], 24));
   sel.push(aim(m(G.lathe([[0.0112, 0], [0.0152, 0], [0.0152, 0.007], [0.014, 0.0095], [0.0112, 0.0095]], 32), 'plastic'), D(su0, sv0, ZD - 0.0007), OUT));
   const knob = grp([m(G.cyl(0.0112, 0.006, 28), 'plastic', { p: [0, 0.009, 0] }), m(G.box(0.0075, 0.016, 0.026, 0.002), 'plastic', { p: [0, 0.019, 0], r: [90, 0, 0] }), m(G.box(0.0016, 0.0005, 0.018, 0), 'plasticLight', { p: [0, 0.0272, 0] })]);
-  sel.push(aim(knob, D(su0, sv0, ZD - 0.0007), OUT, 30));
+  // poignée du sélecteur : tourne de 90° entre LOCAL et TÉLÉCOMMANDE (atelier)
+  sel.push(seg({ seg: 'knob', joint: { id: 'acc:source', type: 'rot', pivot: D(su0, sv0, ZD), axis: [0, 0, -1], scale: 90 } }, [aim(knob, D(su0, sv0, ZD - 0.0007), OUT, 30)]));
   sel.push(cylAxis(0.0145, 0.016, 'plastic', D(su0, sv0, ZDB + 0.008), [0, 0, 1], 24));
   es.push(aim(m(G.disc(0.0323, 0.0035, 40), 'yellow'), D(eu, ev, ZD - 0.0007 - 0.00175), OUT));
   es.push(new THREE.Mesh(orient(new THREE.RingGeometry(0.0115, 0.0322, 48), [-1, 0, 0], [0, 1, 0], D(eu, ev, ZD - 0.0007 - 0.0041)), cmat('emergency', 256, 256, drawEmergency, { rough: 0.4, clear: 0.4 })));
@@ -483,12 +484,14 @@ function buildDoor() {
     part({ id: 'elec-hmiflange-gasket', sec: '9.4', item: '2', pn: '281872', fr: 'Joint du cadre', en: 'Flange gasket', qty: '1', page: 44, explode: [0, 0, -0.01], note: 'Aussi repère 40 du panneau 24 V (même pièce).' }, gk),
     part({ id: 'elec-hmiflange-nuts', sec: '9.4', item: '3', pn: 'N058', fr: 'Écrous autobloquants 1/4 po', en: '1/4 in locknuts', qty: '13', page: 44, explode: [0, 0, 0.11], note: '13 au tableau, 12 goujons dessinés.' }, nuts),
   ]);
-  return part({ id: 'elec-p24-door', sec: S, item: '17', pn: '279593', fr: 'Porte du panneau 24 V', en: '24 V panel door', qty: '1', page: pg, explode: [0, 0, -0.44], note: "Porte du boîtier 20 x 20 x 8 po (repère 17). Charnière à droite, quatre brides de fermeture." }, [
+  // charnière continue côté -X (voir buildBody) : la porte s'ouvre vers -Z (atelier)
+  return part({ id: 'elec-p24-door', sec: S, item: '17', pn: '279593', fr: 'Porte du panneau 24 V', en: '24 V panel door', qty: '1', page: pg, explode: [0, 0, -0.44], note: "Porte du boîtier 20 x 20 x 8 po (repère 17). Charnière à droite, quatre brides de fermeture.",
+    joint: { id: 'acc:panel', type: 'rot', pivot: [CX - BW / 2 - 0.004, CY, -0.7224], axis: [0, 1, 0], scale: 105 } }, [
     door, gasket,
     part({ id: 'elec-p24-hmi', sec: S, item: '41', pn: '281869', fr: 'Écran tactile 10,2 po', en: '10.2 in touch screen', qty: '1', page: pg, explode: [0, 0, -0.17] }, hmi),
     flange,
-    part({ id: 'elec-p24-pb', sec: S, item: '6', pn: '250320', fr: 'Bouton de réarmement bleu', en: 'Blue reset push button', qty: '1', page: pg, explode: [0, 0, -0.07] }, pb),
-    part({ id: 'elec-p24-estop', sec: S, item: '22', pn: '279757', fr: "Arrêt d'urgence", en: 'E-stop button', qty: '1', page: pg, explode: [0, 0, -0.08], note: "Juste sous l'écran (manuel opérateur p. 11)." }, es),
+    part({ id: 'elec-p24-pb', sec: S, item: '6', pn: '250320', fr: 'Bouton de réarmement bleu', en: 'Blue reset push button', qty: '1', page: pg, explode: [0, 0, -0.07] }, [pb[0], pb[2], seg({ seg: 'cap', joint: { id: 'btn:rearm', type: 'slide', axis: [0, 0, 1], scale: 0.004 } }, [pb[1]])]),
+    part({ id: 'elec-p24-estop', sec: S, item: '22', pn: '279757', fr: "Arrêt d'urgence", en: 'E-stop button', qty: '1', page: pg, explode: [0, 0, -0.08], note: "Juste sous l'écran (manuel opérateur p. 11)." }, [...es.slice(0, 3), seg({ seg: 'cap', joint: { id: 'btn:u1', type: 'slide', axis: [0, 0, 1], scale: 0.006 } }, [es[3]]), ...es.slice(4)]),
     part({ id: 'elec-p24-sel', sec: S, item: '38', pn: '246314', fr: 'Sélecteur local / télécommande', en: 'Local / remote selector', qty: '1', page: pg, explode: [0, 0, -0.07] }, sel),
     part({ id: 'elec-p24-cbno-1', sec: S, item: '36', pn: '247152', fr: 'Bloc de contact NO', en: 'N/O contact block', qty: '2', page: pg, explode: [0, 0, 0.05], note: 'Exemplaire 1 sur 2 (sélecteur).' }, cb.a),
     part({ id: 'elec-p24-cbno-2', sec: S, item: '36', pn: '247152', fr: 'Bloc de contact NO', en: 'N/O contact block', qty: '2', page: pg, explode: [0, 0, 0.05], note: 'Exemplaire 2 sur 2 (bouton bleu).' }, cb.b),

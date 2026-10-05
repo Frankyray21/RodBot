@@ -19,6 +19,14 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
+## Nouvel atelier 3D v1.132.0 (aperçu)
+
+L'[aperçu du nouvel atelier](3d/atelier.html) reprend les exercices et la visite guidée sur le modèle neuf. Le modèle est le même que celui de la vue éclatée. Il est articulé : tourelle, flèche et vérins de levage, poignet, rotation et inclinaison de la pince, mâchoires, stabilisateurs. La porte du coffret s'ouvre. Les 12 leviers, les manettes et les boutons bougent. Les 41 repères suivent les pièces (`3d/js/hotspots-v41.js`).
+
+La télécommande suit la photo du manuel opérateur (p. 21) : 3 manettes (JS1, JS2, JS3), 8 interrupteurs, 3 boutons ronds, arrêt d'urgence et 7 boutons de côté. Chaque commande est une pièce séparée.
+
+L'ancien atelier (`3d/index.html`, GLB V40) reste en place tant que le nouveau n'est pas validé.
+
 ## Vue éclatée 3D v1.131.1
 
 La [vue éclatée](3d/eclate.html) montre la machine reconstruite d'après les dessins du manuel de pièces PM10654 R0. Chaque ensemble s'écarte avec un curseur. Chaque pièce porte son numéro du manuel. Une pièce touchée affiche sa fiche : numéro de pièce, quantité, tableau de nomenclature et pièces de rechange critiques.

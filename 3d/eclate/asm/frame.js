@@ -7,7 +7,7 @@
  * Bout +X : côté bac, compartiment de rangement, arrêt d'urgence au coin +Z.
  * Bout -X : côté socle (plaque de montage du piédestal), rampe de garde entre le socle et le bac.
  */
-import { THREE, G, m, grp, aim, bolt, nut, washer, fitting, elbow, greaseNipple, rubberTrack, weld, asm, part, IN, DEG } from '../kit.js';
+import { THREE, G, m, grp, aim, bolt, nut, washer, fitting, elbow, greaseNipple, rubberTrack, weld, asm, part, seg, IN, DEG } from '../kit.js';
 import { L } from '../layout.js';
 
 /* ------------------------------------------------------------------ */
@@ -355,8 +355,11 @@ function stabCylGeo() {
   for (const x of [-0.052, 0.052]) for (const y of [0.33, 0.43, 0.53]) g.push(m(G.box(0.012, 0.03, 0.012, 0.002), 'red', { p: [x, y, 0.041] })); // pattes de soudure
   g.push(m(G.cyl(0.046, 0.607 - 0.225, 40), 'red', { p: [0, (0.607 + 0.225) / 2, 0] }));
   g.push(m(G.cyl(0.040, 0.006, 32), 'zinc', { p: [0, 0.222, 0] }));
-  g.push(m(G.cyl(0.0255, 0.010, 24), 'chrome', { p: [0, 0.214, 0] }));
-  g.push(m(G.lathe([[0, L.stabilizer.footRetractedY - 0.005], [0.086, 0.195], [0.089, 0.198], [0.089, 0.205], [0.084, 0.209], [0.036, 0.211], [0.031, 0.214], [0, 0.214]], 48), 'red'));
+  // tige et patin mobiles (atelier) : la tige se prolonge, cachée, dans le fût. 100 % = patin au sol.
+  g.push(seg({ seg: 'rod', joint: { id: 'jacks', type: 'slide', axis: [0, -1, 0], scale: (L.stabilizer.footRetractedY - 0.005) / 100 } }, [
+    m(G.cyl(0.0255, 0.240, 24), 'chrome', { p: [0, 0.209 + 0.120, 0] }),
+    m(G.lathe([[0, L.stabilizer.footRetractedY - 0.005], [0.086, 0.195], [0.089, 0.198], [0.089, 0.205], [0.084, 0.209], [0.036, 0.211], [0.031, 0.214], [0, 0.214]], 48), 'red'),
+  ]));
   const a = 0.059, c = 0.018;
   g.push(m(G.plate([[a - c, -a], [a, -a + c], [a, a - c], [a - c, a], [-a + c, a], [-a, a - c], [-a, -a + c], [-a + c, -a]], 0.052), 'red', { p: [0, 0.626, 0], r: [90, 0, 0] }));
   // tube extérieur vers le fond du vérin (côté +x local)
@@ -393,8 +396,10 @@ function estopAsm() {
   const box = [
     m(G.box(0.07, 0.074, 0.058, 0.005), 'yellow', { p: [0, 0.043, 0.0295] }),
     zAx(G.tube(0.027, 0.015, 0.006, 40), 'yellow', [0, 0.043, 0.0615]),
-    zAx(G.cyl(0.0135, 0.008, 32), 'plastic', [0, 0.043, 0.068]),
-    zAx(G.lathe([[0, 0], [0.013, 0], [0.013, 0.004], [0.02, 0.007], [0.0205, 0.013], [0.018, 0.018], [0.008, 0.0205], [0, 0.021]], 40), 'red', [0, 0.043, 0.0715]),
+    seg({ seg: 'cap', joint: { id: 'btn:u3', type: 'slide', axis: [0, 0, -1], scale: 0.006 } }, [
+      zAx(G.cyl(0.0135, 0.008, 32), 'plastic', [0, 0.043, 0.068]),
+      zAx(G.lathe([[0, 0], [0.013, 0], [0.013, 0.004], [0.02, 0.007], [0.0205, 0.013], [0.018, 0.018], [0.008, 0.0205], [0, 0.021]], 40), 'red', [0, 0.043, 0.0715]),
+    ]),
     xAx(G.cyl(0.0062, 0.016, 20), 'zincClear', [-0.043, 0.024, 0.03]),
     xAx(G.cyl(0.0085, 0.008, 6), 'plastic', [-0.047, 0.024, 0.03]),
   ];
