@@ -59,7 +59,7 @@ const t = (k) => TXT[lang][k] ?? TXT.fr[k] ?? k;
 const EX1 = {
   frame: [0, 0, 0], tub: [0.35, 0.75, 0], rods: [0.35, 1.25, 0], pedestal: [-0.55, 0.55, 0],
   lowerCrane: [-0.55, 1.3, 0], gripper: [0.75, 1.35, 0], panel24: [-0.55, 0.55, -0.75], panelMount: [-0.55, 0.55, -0.42],
-  flexCover: [-0.55, 0.85, -1.05], decals: [-0.55, 0.55, -0.2], powerSupply: [0, 0, 0.55], tetherBulkhead: [0, 0, 0.55],
+  flexCover: [-0.55, 0.85, -1.05], decals: [0, 0, -0.2], decalLP: [0, 0, -0.2], powerSupply: [0, 0, 0.55], tetherBulkhead: [0, 0, 0.55],
   cableKit: [0, 0, 0.55], rcTripod: [-0.45, 0, 0.5], radioRemote: [-0.45, 0.5, 0.5], tether: [-0.7, 0, -0.35],
 };
 

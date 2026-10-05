@@ -75,7 +75,7 @@ export const L = {
 
   /* Accessoires au sol. */
   remoteStation: { pos: [-2.25, 0, 1.45] },   // trépied (279200) + télécommande (278245)
-  tether: { from: [-1.50, 0.45, 0.20], coil: [-2.9, 0, -0.6] }, // ombilical 10 m (278232)
+  tether: { from: [-1.505, 0.719, 0.01], coil: [-2.9, 0, -0.6] }, // ombilical 10 m (278232) : ports du bloc 14.3
 };
 
 /* Facteur d'éclatement : déplacement des ensembles de 1er niveau à 100 %. */
