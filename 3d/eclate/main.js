@@ -62,7 +62,7 @@ const EX1 = {
   frame: [0, 0, 0], tub: [0.35, 0.75, 0], rods: [0.35, 1.25, 0], pedestal: [-0.55, 0.55, 0],
   lowerCrane: [-0.55, 1.3, 0], gripper: [0.9, 1.6, 0], panel24: [-0.55, 0.55, -0.75], panelMount: [-0.55, 0.55, -0.42],
   flexCover: [-0.55, 0.85, -1.05], decals: [0, 0, -0.2], decalLP: [0, 0, -0.2], powerSupply: [0, 0, 0.55], tetherBulkhead: [0, 0, 0.55],
-  cableKit: [0, 0, 0.55], rcTripod: [-0.45, 0, 0.5], radioRemote: [-0.45, 0.5, 0.5], tether: [-0.7, 0, -0.35],
+  cableKit: [0, 0, 0.55], hoses: [0, 0, 0], rcTripod: [-0.45, 0, 0.5], radioRemote: [-0.45, 0.5, 0.5], tether: [-0.7, 0, -0.35],
 };
 
 /* ---------------- Rendu ---------------- */
@@ -127,6 +127,7 @@ function exOf(n) {
   return v ? new THREE.Vector3(...v) : new THREE.Vector3();
 }
 function ancestors(n) { const a = []; let p = n.userData.parentNode; while (p) { a.unshift(p); p = p.userData.parentNode; } return a; }
+function isShown(o) { while (o) { if (!o.visible) return false; o = o.parent; } return true; }
 function within(n, f) { let p = n; while (p) { if (p === f) return true; p = p.userData.parentNode; } return false; }
 
 /* ---------------- Chargement ---------------- */
@@ -146,6 +147,14 @@ async function load() {
     } catch (e) { console.error('Ensemble', name, e); missing.push(name); }
   }
   txt.textContent = '…'; bar.value = 92; await new Promise(r => setTimeout(r, 0));
+  // boyaux et autres éléments rattachés à un ensemble existant (userData.attachTo) : ils le suivent à l'éclatement
+  root.updateMatrixWorld(true);
+  const byId = new Map(); root.traverse(o => { if (isNode(o) && o.userData.id) byId.set(o.userData.id, o); });
+  const hasAttachedAncestor = (o) => { for (let p = o.parent; p; p = p.parent) if (isNode(p) && p.userData.attachTo) return true; return false; };
+  const toAttach = []; root.traverse(o => { if (isNode(o) && o.userData.attachTo && byId.has(o.userData.attachTo) && !hasAttachedAncestor(o)) toAttach.push(o); });
+  toAttach.forEach(o => byId.get(o.userData.attachTo).attach(o));
+  // retirer les ensembles de 1er niveau devenus vides
+  root.children.slice().forEach(c => { let has = false; c.traverse(o => { if (o.isMesh) has = true; }); if (!has) root.remove(c); });
   const st = finalize(root);
   root.updateMatrixWorld(true);
   // arbre
@@ -190,6 +199,8 @@ function apply() {
   const kids = kidsOf(focus);
   for (const k of kids) k.position.addScaledVector(exOf(k), tCur);
   if (focus) { const lift = focus.userData.lift * tCur; focus.position.add(localVec(focus, new THREE.Vector3(0, lift, 0))); }
+  // les boyaux qui relient deux ensembles disparaissent quand la machine s'éclate
+  for (const n of tops) if (n.userData.id === 'hoses') n.visible = !!focus || tCur < 0.02;
   root.updateMatrixWorld(true);
 }
 const CORE = new Set(['frame', 'pedestal', 'tub', 'rods', 'lowerCrane', 'gripper', 'panel24', 'panelMount', 'flexCover', 'decals', 'decalLP']);
@@ -296,7 +307,7 @@ function layoutBalloons() {
     for (const p of pts) { p.x += (p.ax + p.dx * R - p.x) * 0.08; p.y += (p.ay + p.dy * R - p.y) * 0.08; p.x = Math.min(W - side, Math.max(side, p.x)); p.y = Math.min(H - bottom, Math.max(top, p.y)); }
   }
   for (const p of pts) {
-    const b = p.b; const hide = p.behind || p.ax < -40 || p.ax > W + 40 || p.ay < -40 || p.ay > H + 40;
+    const b = p.b; const hide = !isShown(b.node) || p.behind || p.ax < -40 || p.ax > W + 40 || p.ay < -40 || p.ay > H + 40;
     b.el.hidden = hide; b.ln.style.display = b.dot.style.display = hide ? 'none' : '';
     if (hide) continue;
     b.x = b.x == null ? p.x : b.x + (p.x - b.x) * 0.5; b.y = b.y == null ? p.y : b.y + (p.y - b.y) * 0.5;
@@ -422,7 +433,7 @@ canvas.addEventListener('pointerup', (e) => {
   if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) { down = null; return; } down = null;
   const r = canvas.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera);
-  const hits = ray.intersectObjects(root.children, true).filter(h => h.object.visible && h.object.isMesh);
+  const hits = ray.intersectObjects(root.children, true).filter(h => h.object.isMesh && isShown(h.object));
   if (!hits.length) { select(null); return; }
   let n = hits[0].object.userData.owner; while (n && n.userData.parentNode !== focus) n = n.userData.parentNode;
   if (!n) return;
