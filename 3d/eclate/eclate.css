@@ -83,10 +83,10 @@ h1 span{font-weight:600;color:var(--muted);padding-left:12px;margin-left:10px;bo
 .lede{font-size:13px;color:var(--muted);margin:6px 0 0}
 .legend{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .legend li{display:flex;align-items:stretch;gap:4px}
-.row{flex:1;min-width:0;display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;text-align:left;border:1px solid transparent;background:var(--panel-2);border-radius:9px;padding:7px 10px;min-height:46px}
+.row{flex:1;min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;text-align:left;border:1px solid transparent;background:var(--panel-2);border-radius:9px;padding:7px 10px;min-height:46px}
 .row:hover{border-color:#3d4a60}
 .row[aria-pressed=true]{border-color:#e3696b;background:#3a1f2a}
-.num{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:14px;border:1.5px solid #c9d2de;font-weight:700;font-size:12px;font-variant-numeric:tabular-nums}
+.num{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 6px;border-radius:14px;white-space:nowrap;border:1.5px solid #c9d2de;font-weight:700;font-size:12px;font-variant-numeric:tabular-nums}
 .row[aria-pressed=true] .num{background:var(--red);border-color:var(--red);color:#fff}
 .rname{display:block;font-weight:600;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
 .rmeta{display:block;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}

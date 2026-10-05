@@ -184,8 +184,10 @@ function apply() {
   if (focus) { const lift = focus.userData.lift * tCur; focus.position.add(localVec(focus, new THREE.Vector3(0, lift, 0))); }
   root.updateMatrixWorld(true);
 }
-function targetBox(f, tt) {
-  const box = new THREE.Box3(); const kids = kidsOf(f);
+const CORE = new Set(['frame', 'pedestal', 'tub', 'rods', 'lowerCrane', 'gripper', 'panel24', 'panelMount', 'flexCover', 'decals', 'decalLP']);
+function targetBox(f, tt, forCamera = false) {
+  const box = new THREE.Box3(); let kids = kidsOf(f);
+  if (!f && forCamera && kids.some(k => CORE.has(k.userData.id))) kids = kids.filter(k => CORE.has(k.userData.id));
   const lift = f ? f.userData.lift * tt : 0;
   for (const k of kids) {
     const w = worldVec(k, exOf(k)).multiplyScalar(tt); w.y += lift;
@@ -198,14 +200,18 @@ function animateT(goal, ms = 900) { tFrom = tCur; tGoal = goal; tStart = perform
 
 /* ---------------- Caméra ---------------- */
 function frame(box, ms = 800, dirOverride) {
-  const c = box.getCenter(new THREE.Vector3()); const r = Math.max(box.getSize(new THREE.Vector3()).length() / 2, 0.15);
+  // distance minimale pour que les 8 coins de la boîte tiennent dans l'image (marges pour les barres)
+  const c = box.getCenter(new THREE.Vector3());
   const dir = dirOverride ? dirOverride.clone().normalize() : camera.position.clone().sub(controls.target).normalize();
-  const fov = camera.fov * Math.PI / 180, aspect = camera.aspect;
-  const fit = Math.max(r / Math.sin(fov / 2), r / Math.sin(Math.atan(Math.tan(fov / 2) * aspect))) * 1.05;
-  camTween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: c.clone().addScaledVector(dir, fit), t1: c, s: performance.now(), d: ms };
+  const corners = []; for (let i = 0; i < 8; i++) corners.push(new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z));
+  const cam = camera.clone(); const mx = 0.9, myTop = 0.78, myBot = 0.7;
+  const fits = (d) => { cam.position.copy(c).addScaledVector(dir, d); cam.lookAt(c); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    for (const k of corners) { const p = k.clone().project(cam); if (p.z > 1 || Math.abs(p.x) > mx || p.y > myTop || p.y < -myBot) return false; } return true; };
+  let lo = 0.1, hi = 40; for (let i = 0; i < 30; i++) { const mid = (lo + hi) / 2; if (fits(mid)) hi = mid; else lo = mid; }
+  camTween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: c.clone().addScaledVector(dir, hi), t1: c, s: performance.now(), d: ms };
   if (ms === 0) { camera.position.copy(camTween.p1); controls.target.copy(camTween.t1); camTween = null; }
 }
-const HOME_DIR = new THREE.Vector3(-0.62, 0.42, 0.66);
+const HOME_DIR = new THREE.Vector3(0.62, 0.48, -0.62); // comme la vue CAO p. 7 : côté bac et panneau 24 V
 
 /* ---------------- Sélection et visibilité ---------------- */
 function hiMat(m) {
@@ -226,8 +232,8 @@ function setFocus(n, instant = false) {
   if (focus && focus.userData.lift === undefined) focus.userData.lift = liftFor(focus);
   refreshMeshes(); buildBalloons(); renderPanel();
   const goal = focus ? (tGoal > 0.05 ? tGoal : 1) : tGoal;
-  if (instant) { tCur = goal; apply(); frame(targetBox(focus, goal), 0, HOME_DIR); syncSlider(goal); }
-  else { animateT(goal, 900); frame(targetBox(focus, goal), 900); }
+  if (instant) { tCur = goal; apply(); frame(targetBox(focus, goal, true), 0, HOME_DIR); syncSlider(goal); }
+  else { animateT(goal, 900); frame(targetBox(focus, goal, true), 900); }
 }
 function select(n) {
   sel = n; refreshMeshes(); renderPanel(); updateBalloonState();
@@ -391,7 +397,7 @@ function syncSlider(v) { ex.value = Math.round(v * 100); exOut.textContent = `${
 ex.addEventListener('input', () => { tCur = tGoal = ex.value / 100; tDur = 0; apply(); exOut.textContent = `${ex.value} %`; exPlay.textContent = tGoal > 0.5 ? t('gather') : t('play'); dirty = true; });
 exPlay.addEventListener('click', () => animateT(tGoal > 0.5 ? 0 : 1));
 $('#tBalloons').addEventListener('click', (e) => { showBalloons = !showBalloons; e.currentTarget.setAttribute('aria-pressed', String(showBalloons)); dirty = true; });
-$('#tHome').addEventListener('click', () => frame(targetBox(focus, tGoal), 700, HOME_DIR));
+$('#tHome').addEventListener('click', () => frame(targetBox(focus, tGoal, true), 700, HOME_DIR));
 qualityBox.addEventListener('change', () => { dirty = true; });
 $('#oSpin').addEventListener('change', (e) => { controls.autoRotate = e.target.checked; });
 const ray = new THREE.Raycaster(); let down = null;

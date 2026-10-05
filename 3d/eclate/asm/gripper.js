@@ -315,10 +315,18 @@ function buildRotateActuator() {
   for (const y of [WY + 0.0245, WY - 0.0245]) mo.push(box(0.026, 0.020, 0.012, 'grey', [0.215, y, WZ + 0.050], 0.002));
   const motor = part({ id: 'grip-rotact-motor', sec: '5.4', item: '15', pn: '278096', fr: 'Moteur hydraulique 127,5 cc', en: 'Hydraulic motor, 127.5 cc', qty: '1', page: 18, explode: [0.12, 0, 0] }, mo);
   // couvercle du codeur (bout -X)
-  const eb = part({ id: 'grip-rotact-encbox', sec: '5.4', item: '11', pn: '277910', fr: 'Support du codeur de rotation', en: 'Encoder mount', qty: '1', page: 18, explode: [-0.07, 0, 0], approx: true,
+  const eb = part({ id: 'grip-rotact-encbox', sec: '5.4', item: '11', pn: '277910', fr: 'Support du codeur de rotation', en: 'Encoder mount', qty: '1', page: 18, explode: [-0.12, 0, 0], approx: true,
     note: 'Ensemble sans section dans le manuel : boîtier simplifié.' }, [box(0.043, 0.088, 0.088, 'zincClear', [-0.1935, WY, WZ], 0.004)]);
-  const spl = part({ id: 'grip-rotact-splineplug', sec: '5.4', item: '9', pn: '278218', fr: 'Bouchon cannelé', en: 'Spline plug', qty: '1', page: 18, explode: [-0.035, 0, 0], approx: true },
+  const spl = part({ id: 'grip-rotact-splineplug', sec: '5.4', item: '9', pn: '278218', fr: 'Bouchon cannelé', en: 'Spline plug', qty: '1', page: 18, explode: [-0.03, 0, 0], approx: true },
     [cyl(0.011, 0.010, 'machined', [-0.177, WY, WZ], 'x', 6)]);
+  const m52 = asm({ id: 'grip-magnet52', sec: '5.2', item: '-', pn: '277438', fr: 'Aimant de codeur (néodyme)', en: 'Magnet encoder attachment (neodymium)', qty: '1', page: 16, explode: [-0.06, 0.05, 0], approx: true,
+    note: "Absent des nomenclatures 5 et 5.4 (le repère 16 est 281633). Placé par hypothèse sur le bouchon cannelé de la vis sans fin, sous le codeur de rotation, dans le boîtier 277910." }, [
+    part({ id: 'grip-magnet52-disc', sec: '5.2', item: '1', pn: '277437', fr: 'Aimant néodyme enrobé époxy', en: 'Neodymium magnet, epoxy coated', qty: '1', page: 16, explode: [0, 0, 0] },
+      [lathe([[0.0045, -0.004], [0.0185, -0.004], [0.019, -0.0035], [0.019, 0.0035], [0.0185, 0.004], [0.0028, 0.004], [0.0045, 0.0015], [0.0045, -0.004]], 'blackOxide', [-0.186, WY, WZ], 'x', 36)]),
+    part({ id: 'grip-magnet52-stud', sec: '5.2', item: '2', pn: '277439', fr: 'Goujon 12 mm', en: 'Stud, 12 mm', qty: '1', page: 16, explode: [-0.035, 0, 0] }, [cyl(0.006, 0.016, 'zinc', [-0.198, WY, WZ], 'x', 20)]),
+    part({ id: 'grip-magnet52-screw', sec: '5.2', item: '3', pn: '277440', fr: 'Vis à tête fraisée no 12', en: 'Flat head cap screw #12-24', qty: '1', page: 16, explode: [-0.065, 0, 0] },
+      [grp([bolt({ d: 0.216 * IN, L: 0.75 * IN, head: 'fhcs', mat: 'zinc' })], { p: [-0.1895, WY, WZ], r: [0, 0, 90] })]),
+  ]);
   const stop = part({ id: 'grip-rotact-stop', sec: '5.4', item: '10', pn: '277475', fr: 'Plaque de butée intérieure', en: 'Internal wrist stop plate', qty: '1', page: 18, explode: [0, -0.06, 0], approx: true },
     [box(0.070, 0.010, 0.036, 'steel', [0, -0.255, 0.0], 0.002)]);
   const sm = [cyl(0.0053, 0.038, 'zinc', [0, WY - 0.050 - 0.019, WZ], 'y', 12), aim(greaseNipple('zinc'), V(0, WY - 0.050 - 0.038, WZ), V(0, -1, 0))];
@@ -341,12 +349,12 @@ function buildRotateActuator() {
   const vis = part({ id: 'grip-rotact-hw', sec: '5.4', item: '12', pn: 'B265', fr: 'Visserie', en: 'Hardware', qty: '-', page: 18, explode: [0, -0.03, -0.06],
     note: 'Repères 1 (117753 x7), 3 (236667 x4), 4 (248143 x4), 12 (B265 x2), 13 (B269 x3, plaque de butée), 14 (C296 x2, moteur).' }, hw);
   return asm({ id: 'grip-rotact', sec: '5.4', item: '15', pn: '277382', fr: 'Actionneur de rotation', en: 'Rotate actuator', qty: '1', page: 18, explode: [0, -0.22, 0] },
-    [slew, motor, eb, spl, stop, small, fit, hoses, vis]);
+    [slew, motor, eb, spl, m52, stop, small, fit, hoses, vis]);
 }
 function buildRotateEncoder() {
   const e = grp([encoder({ conn: 'side' })], { p: [-0.215, WY, WZ], r: [0, 0, 90] });
   return part({ id: 'grip-enc-rotate', sec: '5', item: '5', pn: '269909', fr: 'Codeur de rotation (programmé)', en: 'Rotate rotary encoder', qty: '1', page: 10, spare: true,
-    explode: [-0.14, -0.22, 0] }, [e]);
+    explode: [-0.20, -0.22, 0] }, [e]);
 }
 
 /* 10 : support de boyaux soudé (276806), sur le fond du support en U, côté -X. */
