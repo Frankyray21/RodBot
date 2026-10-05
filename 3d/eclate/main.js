@@ -26,7 +26,7 @@ const TXT = {
     training: 'Formation', replica: 'Réplique 3D', eyebrow: 'Version à vérifier, non publiée', h1: 'Vue éclatée',
     intro: 'Chaque pièce porte le numéro du manuel de pièces. Touche une pièce pour voir sa nomenclature.',
     explode: 'Éclater', play: 'Éclater', gather: 'Rassembler', loading: 'Construction du modèle 3D',
-    legend: 'Ensembles', parts: 'Pièces et sous-ensembles', options: 'Affichage', quality: 'Rendu réaliste', spin: 'Rotation lente',
+    legend: 'Ensembles', parts: 'Pièces et sous-ensembles', options: 'Affichage', quality: 'Rendu réaliste', spin: 'Rotation lente', ghost: 'Voir à travers si la pièce est cachée',
     source: 'ℹ️ Modèle neuf, construit d\'après les dessins du manuel de pièces PM10654 R0 (MEDATECH Borterra). Les formes cachées ou non cotées sont estimées. ⚠️ Pièce de rechange critique (p. 85).',
     close: 'Fermer', machine: 'Machine', balloonsTip: 'Afficher ou cacher les repères', homeTip: 'Recentrer la vue',
     machineTitle: 'LP RodBot complet', machineLede: '👉 Touche un ensemble pour voir sa nomenclature. Ouvre-le pour voir ses pièces.',
@@ -41,7 +41,7 @@ const TXT = {
     training: 'Training', replica: '3D replica', eyebrow: 'Review version, not published', h1: 'Exploded view',
     intro: 'Each part carries its parts manual number. Tap a part to see its bill of materials.',
     explode: 'Explode', play: 'Explode', gather: 'Assemble', loading: 'Building the 3D model',
-    legend: 'Assemblies', parts: 'Parts and sub-assemblies', options: 'Display', quality: 'Realistic rendering', spin: 'Slow spin',
+    legend: 'Assemblies', parts: 'Parts and sub-assemblies', options: 'Display', quality: 'Realistic rendering', spin: 'Slow spin', ghost: 'See through when the part is hidden',
     source: 'ℹ️ New model built from the drawings of parts manual PM10654 R0 (MEDATECH Borterra). Hidden or undimensioned shapes are estimated. ⚠️ Critical spare part (p. 85).',
     close: 'Close', machine: 'Machine', balloonsTip: 'Show or hide the callouts', homeTip: 'Reset the view',
     machineTitle: 'Complete LP RodBot', machineLede: '👉 Tap an assembly to see its parts list. Open it to see its parts.',
@@ -183,7 +183,7 @@ async function load() {
   const sz = all.getSize(new THREE.Vector3()).length();
   Object.assign(key.shadow.camera, { left: -sz, right: sz, top: sz, bottom: -sz, near: 0.5, far: 30 });
   key.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
-  window.__eclate = { ready: true, stats: st, missing, setFocus: (id) => setFocus(id ? nodes.find(n => n.userData.id === id) : null), setT: (v) => { tCur = tGoal = v; tDur = 0; apply(); syncSlider(v); dirty = true; }, select: (id) => select(nodes.find(n => n.userData.id === id) || null), nodes: () => nodes.map(n => ({ id: n.userData.id, sec: n.userData.sec, item: n.userData.item, pn: n.userData.pn, depth: ancestors(n).length, kids: n.userData.kids.length })) };
+  window.__eclate = { ready: true, stats: st, missing, ghost: () => ghost, setFocus: (id) => setFocus(id ? nodes.find(n => n.userData.id === id) : null), setT: (v) => { tCur = tGoal = v; tDur = 0; apply(); syncSlider(v); dirty = true; }, select: (id) => select(nodes.find(n => n.userData.id === id) || null), nodes: () => nodes.map(n => ({ id: n.userData.id, sec: n.userData.sec, item: n.userData.item, pn: n.userData.pn, depth: ancestors(n).length, kids: n.userData.kids.length })) };
   $('#loading').hidden = true;
   setFocus(null, true);
 }
@@ -248,18 +248,60 @@ function selectedMeshes() {
   sel.traverse(o => { if (o.isMesh && o.visible) out.push(o); });
   return out;
 }
+/* Transparence : quand la pièce choisie est cachée par d'autres, ces autres pièces deviennent translucides. */
+const ghostCache = new Map(); let ghost = false;
+function ghostMat(m) {
+  if (!ghostCache.has(m)) {
+    const g = m.clone(); g.transparent = true; g.opacity = 0.16; g.depthWrite = false;
+    if (g.transmission) g.transmission = 0;
+    ghostCache.set(m, g);
+  }
+  return ghostCache.get(m);
+}
 function refreshMeshes() {
   root.traverse(o => {
     if (!o.isMesh) return; const own = o.userData.owner;
     o.visible = !focus || within(own, focus);
-    o.material = sel && within(own, sel) ? hiMat(o.userData.baseMat) : o.userData.baseMat;
+    const mine = sel && within(own, sel);
+    o.material = mine ? hiMat(o.userData.baseMat) : (ghost && sel ? ghostMat(o.userData.baseMat) : o.userData.baseMat);
+    o.castShadow = !(ghost && sel && !mine);
   });
-  if (outline) { outline.selectedObjects = selectedMeshes(); outline.enabled = outline.selectedObjects.length > 0; }
+  if (outline) {
+    outline.selectedObjects = selectedMeshes(); outline.enabled = outline.selectedObjects.length > 0;
+    outline.hiddenEdgeColor.set(ghost ? '#8e6cc9' : '#231b36');
+  }
   dirty = true;
+}
+/* Part de la pièce choisie masquée par d'autres pièces, vue de la caméra (lancers de rayons sur ses sommets). */
+const occRay = new THREE.Raycaster();
+function occludedShare() {
+  if (!sel) return 0;
+  const mine = selectedMeshes(); if (!mine.length) return 0;
+  const others = []; root.traverse(o => { if (o.isMesh && isShown(o) && !within(o.userData.owner, sel)) others.push(o); });
+  const pts = [], per = Math.max(1, Math.ceil(18 / mine.length));
+  for (const ms of mine) {
+    const pos = ms.geometry.attributes.position; const step = Math.max(1, Math.floor(pos.count / per));
+    for (let i = Math.floor(step / 2); i < pos.count && pts.length < 24; i += step) pts.push(new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(ms.matrixWorld));
+  }
+  const box = new THREE.Box3(); mine.forEach(ms => box.expandByObject(ms)); pts.push(box.getCenter(new THREE.Vector3()));
+  let hidden = 0; const C = camera.position;
+  for (const p of pts) {
+    const d = p.clone().sub(C); const dist = d.length(); occRay.set(C, d.normalize()); occRay.far = dist * 0.995;
+    if (occRay.intersectObjects(others, false).length) hidden++;
+  }
+  return hidden / pts.length;
+}
+let ghostTimer = 0;
+function updateGhost(delay = 0) {
+  clearTimeout(ghostTimer);
+  ghostTimer = setTimeout(() => {
+    const on = !!sel && $('#oGhost').checked && occludedShare() >= 0.34;
+    if (on !== ghost) { ghost = on; refreshMeshes(); }
+  }, delay);
 }
 function setFocus(n, instant = false) {
   if (n && !n.userData.kids.length) { select(n); return; }
-  focus = n; sel = null;
+  focus = n; sel = null; ghost = false;
   if (focus && focus.userData.lift === undefined) focus.userData.lift = liftFor(focus);
   refreshMeshes(); buildBalloons(); renderPanel();
   const goal = focus ? (tGoal > 0.05 ? tGoal : 1) : tGoal;
@@ -267,7 +309,7 @@ function setFocus(n, instant = false) {
   else { animateT(goal, 900); frame(targetBox(focus, goal, true), 900); }
 }
 function select(n) {
-  sel = n; refreshMeshes(); renderPanel(); updateBalloonState();
+  sel = n; ghost = false; refreshMeshes(); renderPanel(); updateBalloonState(); updateGhost(0);
 }
 
 /* ---------------- Repères (bulles) ---------------- */
@@ -425,6 +467,7 @@ $('#sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') $('#
 /* ---------------- Interactions ---------------- */
 const ex = $('#ex'), exOut = $('#exOut'), exPlay = $('#exPlay');
 function syncSlider(v) { ex.value = Math.round(v * 100); exOut.textContent = `${Math.round(v * 100)} %`; exPlay.textContent = v > 0.5 ? t('gather') : t('play'); }
+ex.addEventListener('change', () => { if (sel) updateGhost(60); });
 ex.addEventListener('input', () => { tCur = tGoal = ex.value / 100; tDur = 0; apply(); exOut.textContent = `${ex.value} %`; exPlay.textContent = tGoal > 0.5 ? t('gather') : t('play'); dirty = true; });
 exPlay.addEventListener('click', () => animateT(tGoal > 0.5 ? 0 : 1));
 $('#tBalloons').addEventListener('click', (e) => { showBalloons = !showBalloons; e.currentTarget.setAttribute('aria-pressed', String(showBalloons)); dirty = true; });
@@ -453,6 +496,8 @@ addEventListener('keydown', (e) => {
   if (focus) setFocus(focus.userData.parentNode);
 });
 controls.addEventListener('change', () => { dirty = true; });
+controls.addEventListener('end', () => { if (sel) updateGhost(120); });
+$('#oGhost').addEventListener('change', () => { if (sel) updateGhost(0); else dirty = true; });
 
 /* Langue */
 function applyLang() {
@@ -476,13 +521,13 @@ new ResizeObserver(resize).observe(view);
 const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 function loop(now) {
   requestAnimationFrame(loop);
-  if (tDur > 0) { const k = Math.min(1, (now - tStart) / tDur); tCur = tFrom + (tGoal - tFrom) * ease(k); apply(); dirty = true; if (k >= 1) tDur = 0; }
-  if (camTween) { const k = Math.min(1, (now - camTween.s) / camTween.d), e = ease(k); camera.position.lerpVectors(camTween.p0, camTween.p1, e); controls.target.lerpVectors(camTween.t0, camTween.t1, e); dirty = true; if (k >= 1) camTween = null; }
+  if (tDur > 0) { const k = Math.min(1, (now - tStart) / tDur); tCur = tFrom + (tGoal - tFrom) * ease(k); apply(); dirty = true; if (k >= 1) { tDur = 0; if (sel) updateGhost(60); } }
+  if (camTween) { const k = Math.min(1, (now - camTween.s) / camTween.d), e = ease(k); camera.position.lerpVectors(camTween.p0, camTween.p1, e); controls.target.lerpVectors(camTween.t0, camTween.t1, e); dirty = true; if (k >= 1) { camTween = null; if (sel) updateGhost(60); } }
   if (controls.update()) dirty = true;
   if (controls.autoRotate) dirty = true;
   if (!dirty) return; dirty = false;
   // Rendu réaliste : ombrage d'ambiance. Rendu rapide : sans ombrage, mais le contour reste quand une pièce est choisie.
-  if (qualityBox.checked || sel) { if (!composer) { buildComposer(); resize(); } gtao.enabled = qualityBox.checked; composer.render(); } else renderer.render(scene, camera);
+  if (qualityBox.checked || sel) { if (!composer) { buildComposer(); resize(); } gtao.enabled = qualityBox.checked && !ghost; composer.render(); } else renderer.render(scene, camera);
   layoutBalloons();
 }
 
