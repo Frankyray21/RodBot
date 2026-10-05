@@ -19,7 +19,9 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Réplique 3D v1.129.0
+## Réplique 3D v1.130.0
+
+La V40 corrige le boyau isolé du mât : le départ au connecteur jaune rejoint maintenant la bouche du porte-câbles par un trajet court. La reconstruction se termine dans le corridor protégé ; sa destination réelle masquée reste inconnue. Les autres pièces et mouvements sont conservés. Le repère des borniers vise désormais leur rangée dans le coffret ouvert. Le bilan de fidélité distingue les dimensions documentées, les estimations et les détails restant à vérifier.
 
 La V39 reprend deux faces visibles de la section télescopique avec des pistes gris satiné à rives rouges. Deux couvercles de guidage et leur visserie sont détaillés selon la page 54 du manuel de pièces. Leurs détails superposés et quatre rectangles noirs non corroborés sont retirés. Les six autres couvercles, les enveloppes des tubes, les boyaux et les commandes sont conservés. Les contours, les épaisseurs et la finition sans cote restent estimés.
 
@@ -67,7 +69,7 @@ Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépô
 
 La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
 
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v39-a122e150.glb) · [Sources et limites](3d/assets/audit-fidelite-v39.md)
+[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v40-bc6aeb52.glb) · [Sources et limites](3d/assets/audit-fidelite-v40.md)
 
 ## Lancer en local
 
