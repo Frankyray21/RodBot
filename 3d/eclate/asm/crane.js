@@ -23,24 +23,29 @@ const [J2X, J2Y] = L.hoistBase.pivot;            // axe de levage J2
 const [LBX, LBY] = L.liftCylinder.base;          // pied des vérins de levage
 const [LRX, LRY] = L.liftCylinder.rod;           // tête des vérins de levage
 const LZ = L.liftCylinder.zHalf;                 // vérins en z = ±0,15
-const TIP = L.boom.tip;                          // face d'appui de la patte (x = 0,24)
+const TIP = L.boom.tip;                          // face d'appui de la pince (x = -0,02, y = 1,83)
 
 const AY = J2Y + 0.150;          // axe de la flèche (J2 est 0,15 sous l'axe, p. 51)
 const SO = 0.175, HO = SO / S2;  // flèche extérieure : côté, demi-diagonale
 const WO = 0.25 * IN;            // paroi
 const SI = 0.148, HI = SI / S2;  // flèche intérieure
-const XFF = -0.010;              // face avant de la bride de la flèche extérieure
+/* Bout de flèche, de l'avant vers l'arrière (flèche intérieure rentrée, comme sur op79) :
+ * face d'appui x = TIP[0] (plaque d'extrémité de la flèche intérieure, 1/2 po, gabarit de la bride 276360),
+ * jeu de 26 mm tenu par les butées 277717 (place des écrous N019 de la pince), bride de la flèche extérieure. */
+const XLF = TIP[0];              // face d'appui (-0,020)
+const XEP = 0.5 * IN;            // plaque d'extrémité de la flèche intérieure
+const XIF = XLF - XEP;           // arrière de la plaque = bout du tube intérieur (-0,0327)
+const XST = 1 * IN;              // épaisseur des butées de flèche (jeu)
+const XFF = XIF - XST - 0.0006;  // face avant de la bride de la flèche extérieure (-0,0587)
 const XFT = 0.5 * IN;            // épaisseur de bride
 const XR = -1.293;               // arrière du tube extérieur
-const XLF = TIP[0];              // face d'appui de la patte (0,24)
-const XLP = XLF - 1 * IN;        // arrière de la plaque de patte
-const XIFF = XLP - 1 * IN;       // face avant de la bride intérieure (entretoises de 1 po)
-const XIF = XIFF - 0.5 * IN;     // bout du tube intérieur
-const LI = 1.376;                // longueur du tube intérieur (p. 49 : 1,105 x tube extérieur)
-const XIR = XIF - LI;            // arrière du tube intérieur
+const XIR = -1.285;              // arrière du tube intérieur (passe au-dessus du bloc du vérin, devant la languette)
+const LI = XIF - XIR;            // longueur du tube intérieur (1,252)
+const XLA = XIF - 1 * IN;        // patte 278122 : avant de la plaque 277349 (entretoises de 1 po)
+const XLB = XLA - 1 * IN;        // arrière de la plaque 277349 (1 po)
 const YT = AY - 0.024;           // axe du vérin télescopique (œil arrière p. 51)
 const XTB = -1.330;              // axe du pied du vérin télescopique
-const XTR = XIF - 0.035;         // axe de l'œil de tige (dans la flèche intérieure)
+const XTR = -0.120;              // axe de l'axe soudé 277365 (oreille de la patte, tige du vérin)
 const EZ0 = -0.20;               // plan de la chaîne porte-câbles (côté -Z)
 const WY = 1.470, WZ = 0.205;    // axe de la vis sans fin de la couronne (selon X, côté +Z, op07)
 const WX0 = SX - 0.150, WX1 = SX + 0.145;   // bouts du carter (au-dessus des têtes des 15 vis du socle)
@@ -267,8 +272,10 @@ function buildHoist() {
 const FACES = [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(([a, b]) => V(0, a, b).normalize());
 const faceName = ['dessus +Z', 'dessus -Z', 'dessous -Z', 'dessous +Z'];
 const PU = [-0.012, 0.012, -0.012, 0.012];   // décalage des patins le long de la face
-const PS = [0.060, -0.060, 0.060, -0.060];   // décalage des butées (vers une arête)
-const XPT = -0.070, XPM = -0.506;            // patins : bout avant et mi-longueur (p. 51)
+const STOPS = [[0.12, AY + 0.100], [-0.12, AY + 0.100], [0.12, AY - 0.115], [-0.12, AY - 0.115]];   // butées sur la bride (z, y)
+const XPT = XFF - 0.055, XPM = XFF - 0.476;  // patins : bout avant et mi-longueur (p. 51)
+const XTRB = [XFF - 0.358, XFF - 0.836];      // pattes du bac de chaîne (p. 51)
+const XSTF = XFF - 0.620;                     // colliers Stauff (p. 51)
 const across = (n) => V().crossVectors(V(1, 0, 0), n);
 function onFace(f, x, r, u = 0) { return V(x, AY, 0).addScaledVector(FACES[f], r).addScaledVector(across(FACES[f]), u); }
 
@@ -316,9 +323,9 @@ function buildOuterBoom() {
   }
   // Cales soudées sous la flèche : pattes du bac de chaîne (2), plaque de raccords, colliers Stauff
   const vblock = (x0, x1, zA, zB, yb) => m(tr(plateYZ([[zA, yb], [zB, yb], [zB, AY - HO + Math.abs(zB) + 0.002], [0, AY - HO + 0.002], [zA, AY - HO + Math.abs(zA) + 0.002]], x1 - x0, { curve: 2 }), (x0 + x1) / 2, 0, 0), 'red');
-  for (const xb of [-0.377, -0.867]) B.push(m(tr(plateYZ([[-0.141, AY - 0.088], [-0.105, AY - 0.088], [-0.105, AY - HO + 0.105 + 0.002], [-HO - 0.004, AY + 0.004], [-0.141, AY - 0.006]], 0.05, { curve: 2 }), xb, 0, 0), 'red'));
+  for (const xb of XTRB) B.push(m(tr(plateYZ([[-0.141, AY - 0.088], [-0.105, AY - 0.088], [-0.105, AY - HO + 0.105 + 0.002], [-HO - 0.004, AY + 0.004], [-0.141, AY - 0.006]], 0.05, { curve: 2 }), xb, 0, 0), 'red'));
   B.push(vblock(-0.215, -0.155, -0.040, 0.020, AY - HO - 0.020));
-  B.push(vblock(-0.685, -0.635, -0.066, 0.066, 1.745));
+  B.push(vblock(XSTF - 0.025, XSTF + 0.025, -0.066, 0.066, 1.745));
   const outer = part({ id: 'crane-outer-tube', sec: '10.3.2', item: '1', pn: '276535', fr: 'Flèche extérieure usinée', en: 'Outer boom, machined', qty: '1', page: 51, explode: [0, 0, 0], approx: true, note: 'Tube carré de 175 mm posé sur la pointe (coupe A-A p. 52). Longueur, pivot et pattes relevés p. 51 et op79.' }, B);
 
   const kids = [outer];
@@ -331,16 +338,14 @@ function buildOuterBoom() {
     [m(alongZ(ring(0.0222, 0.0195, 0.0768)), 'steel', { p: [J2X, J2Y, 0] })]));
   [-1, 1].forEach((s, i) => kids.push(part({ id: `crane-outer-iglide-${i + 1}`, sec: '10.3.2', item: '16', pn: '280138', fr: 'Coussinet iglide', en: 'iglide sleeve bearing', qty: '2', page: 52, explode: [0, 0, s * 0.24] },
     [m(alongZ(ring(0.0222, 0.01915, 0.0381)), 'yellow', { p: [J2X, J2Y, s * (0.077 - 0.01905)] })])));
-  for (let f = 0; f < 4; f++) {
-    const n = FACES[f], c = onFace(f, -0.050, SO / 2 + 0.006, PS[f]);
-    const blk = frame([m(G.plate(octa(0.064, 0.034, 0.008), 0.012), 'steel', { r: [90, 0, 0] })], c.toArray(), [1, 0, 0], n.toArray());
-    kids.push(part({ id: `crane-outer-stopper-${f + 1}`, sec: '10.3.2', item: '17', pn: '277717', fr: 'Butée de flèche', en: 'Boom stopper', qty: '4', page: 51, explode: n.clone().multiplyScalar(0.05).add(V(0.05, 0, 0)).toArray().map(v => +v.toFixed(3)) }, [blk]));
-  }
+  STOPS.forEach(([z, y], i) => kids.push(part({ id: `crane-outer-stopper-${i + 1}`, sec: '10.3.2', item: '17', pn: '277717', fr: 'Butée de flèche', en: 'Boom stopper', qty: '4', page: 51, explode: [0.07, 0, 0], approx: true,
+    note: "Sur la face avant de la bride : la plaque d'extrémité de la flèche intérieure s'y appuie quand elle est rentrée (jeu de 26 mm)." },
+    [m(tr(plateYZ(octa(0.050, 0.034, 0.008).map(([a, b]) => [a + z, b + y]), XST, { curve: 4 }), XFF + XST / 2, 0, 0), 'polymer')])));
   let k = 0;
   for (const x of [XPT, XPM]) for (let f = 0; f < 4; f++) kids.push(buildPuck(++k, f, x));
   kids.push(buildStauff(), buildBulkhead());
   const hw = [];
-  for (let f = 0; f < 4; f++) for (const dx of [-0.020, 0.020]) hw.push(bw(onFace(f, -0.050 + dx, SO / 2 + 0.012, PS[f]).toArray(), FACES[f].toArray(), 0.375 * IN, 0.75 * IN));
+  for (const [z, y] of STOPS) for (const dz of [-0.013, 0.013]) hw.push(bw([XFF - XFT, y, z + dz], [-1, 0, 0], 0.375 * IN, 0.75 * IN));
   for (const s of [-1, 1]) hw.push(bw([LRX + 0.0243, LRY + 0.0223, s * (ZE2[1] + 0.006)], [0, 0, s], 0.5 * IN, 1 * IN));
   for (const s of [-1, 1]) for (const zz of [ZE1[1] + 0.0008, ZE2[0] - 0.0008]) hw.push(m(alongZ(ring(1 * IN, 0.635 * IN, 0.0625 * IN)), 'bronze', { p: [LRX, LRY, s * zz] }));
   for (const s of [-1, 1]) hw.push(m(alongZ(ring(0.0150, 0.0127, 0.0012)), 'blackOxide', { p: [XTB, YT, s * 0.0215] }));
@@ -398,7 +403,7 @@ function halfClampGeo() { // demi-coquille d'un collier deux lignes (encoches de
   const g = G.plate(s, 0.032, { curve: 12 }); g.rotateY(Math.PI / 2); return (HALF_CLAMP = g);
 }
 function buildStauff() {
-  const xc = -0.660, yTop = 1.745, lh = 0.032;
+  const xc = XSTF, yTop = 1.745, lh = 0.032;
   const clamps = []; let k = 0;
   for (let layer = 0; layer < 2; layer++) for (const zc of [-0.0325, 0.0325]) {
     const yc = yTop - 0.006 - lh / 2 - layer * lh;
@@ -445,41 +450,46 @@ function buildBulkhead() {
 /* ------------------------------------------------------------------ */
 /* 10.3 Flèche télescopique : intérieure, vérin 36 po, codeur, chaîne, patte */
 /* ------------------------------------------------------------------ */
-const LUGB = [30, 90, 150, 210, 270, 330].map(a => [0.065 * Math.cos(a * D2R), 0.065 * Math.sin(a * D2R)]); // (z, y)
-const LPIN = [0.065 * Math.cos(240 * D2R), 0.065 * Math.sin(240 * D2R)], LLOCK = [0.044 * Math.cos(240 * D2R), 0.044 * Math.sin(240 * D2R)];
 
+/* Gabarit de la bride 276360 de la pince (gripper.js) : contour z ±0,145, y 1,656 à 1,985 ; 8 boulons 1/2 po en z = ±0,12 ;
+ * vis 20 (B267) en (0 ; 1,960) ; passage des boyaux Ø 62 mm au point d'interface. */
+const GAB = { z: 0.145, y0: 1.6555, y1: 1.9848, bolts: [1.9201, 1.8783, 1.7280, 1.6782], b267: 1.9600 };
+const EP = { y0: GAB.y0, y1: 2.010 };   // plaque d'extrémité : gabarit, rallongée en haut pour couvrir la pointe du tube
 function buildInner() {
   const [, ty, tz] = TIP;
   const g = [m(diamond(SI, WO, XIR, XIF), 'red')];
-  const fl = G.rrect(0.27, 0.27, 0.016, 0, AY);
-  fl.holes.push(circ(0, AY, 0.03), circ(tz + LPIN[0], ty + LPIN[1], 0.0162));
-  g.push(m(tr(plateYZ(fl, 0.5 * IN, { curve: 10 }), (XIF + XIFF) / 2, 0, 0), 'red'));
+  const fl = G.rrect(2 * GAB.z, EP.y1 - EP.y0, 0.012, tz, (EP.y0 + EP.y1) / 2);
+  fl.holes.push(circ(tz, ty, 0.032), circ(tz, GAB.b267, 0.0055));
+  for (const y of GAB.bolts) for (const z of [-0.12, 0.12]) fl.holes.push(circ(tz + z, y, 0.0071));
+  g.push(m(tr(plateYZ(fl, XEP, { curve: 12 }), (XIF + XLF) / 2, 0, 0), 'red'));
+  g.push(m(G.box(XEP, 0.030, 0.072, 0.003), 'red', { p: [(XIF + XLF) / 2, 1.980, -GAB.z - 0.034] }));   // oreille du support de chaîne
   const xw = XIF - 0.003, h = HI + 0.003;
   g.push(weld([[xw, AY - h, 0], [xw, AY, h], [xw, AY + h, 0], [xw, AY, -h], [xw, AY - h, 0]], 0.0035));
   for (let f = 0; f < 4; f++) { // bandes d'usure (vertes dans la CAO) sur les 4 faces
-    const n = FACES[f], st = m(G.box(LI - 0.05, 0.003, 0.098, 0.001), 'green');
-    st.position.copy(V((XIR + XIF) / 2 - 0.01, AY, 0).addScaledVector(n, SI / 2 + 0.0017));
+    const n = FACES[f], st = m(G.box(LI - 0.06, 0.003, 0.098, 0.001), 'green');
+    st.position.copy(V((XIR + XIF) / 2 - 0.012, AY, 0).addScaledVector(n, SI / 2 + 0.0017));
     st.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V(1, 0, 0), n, across(n)));
     g.push(st);
   }
-  for (const s of [-1, 1]) g.push(m(G.box(0.07, 0.07, 0.012, 0.003), 'red', { p: [XTR + 0.005, YT, s * 0.026] }));
-  g.push(m(alongZ(G.cyl(0.0127, 0.064, 20)), 'machined', { p: [XTR, YT, 0] }));
-  return part({ id: 'crane-inner', sec: '10.3', item: '2', pn: '276502', fr: 'Flèche intérieure usinée', en: 'Inner boom, machined', qty: '1', page: 49, explode: [1.25, 0, 0], approx: true, note: "Tube carré de 148 mm sur la pointe ; bandes d'usure vertes (p. 49, op07) ; oreilles de l'œil de tige estimées." }, g);
+  return part({ id: 'crane-inner', sec: '10.3', item: '2', pn: '276502', fr: 'Flèche intérieure usinée', en: 'Inner boom, machined', qty: '1', page: 49, explode: [1.30, 0, 0], approx: true,
+    note: "Tube carré de 148 mm sur la pointe, rentré comme sur op79. Plaque d'extrémité (grande plaque carrée p. 45 et 49) : face d'appui de la pince à L.boom.tip, 8 trous au gabarit de la bride 276360, passage de boyaux Ø 64 mm. Bandes d'usure vertes (p. 49, op07)." }, g);
 }
 
 function buildTele() {
   const Lp = XTR - XTB, g = [];
-  for (const s of [-1, 1]) { const e = m(G.plate(earShape(-0.022, 0.022, 0.044, 0, 0, 0.022), 0.010, { holes: [{ c: [0, 0], r: 0.0128 }] }), 'black'); e.position.z = s * 0.0155; g.push(e); }
+  for (const sz of [-1, 1]) { const e = m(G.plate(earShape(-0.022, 0.022, 0.044, 0, 0, 0.022), 0.010, { holes: [{ c: [0, 0], r: 0.0128 }] }), 'black'); e.position.z = sz * 0.0155; g.push(e); }
   g.push(m(G.box(0.044, 0.008, 0.041, 0.002), 'black', { p: [0, 0.040, 0] }));
   g.push(m(G.box(0.072, 0.07, 0.064, 0.005), 'alu', { p: [0, 0.079, 0] }));
-  const od = 2.5 * IN, y0 = 0.114, y1 = y0 + 1.016;
+  const od = 2.5 * IN, y0 = 0.114, y1 = y0 + 0.980, yC = Lp - 0.045;
   g.push(m(lath([[0, y0], [od / 2 + 0.002, y0], [od / 2 + 0.002, y0 + 0.02], [od / 2, y0 + 0.024], [od / 2, y1 - 0.004], [od / 2 + 0.0025, y1], [od / 2 + 0.0025, y1 + 0.02], [0.0175, y1 + 0.024], [0.0162, y1 + 0.024]], 32), 'black'));
-  g.push(m(G.cyl(0.625 * IN, Lp - 0.022 - (y1 + 0.02), 28), 'chrome', { p: [0, (Lp - 0.022 + y1 + 0.02) / 2, 0] }));
-  g.push(m(G.cyl(0.012, 0.022, 20), 'black', { p: [0, Lp - 0.020, 0] }));
-  g.push(m(alongZ(ring(0.025, 0.0128, 0.032)), 'black', { p: [0, Lp, 0] }));
-  g.push(m(G.sweep([[-0.036, 0.105, 0], [-0.0395, 0.13, 0], [-0.0395, 1.10, 0], [-0.034, 1.128, 0]], 0.005, { radial: 8 }), 'black'));
+  g.push(m(G.cyl(0.625 * IN, yC - (y1 + 0.02) + 0.004, 28), 'chrome', { p: [0, (yC + y1 + 0.02) / 2, 0] }));
+  // chape de tige autour de l'oreille de la patte 278122 (axe soudé 277365)
+  for (const sz of [-1, 1]) { const e = m(G.plate(earShape(-0.022, 0.022, yC, 0, Lp, 0.024), 0.012, { holes: [{ c: [0, Lp], r: 0.0162 }], curve: 16 }), 'black'); e.position.z = sz * 0.0165; g.push(e); }
+  g.push(m(G.box(0.044, 0.014, 0.045, 0.003), 'black', { p: [0, yC - 0.003, 0] }));
+  g.push(m(G.sweep([[-0.036, 0.105, 0], [-0.0395, 0.13, 0], [-0.0395, y1 - 0.01, 0], [-0.034, y1 + 0.012, 0]], 0.005, { radial: 8 }), 'black'));
   const c = grp(g); between(c, [XTB, YT, 0], [XTR, YT, 0], 0);
-  return part({ id: 'crane-tele', sec: '10.3', item: '3', pn: '278118', fr: 'Vérin télescopique 36 po', en: 'Telescopic cylinder 36 in', qty: '1', page: 49, explode: [0.35, 0.26, 0], approx: true, note: 'Course 36 po, alésage 2 po, tige 1 1/4 po. Sorti de 0,19 m dans cette pose ; bloc de valve au pied (p. 49).' }, [c]);
+  return part({ id: 'crane-tele', sec: '10.3', item: '3', pn: '278118', fr: 'Vérin télescopique 36 po', en: 'Telescopic cylinder 36 in', qty: '1', page: 49, explode: [0.35, 0.26, 0], approx: true,
+    note: 'Course 36 po, alésage 2 po, tige 1 1/4 po, rentré (flèche rentrée). Bloc de valve au pied (p. 49) ; chape de tige sur l\'oreille de la patte 278122.' }, [c]);
 }
 
 /* 10.3.4 Codeur de levage 277383 (p. 57), coaxial à l'axe J2, côté +Z. Support plié vissé sur le gousset. */
@@ -513,7 +523,7 @@ function buildHoistEncoder() {
 function buildEchain() {
   const p = 0.060, hl = 0.056, wc = 0.085, tp = 0.0045, R = 0.0725;
   const yTray = AY - 0.032, yl = yTray + hl / 2 + 0.001, yu = yl + 2 * R;
-  const xfe = -0.360, xme = 0.150, Ltot = 1.755, arc = Math.PI * R;
+  const xfe = XFF - 0.361, xme = 0.0, Ltot = 1.755, arc = Math.PI * R;
   const xc = (xme + xfe + arc - Ltot) / 2, Llow = xfe - xc;
   const at = (s) => {
     if (s < Llow) return [[xfe - s, yl], [-1, 0]];
@@ -532,18 +542,19 @@ function buildEchain() {
   links.push(m(G.box(0.040, hl * 0.9, wc, 0.004), 'plastic', { p: [xfe + 0.016, yl, EZ0] }));
   links.push(m(G.box(0.040, hl * 0.9, wc, 0.004), 'plastic', { p: [xme - 0.016, yu, EZ0] }));
   const chain = part({ id: 'crane-echain-chain', sec: '10.3.1', item: '2', pn: '279067', fr: 'Chaîne porte-câbles', en: 'Cable chain PKK 241/75', qty: '1', page: 50, explode: [0, 0.07, 0], note: `1755 mm, ${n} maillons au pas de 60 mm, rayon 72,5 mm (relevé op79).` }, links);
-  const xt0 = -1.020, xt1 = -0.320, xm = (xt0 + xt1) / 2;
+  const xt0 = XFF - 0.986, xt1 = XFF - 0.326, xm = (xt0 + xt1) / 2;
   const T = [m(G.box(xt1 - xt0, 0.004, 0.107, 0.0015), 'zincClear', { p: [xm, yTray - 0.002, -0.1985] }),
     m(G.box(xt1 - xt0, 0.034, 0.004, 0.0015), 'zincClear', { p: [xm, yTray + 0.013, -0.250] }),
     m(G.box(xt1 - xt0, 0.018, 0.004, 0.0015), 'zincClear', { p: [xm, yTray + 0.005, -0.147] })];
-  for (const xb of [-0.377, -0.867]) T.push(m(G.box(0.05, yTray - (AY - 0.088), 0.006, 0.002), 'zincClear', { p: [xb, (yTray + AY - 0.088) / 2, -0.144] }));
+  for (const xb of XTRB) T.push(m(G.box(0.05, yTray - (AY - 0.088), 0.006, 0.002), 'zincClear', { p: [xb, (yTray + AY - 0.088) / 2, -0.144] }));
   const tray = part({ id: 'crane-echain-tray', sec: '10.3.1', item: '1', pn: '277946', fr: 'Bac de chaîne soudé', en: 'E-chain tray weldment', qty: '1', page: 50, explode: [0, 0, 0], approx: true }, T);
-  const ym = yu - hl / 2 - 0.0005, xr = XIF - 0.0002;
-  const F = [m(G.box(xr - (xme - 0.08), 0.004, 0.105, 0.0015), 'zinc', { p: [(xr + xme - 0.08) / 2, ym - 0.002, EZ0] }),
-    m(G.box(0.004, ym - 1.95, 0.15, 0.0015), 'zinc', { p: [xr - 0.002, (ym + 1.95) / 2, -0.177] })];
+  // support plié 279076 : semelle sous l'embout mobile, aile boulonnée derrière l'oreille de la plaque d'extrémité intérieure
+  const ym = yu - hl / 2 - 0.0005, xb0 = XIF - 0.004;
+  const F = [m(G.box(xme + 0.010 - xb0, 0.004, 0.105, 0.0015), 'zinc', { p: [(xme + 0.010 + xb0) / 2, ym - 0.002, EZ0] }),
+    m(G.box(0.004, ym - 1.966, wc, 0.0015), 'zinc', { p: [xb0 + 0.002, (ym + 1.966) / 2, EZ0] })];
   const formed = part({ id: 'crane-echain-plate', sec: '10.3.1', item: '6', pn: '279076', fr: 'Support plié', en: 'Formed plate', qty: '1', page: 50, explode: [0.05, 0.11, 0], approx: true }, F);
   const hw = [];
-  for (const xb of [-0.377, -0.867]) for (const dy of [-0.014, 0.014]) hw.push(bw([xb, AY - 0.060 + dy, -0.147], [0, 0, -1], 0.4375 * IN, 0.75 * IN));
+  for (const xb of XTRB) for (const dy of [-0.014, 0.014]) hw.push(bw([xb, AY - 0.060 + dy, -0.147], [0, 0, -1], 0.4375 * IN, 0.75 * IN));
   for (const [xe, ye, yb] of [[xme - 0.016, yu, ym - 0.004], [xfe + 0.016, yl, yTray - 0.004]]) for (const dz of [-0.03, 0, 0.03]) {
     hw.push(bw([xe, ye + hl * 0.45, EZ0 + dz], [0, 1, 0], 0.005, 0.080));
     hw.push(nw([xe, yb, EZ0 + dz], [0, -1, 0], 0.005, { lock: true }));
@@ -552,28 +563,34 @@ function buildEchain() {
   return asm({ id: 'crane-echain', sec: '10.3.1', item: '5', pn: '279066', fr: 'Chaîne porte-câbles', en: 'E-chain assembly', qty: '1', page: 50, explode: [0, 0.30, -0.16] }, [tray, chain, formed, vis]);
 }
 
-/* 10.3.3 Patte de bout de flèche 278122 (p. 56) : face d'appui plane à x = TIP[0], centre (TIP[1], TIP[2]).
- * Têtes des 6 vis noyées (lamages) pour laisser la face libre à la plaque de poignet de la pince. */
+/* 10.3.3 Patte de bout de flèche 278122 (p. 56) : boulonnée derrière la plaque d'extrémité de la flèche intérieure,
+ * dans le tube (vue p. 45 par la fenêtre du bout de flèche). Têtes des 6 vis côté tube, entretoises de 1 po contre la plaque
+ * d'extrémité (bouts de vis dans ses trous taraudés), oreille côté tube : l'axe soudé 277365 y tient la chape de tige du vérin 36 po.
+ * Plaque 277349 orientée en losange (côtés parallèles aux parois) pour entrer dans le tube de 148 mm. */
+const LUGB = [-0.03, 0, 0.03].flatMap(dy => [[0.045, dy], [-0.045, dy]]);   // (z, y - AY) : 2 colonnes de 3 (p. 56)
 function buildLug() {
-  const [, ty, tz] = TIP, hs = 0.0825, c = 0.026, tf = 0.012;
-  const at = ([z, y]) => [tz + z, ty + y];
-  const outline = [[-hs + c, -hs], [hs - c, -hs], [hs, -hs + c], [hs, hs - c], [hs - c, hs], [-hs + c, hs], [-hs, hs - c], [-hs, -hs + c]].map(at);
-  const front = m(tr(plateYZ(outline, tf, { holes: [{ c: at([0, 0]), r: 0.028 }, ...LUGB.map(b => ({ c: at(b), r: 0.0128 })), { slot: [...at(LPIN), ...at(LLOCK)], r: 0.0135 }] }), XLF - tf / 2, 0, 0), 'red');
-  const back = m(tr(plateYZ(outline, XLF - tf - XLP, { holes: [{ c: at([0, 0]), r: 0.028 }, ...LUGB.map(b => ({ c: at(b), r: 0.0050 })), { c: at(LPIN), r: 0.0162 }, { c: at(LLOCK), r: 0.0050 }] }), (XLP + XLF - tf) / 2, 0, 0), 'red');
-  const plate = part({ id: 'crane-lug-plate', sec: '10.3.3', item: '1', pn: '277349', fr: 'Plaque de patte usinée', en: 'Machined boom lug', qty: '1', page: 56, explode: [0, 0, 0], approx: true, note: "Face d'appui plane de la pince (L.boom.tip) ; contour et 6 vis d'après p. 56 ; vis noyées (estimé)." }, [front, back]);
-  const [pz, py] = at(LPIN), xTab = XLF - tf;
-  const pinw = part({ id: 'crane-lug-pin', sec: '10.3.3', item: '6', pn: '277365', fr: 'Axe soudé', en: 'Welded pin', qty: '1', page: 56, explode: [0.10, -0.03, 0] },
-    [m(G.cyl(0.0159, 3.125 * IN, 28), 'machined', { p: [xTab - 3.125 * IN / 2, py, pz], r: [0, 0, 90] }),
-     m(tr(plateYZ(slotShape(at(LPIN), at(LLOCK), 0.013), 0.003, { holes: [{ c: at(LLOCK), r: 0.0052 }] }), xTab + 0.0015, 0, 0), 'machined')]);
+  const hd = (0.128 / S2), c = 0.012, k = hd - c;
+  const oct = [[c, -k], [k, -c], [k, c], [c, k], [-c, k], [-k, c], [-k, -c], [-c, -k]].map(([z, y]) => [z, AY + y]);
+  const P = [m(tr(plateYZ(oct, XLA - XLB, { holes: [{ c: [0, AY], r: 0.020 }, ...LUGB.map(([z, y]) => ({ c: [z, AY + y], r: 0.0052 }))], curve: 16 }), (XLA + XLB) / 2, 0, 0), 'red')];
+  // oreille (côté tube) : alésage de l'axe soudé
+  const ear = new THREE.Shape(); ear.moveTo(XLB + 0.002, AY + 0.020); ear.lineTo(XLB + 0.002, AY - 0.060); ear.lineTo(XTR, YT - 0.026);
+  ear.absarc(XTR, YT, 0.026, -Math.PI / 2, Math.PI / 2, true); ear.closePath(); ear.holes.push(circ(XTR, YT, 0.0162));
+  P.push(m(G.plate(ear, 0.019, { curve: 20 }), 'red'));
+  P.push(weld([[XLB - 0.003, AY + 0.018, 0.0125], [XLB - 0.003, AY - 0.058, 0.0125]], 0.003), weld([[XLB - 0.003, AY + 0.018, -0.0125], [XLB - 0.003, AY - 0.058, -0.0125]], 0.003));
+  const plate = part({ id: 'crane-lug-plate', sec: '10.3.3', item: '1', pn: '277349', fr: 'Patte usinée', en: 'Machined boom lug', qty: '1', page: 56, explode: [0, 0, 0], approx: true,
+    note: "Plaque épaisse à alésage central et oreille (p. 56), dans le bout de la flèche intérieure. Position déduite des p. 45, 49 et 56 (estimée)." }, P);
+  const zt = 0.0225, tab = slotShape([XTR, YT], [XTR - 0.030, YT], 0.013);
+  tab.holes.push(circ(XTR - 0.030, YT, 0.0052));
+  const pinw = part({ id: 'crane-lug-pin', sec: '10.3.3', item: '6', pn: '277365', fr: 'Axe soudé', en: 'Welded pin', qty: '1', page: 56, explode: [0, 0, 0.12] },
+    [m(alongZ(G.cyl(0.0159, 0.0725, 28)), 'machined', { p: [XTR, YT, zt - 0.0725 / 2] }), m(tr(G.plate(tab, 0.003), 0, 0, zt + 0.0015), 'machined')]);
   const hw = [];
-  for (const b of LUGB) {
-    const [z, y] = at(b);
-    hw.push(aim(grp([bolt({ d: 0.375 * IN, L: 2.25 * IN }), grp([washer({ d: 0.375 * IN, od: 0.024, t: 0.0024 })], { p: [0, -0.0024, 0] })]), V(xTab + 0.0024, y, z), V(1, 0, 0)));
-    hw.push(m(alongX(ring(0.375 * IN, 0.0049, 1 * IN, 24)), 'zinc', { p: [XIFF + 0.5 * IN, y, z] }));
+  for (const [z, dy] of LUGB) {
+    hw.push(aim(grp([bolt({ d: 0.375 * IN, L: 2.25 * IN }), grp([washer({ d: 0.375 * IN, od: 0.024, t: 0.0024 })], { p: [0, -0.0024, 0] })]), V(XLB - 0.0024, AY + dy, z), V(-1, 0, 0)));
+    hw.push(m(alongX(ring(0.375 * IN, 0.0049, 1 * IN, 24)), 'zinc', { p: [(XLA + XIF) / 2, AY + dy, z] }));
   }
-  { const [z, y] = at(LLOCK); hw.push(bw([xTab + 0.003, y, z], [1, 0, 0], 0.375 * IN, 0.75 * IN)); }
-  const vis = part({ id: 'crane-lug-hw', sec: '10.3.3', item: '2', pn: 'B151', fr: 'Visserie et entretoises', en: 'Hardware and spacers', qty: '-', page: 56, explode: [0.16, 0, 0], note: 'Repères 2 (B151 x6), 3 (B140 x1), 4 (218153 x6), 5 (224166 x1), 7 (entretoises 281190 x6).' }, hw);
-  return asm({ id: 'crane-lug', sec: '10.3.3', item: '6', pn: '278122', fr: 'Patte de bout de flèche', en: 'Boom tip lug', qty: '1', page: 56, explode: [1.47, 0, 0] }, [plate, pinw, vis]);
+  hw.push(bw([XTR - 0.030, YT, zt + 0.003], [0, 0, 1], 0.375 * IN, 0.75 * IN));
+  const vis = part({ id: 'crane-lug-hw', sec: '10.3.3', item: '2', pn: 'B151', fr: 'Visserie et entretoises', en: 'Hardware and spacers', qty: '-', page: 56, explode: [0.14, 0, 0], note: 'Repères 2 (B151 x6), 3 (B140 x1), 4 (218153 x6), 5 (224166 x1), 7 (entretoises 281190 x6).' }, hw);
+  return asm({ id: 'crane-lug', sec: '10.3.3', item: '6', pn: '278122', fr: 'Patte de bout de flèche', en: 'Boom tip lug', qty: '1', page: 56, explode: [1.62, 0, 0] }, [plate, pinw, vis]);
 }
 
 function buildBoom() {

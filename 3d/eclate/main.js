@@ -10,6 +10,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { finalize } from './kit.js';
 import { ASSEMBLIES } from './asm/index.js';
 import { BY_NUM } from './bom.js';
@@ -58,7 +59,7 @@ const t = (k) => TXT[lang][k] ?? TXT.fr[k] ?? k;
 /* Déplacements des ensembles de 1er niveau (machine), en mètres à 100 %. Rien ne descend sous le sol. */
 const EX1 = {
   frame: [0, 0, 0], tub: [0.35, 0.75, 0], rods: [0.35, 1.25, 0], pedestal: [-0.55, 0.55, 0],
-  lowerCrane: [-0.55, 1.3, 0], gripper: [0.75, 1.35, 0], panel24: [-0.55, 0.55, -0.75], panelMount: [-0.55, 0.55, -0.42],
+  lowerCrane: [-0.55, 1.3, 0], gripper: [0.9, 1.6, 0], panel24: [-0.55, 0.55, -0.75], panelMount: [-0.55, 0.55, -0.42],
   flexCover: [-0.55, 0.85, -1.05], decals: [0, 0, -0.2], decalLP: [0, 0, -0.2], powerSupply: [0, 0, 0.55], tetherBulkhead: [0, 0, 0.55],
   cableKit: [0, 0, 0.55], rcTripod: [-0.45, 0, 0.5], radioRemote: [-0.45, 0.5, 0.5], tether: [-0.7, 0, -0.35],
 };
@@ -458,6 +459,18 @@ function loop(now) {
 applyLang(); resize();
 fetch(`${MANUAL_DIR}p010.jpg`, { method: 'HEAD' }).then(r => { manualOK = r.ok; if (nodes.length) renderCard(); }).catch(() => { manualOK = false; });
 const pmrem = new THREE.PMREMGenerator(renderer);
-new HDRLoader().load(HDR_URL, (hdr) => { scene.environment = pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity = 0.9; hdr.dispose(); dirty = true; }, undefined, () => { scene.environment = null; });
+/* Éclairage : HDR de l'entrepôt (CC0) ; sinon sa copie encodée en base64 (.txt) ; sinon un atelier généré. */
+async function loadEnv() {
+  const useHdr = (buf) => { const tex = new HDRLoader().parse(buf); const t = new THREE.DataTexture(tex.data, tex.width, tex.height, THREE.RGBAFormat, tex.type);
+    t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.LinearSRGBColorSpace; t.minFilter = t.magFilter = THREE.LinearFilter; t.generateMipmaps = false; t.flipY = true; t.needsUpdate = true;
+    scene.environment = pmrem.fromEquirectangular(t).texture; scene.environmentIntensity = 0.9; t.dispose(); };
+  try { const r = await fetch(HDR_URL); if (!r.ok) throw new Error(r.status); useHdr(await r.arrayBuffer()); }
+  catch (e) {
+    try { const r = await fetch(HDR_URL + '.txt'); if (!r.ok) throw new Error(r.status); const b = atob((await r.text()).trim()); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); useHdr(u.buffer); }
+    catch (e2) { scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.8; }
+  }
+  dirty = true;
+}
+loadEnv();
 requestAnimationFrame(loop);
 load().catch((e) => { console.error(e); $('#loadTxt').textContent = t('loadError'); });

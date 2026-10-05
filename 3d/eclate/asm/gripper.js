@@ -766,12 +766,12 @@ function buildWristHardware() {
     const long = (r === 3 && c === 1);
     hw.push(aim(washer({ d: 0.5 * IN, mat: 'zincClear', od: r === 0 ? 0.032 : 0.025, t: 0.0025 }), V(xi, y, z), V(1, 0, 0)));
     hw.push(boltAt([xi + 0.0025, y, z], [1, 0, 0], { d: 0.5 * IN, L: (long ? 1.75 : 1.5) * IN }));
-    if (r < 3) hw.push(nutAt([FLX, y, z], [-1, 0, 0], { d: 0.5 * IN }));
+    if (r < 3) hw.push(nutAt([FLX - 0.5 * IN, y, z], [-1, 0, 0], { d: 0.5 * IN })); // derrière la plaque d'extrémité 1/2 po de la flèche
   }));
   hw.push(boltAt([FLX + FT, 0.252, 0.0], [1, 0, 0], { d: 0.5 * IN, L: 1.25 * IN, washer: true }));
   for (const z of [-0.035, 0.035]) hw.push(nutAt([FLX + FT, FYT - 0.012, z], [1, 0, 0], { d: 0.19 * IN }));
   return part({ id: 'grip-hw-wrist', sec: '5', item: '21', pn: 'B269', fr: 'Visserie de la plaque de poignet', en: 'Wrist mount hardware', qty: '-', page: 10, explode: [-0.26, 0.40, 0], approx: true,
-    note: "Repères 1 (117753), 2 (228318 x4), 20 (B267), 21 (B269 x8), 22 (B271), 23 (N019 x6, sur la face côté flèche, hors de la patte 278122), 24 (N029 x2)." }, hw);
+    note: "Repères 1 (117753), 2 (228318 x4), 20 (B267), 21 (B269 x8), 22 (B271), 23 (N019 x6, derrière la plaque d'extrémité de la flèche intérieure), 24 (N029 x2)." }, hw);
 }
 function buildGrommet() {
   const prof = [[0.029, -0.0105], [0.040, -0.0105], [0.040, -0.0075], [0.0345, -0.0067], [0.0345, 0.0067], [0.040, 0.0075], [0.040, 0.0105], [0.029, 0.0105], [0.029, -0.0105]];
