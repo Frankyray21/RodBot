@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Banc de rendu</title>
+<style>html,body{margin:0;background:#d9dde2;overflow:hidden}canvas{display:block}#info{position:fixed;left:8px;top:6px;font:12px/1.3 monospace;color:#222;white-space:pre}</style>
+<script type="importmap">{"imports":{"three":"../vendor/three/three.module.min.js","three/addons/":"../vendor/three/addons/"}}</script>
+</head><body><div id="info"></div>
+<script type="module">
+/* Banc de rendu des ensembles : dev.html?asm=gripper (ou asm=all).
+ * window.api.shot(yaw, pitch, dist, tx, ty, tz) ; window.api.explode(t) ; window.api.outline(true). */
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { finalize } from './kit.js';
+const q = new URLSearchParams(location.search);
+const W = +(q.get('w') || innerWidth), H = +(q.get('h') || innerHeight);
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(1);
+renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#d9dde2');
+const camera = new THREE.PerspectiveCamera(30, W / H, 0.01, 60);
+const controls = new OrbitControls(camera, renderer.domElement);
+const key = new THREE.DirectionalLight('#ffffff', 2.2); key.position.set(-3, 6, 4); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 20 }); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+scene.add(key);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(12, 64), new THREE.ShadowMaterial({ opacity: 0.28 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+window.api = {};
+const pmrem = new THREE.PMREMGenerator(renderer);
+new HDRLoader().load('../assets/warehouse-v5.hdr', (hdr) => { scene.environment = pmrem.fromEquirectangular(hdr).texture; scene.environmentIntensity = 0.9; hdr.dispose(); start(); }, undefined, () => start());
+async function start() {
+  try {
+    const name = q.get('asm') || 'all';
+    const names = name === 'all' ? (await import('./asm/index.js')).ASSEMBLIES : name.split(',');
+    const root = new THREE.Group(); scene.add(root);
+    for (const n of names) {
+      const mod = await import(`./asm/${n}.js?t=${Date.now()}`);
+      const obj = mod.build(); [].concat(obj).forEach(o => root.add(o));
+    }
+    const st = finalize(root);
+    const nodes = []; root.traverse(o => { if (o.userData && o.userData.explode) nodes.push(o); });
+    nodes.forEach(o => o.userData.base = o.position.clone());
+    const box = new THREE.Box3().setFromObject(root); const c = box.getCenter(new THREE.Vector3());
+    controls.target.copy(c); camera.position.copy(c).add(new THREE.Vector3(-2.5, 1.6, 3.2)); controls.update();
+    document.getElementById('info').textContent = q.get('hud') === '0' ? '' : `${names.join(', ')}  parts ${st.parts}  meshes ${st.meshes}  tris ${Math.round(st.tris)}  bbox ${box.min.toArray().map(v => v.toFixed(2))} → ${box.max.toArray().map(v => v.toFixed(2))}`;
+    window.api.stats = st; window.api.box = [box.min.toArray(), box.max.toArray()]; window.api.root = root;
+    window.api.explode = (t) => { nodes.forEach(o => { o.position.copy(o.userData.base).addScaledVector(new THREE.Vector3(...o.userData.explode), t); }); };
+    window.api.shot = (yaw, pitch, dist, tx, ty, tz) => {
+      const t = new THREE.Vector3(tx, ty, tz), y = yaw * Math.PI / 180, p = pitch * Math.PI / 180;
+      camera.position.set(t.x + dist * Math.cos(p) * Math.cos(y), t.y + dist * Math.sin(p), t.z + dist * Math.cos(p) * Math.sin(y));
+      camera.lookAt(t); controls.target.copy(t); renderer.render(scene, camera); return true;
+    };
+    window.api.list = () => { const out = []; root.traverse(o => { if (o.userData && o.userData.type) { const b = new THREE.Box3().setFromObject(o); out.push({ type: o.userData.type, id: o.userData.id, sec: o.userData.sec, item: o.userData.item, pn: o.userData.pn, fr: o.userData.fr, explode: o.userData.explode, min: b.min.toArray().map(v => +v.toFixed(3)), max: b.max.toArray().map(v => +v.toFixed(3)) }); } }); return out; };
+    window.api.tint = (id) => { root.traverse(o => { if (o.isMesh) { const own = o.userData.owner; let n = own, hit = false; while (n) { if (n.userData && n.userData.id === id) hit = true; n = n.parent; } o.visible = !id || hit; } }); };
+    window.api.ready = true;
+    (function loop() { requestAnimationFrame(loop); if (!q.get('static')) renderer.render(scene, camera); })();
+  } catch (e) { window.api.error = e.stack || String(e); document.getElementById('info').textContent = 'ERREUR ' + e.stack; }
+}
+</script></body></html>
