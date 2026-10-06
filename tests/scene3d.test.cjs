@@ -12,10 +12,11 @@ function charger() {
   new Function('window', 'document', 'navigator', code)(faux, { addEventListener() {} }, {});
   return faux.RBScene3D;
 }
-const lire = s => {
-  const m = s.match(/^(-?[\d.]+)deg (-?[\d.]+)deg ([\d.]+)%$/);
-  assert.ok(m, 'orbite mal formée : ' + s);
-  return { theta: +m[1], phi: +m[2], dist: +m[3] };
+// L'orbite est un cadrage du moteur neuf : yaw, hauteur (pitch), recul en mètres
+// et la part du recul de référence (pct). phi = angle depuis la verticale.
+const lire = o => {
+  assert.ok(o && [o.yaw, o.pitch, o.dist, o.pct].every(Number.isFinite) && o.target.length === 3, 'orbite mal formée : ' + JSON.stringify(o));
+  return { theta: o.yaw, phi: 90 - o.pitch, dist: o.pct, metres: o.dist };
 };
 
 test('la scène 3D expose sa trajectoire de caméra', () => {
@@ -72,7 +73,11 @@ test('la scène est précachée et chargée par la page', () => {
   assert.equal((html.match(/data-rb-scene3d/g) || []).length, 4);
   assert.equal((html.match(/homeChoix/g) || []).length, 2, 'un écran de choix par langue');
   assert.equal((html.match(/homeSavoir/g) || []).length, 2, 'une base de connaissances par langue');
-  assert.ok(sw.includes("'./3d/vendor/model-viewer-4.3.1.min.js'"), 'moteur 3D précaché');
+  assert.ok(sw.includes("'./3d/js/viewer-v6.js'"), 'moteur 3D précaché');
+  // Le moteur est un module : la page d'accueil donne sa carte d'import à three.js.
+  const carte = JSON.parse(html.match(/<script type="importmap">(.*?)<\/script>/)[1]).imports;
+  assert.ok(fs.existsSync(path.join(__dirname, '..', carte.three)), 'three.js de la carte d\'import absent');
+  assert.ok(html.indexOf('type="importmap"') < html.indexOf('scene3d.js?v='), 'carte d\'import avant les scripts');
 });
 
 /* Contrôle INVERSE du précache. Les tests qui relisent CORE et PRECACHE pour
@@ -82,18 +87,18 @@ test('la scène est précachée et chargée par la page', () => {
 test('chaque asset cité par le code 3D existe sur disque', () => {
   const lire = n => fs.readFileSync(path.join(__dirname, '..', n), 'utf8');
   const racine = path.join(__dirname, '..');
-  // 3d/js/model-assets.js : les URL sont relatives à 3d/js/
-  const assets = lire('3d/js/model-assets.js');
-  const urls = [...assets.matchAll(/new URL\('\.\.\/([^']+)'/g)].map(m => m[1]);
-  assert.ok(urls.length >= 4, 'model-assets.js doit déclarer au moins 4 URL');
+  // 3d/js/viewer-v6.js : les URL sont relatives à 3d/js/
+  const moteur = lire('3d/js/viewer-v6.js');
+  const urls = [...moteur.matchAll(/new URL\('\.\.\/([^']+)'/g)].map(m => m[1]);
+  assert.ok(urls.length >= 1, 'viewer-v6.js doit déclarer son éclairage');
   for (const u of urls) {
     const abs = path.join(racine, '3d', u);
-    assert.ok(fs.existsSync(abs), '3d/' + u + ' est cité par model-assets.js mais absent du dépôt');
+    assert.ok(fs.existsSync(abs), '3d/' + u + ' est cité par viewer-v6.js mais absent du dépôt');
   }
   // scene3d.js : les chemins sont relatifs à la racine du site
   const scene = lire('scene3d.js');
   const chemins = [...scene.matchAll(/'(\.\/3d\/[^']+)'/g)].map(m => m[1]);
-  assert.ok(chemins.length >= 4, 'scene3d.js doit citer au moins 4 chemins 3D');
+  assert.ok(chemins.length >= 3, 'scene3d.js doit citer au moins 3 chemins 3D');
   for (const c of chemins) {
     const abs = path.join(racine, c.replace(/^\.\//, ''));
     assert.ok(fs.existsSync(abs), c + ' est cité par scene3d.js mais absent du dépôt');
@@ -125,9 +130,14 @@ test("l'ancien moteur 3D a bien disparu", () => {
   const racine = path.join(__dirname, '..');
   for (const mort of ['3d/js/viewer.js', '3d/js/hotspots.js', '3d/js/hero-embed.js',
                       '3d/assets/rodbot_hq.sog', '3d/assets/rodbot_mobile.sog',
-                      '3d/assets/rodbot-v5.glb', '3d/assets/rodbot-v5-poster.jpg']) {
+                      '3d/assets/rodbot-v5.glb', '3d/assets/rodbot-v5-poster.jpg',
+                      // réplique GLB V40 et son moteur model-viewer, remplacés en 1.133.0
+                      '3d/js/viewer-v5.js', '3d/js/hero-v6.js', '3d/js/model-assets.js', '3d/js/hotspots-v40.js',
+                      '3d/assets/rodbot-v40-bc6aeb52.glb', '3d/assets/rodbot-v40-poster.jpg',
+                      '3d/vendor/model-viewer-4.3.1.min.js', '3d/vendor/draco']) {
     assert.equal(fs.existsSync(path.join(racine, mort)), false, mort + ' devrait être supprimé');
   }
   const sw = fs.readFileSync(path.join(racine, 'sw.js'), 'utf8');
   assert.ok(!sw.includes('cdn.jsdelivr.net'), "plus aucune origine CDN de code : le moteur 3D est local");
+  assert.ok(!/\.glb'/.test(sw), 'plus aucun modèle GLB à télécharger : le modèle est du code');
 });

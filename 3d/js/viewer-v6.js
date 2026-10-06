@@ -91,6 +91,7 @@ export const RodbotViewer = {
     controls.zoomSpeed = 0.9; controls.rotateSpeed = 0.8;
     // OrbitControls bloque le défilement tactile : on rend la main au CSS (pan-y, ou none en plein écran)
     canvas.style.touchAction = '';
+    if (opts.controls === false) controls.enabled = false;   // présentation seule (page d'accueil)
 
     function applyQuality() {
       const dpr = window.devicePixelRatio || 1;
@@ -343,6 +344,18 @@ export const RodbotViewer = {
       on(name, fn) { if (!events.has(name)) events.set(name, new Set()); events.get(name).add(fn); return api; },
       flyTo, home: (duration = 900) => flyTo({ ...homeView, target: homeTarget }, duration), cancelFlight,
       zoom, setAutoRotate, setHotspots, updateHotspots, project,
+      /** Cadrage immédiat, sans vol (caméra pilotée image par image). */
+      setView(view = {}) {
+        if (destroyed) return;
+        const v = getView();
+        renderView({
+          yaw: Number.isFinite(view.yaw) ? view.yaw : v.yaw,
+          pitch: clamp(Number.isFinite(view.pitch) ? view.pitch : v.pitch, LIMITS.minPitch, LIMITS.maxPitch),
+          dist: clamp(Number.isFinite(view.dist) ? view.dist : v.dist, LIMITS.minDist, LIMITS.maxDist),
+          target: vector(view.target, v.target)
+        });
+        requestFrame();
+      },
       async setQuality(value) { if (destroyed) return false; quality = chooseQuality(value); applyQuality(); emit('quality', quality); return true; },
       setHotspotsVisible(value) { showPoints = Boolean(value); queueProjection(); },
       get visible() { return visible; },

@@ -19,13 +19,13 @@ converti en site **100 % statique, sans aucun framework** (HTML / CSS / JavaScri
   - les modes de fonctionnement (voyant ambre, klaxon, valves d'isolement).
 - **Attestation** de fin de parcours personnalisable.
 
-## Nouvel atelier 3D v1.132.0 (aperçu)
+## Atelier 3D v1.133.0
 
-L'[aperçu du nouvel atelier](3d/atelier.html) reprend les exercices et la visite guidée sur le modèle neuf. Le modèle est le même que celui de la vue éclatée. Il est articulé : tourelle, flèche et vérins de levage, poignet, rotation et inclinaison de la pince, mâchoires, stabilisateurs. La porte du coffret s'ouvre. Les 12 leviers, les manettes et les boutons bougent. Les 41 repères suivent les pièces (`3d/js/hotspots-v41.js`).
+L'[atelier 3D](3d/) tourne sur le modèle neuf, le même que celui de la vue éclatée. Les 4 exercices, la visite guidée, les fiches et les 41 repères sont conservés (`3d/js/viewer-v6.js`, `3d/js/hotspots-v41.js`). Le modèle est articulé : tourelle, flèche et vérins de levage, poignet, rotation et inclinaison de la pince, mâchoires, stabilisateurs. La porte du coffret s'ouvre. Les 12 leviers, les manettes et les boutons bougent.
 
-La télécommande suit la photo du manuel opérateur (p. 21) : 3 manettes (JS1, JS2, JS3), 8 interrupteurs, 3 boutons ronds, arrêt d'urgence et 7 boutons de côté. Chaque commande est une pièce séparée.
+La télécommande suit la photo du manuel opérateur (p. 21) : 3 manettes (JS1, JS2, JS3), 8 interrupteurs, 3 boutons ronds, arrêt d'urgence et 7 boutons de côté.
 
-L'ancien atelier (`3d/index.html`, GLB V40) reste en place tant que le nouveau n'est pas validé.
+La machine qui tourne sur l'accueil utilise le même moteur. L'ancienne réplique GLB (V40, model-viewer) est retirée : 1,1 Go de moins dans le dépôt. L'APK passe d'environ 970 Mo à environ 100 Mo. Les pages `3d/replique.html` et `3d/atelier.html` renvoient vers l'atelier. L'appareil efface l'ancien modèle de son cache à la mise à jour.
 
 ## Vue éclatée 3D v1.131.1
 
@@ -33,57 +33,7 @@ La [vue éclatée](3d/eclate.html) montre la machine reconstruite d'après les d
 
 Le modèle est construit par code (dossier `3d/eclate/`), sans fichier GLB. Les boyaux hydrauliques sont dessinés pour référence. Les formes cachées ou non cotées sont estimées et signalées dans les fiches. La page fonctionne hors ligne une fois chargée.
 
-## Réplique 3D v1.130.0
-
-La V40 corrige le boyau isolé du mât : le départ au connecteur jaune rejoint maintenant la bouche du porte-câbles par un trajet court. La reconstruction se termine dans le corridor protégé ; sa destination réelle masquée reste inconnue. Les autres pièces et mouvements sont conservés. Le repère des borniers vise désormais leur rangée dans le coffret ouvert. Le bilan de fidélité distingue les dimensions documentées, les estimations et les détails restant à vérifier.
-
-La V39 reprend deux faces visibles de la section télescopique avec des pistes gris satiné à rives rouges. Deux couvercles de guidage et leur visserie sont détaillés selon la page 54 du manuel de pièces. Leurs détails superposés et quatre rectangles noirs non corroborés sont retirés. Les six autres couvercles, les enveloppes des tubes, les boyaux et les commandes sont conservés. Les contours, les épaisseurs et la finition sans cote restent estimés.
-
-La V38 reprend les six retours de boyaux sous le bras. Leur retournement se rapproche de la platine, avec des fonds arrondis. Ils se regroupent plus tôt et suivent un passage inférieur plus régulier. Les parties arrière des trajets, les raccordements et les éléments rigides sont conservés. La chaîne et les proportions générales restent inchangées. Les trajets masqués et le comportement physique sur toute la plage de mouvement restent à confirmer. Les écarts visuels restants sont décrits dans le bilan de fidélité.
-
-La V37 réoriente les parties supérieures des quatre raccords hydrauliques vers l’entrée de chaîne. Les cinq arrivées forment des arches continues et suivent un ordre de voies revu. Leurs sorties rejoignent les mêmes points sur le poignet. Les six retours descendent plus près de la platine, puis retrouvent leur passage sous le bras. La chaîne, les commandes et les proportions générales sont conservées. Les courbures sans cote et les destinations masquées restent estimées. L’assemblage conserve quatre traversées hydrauliques et deux passages auxiliaires ; les huit traversées du manuel ne sont pas toutes reconstruites.
-
-La V36 remet la rangée de la platine et des raccords transversalement, parallèle aux traverses de la chaîne. Elle corrige l’orientation longitudinale des versions précédentes. Les cinq flexibles de flèche restent dans les rails sur leur portion guidée ; leurs sections libres rejoignent la platine et le poignet. Les six retours et la ligne auxiliaire sont raccordés au nouvel assemblage, et le support est remis en appui. La silhouette générale et les commandes sont conservées. Les dimensions non cotées et destinations masquées restent estimées. La portion conserve quatre traversées hydrauliques et deux passages auxiliaires.
-
-La V35 avait arrondi et séparé les six retours. La V36 adapte ces parcours aux ports de la rangée transversale. Les destinations masquées restent des estimations visuelles.
-
-La V34 avait rapproché le support de la bague télescopique et de l’attache avant de chaîne. La V36 corrige son orientation et remet ses appuis et raccordements en cohérence avec la rangée transversale.
-
-La V33 avait tourné la rangée dans la longueur du mât. Cette orientation était erronée ; la V36 la corrige.
-
-La V32 avait détaillé les tôles, leurs coins arrondis et leurs fixations. Ces pièces suivent le placement V36.
-
-La V31 avait abaissé les six boucles. La V34 reprend leur parcours sous le bras. Les destinations cachées restent estimées.
-
-La V30 avait repris le porte-boyaux. La V34 adapte les arrivées au support près de la bague télescopique.
-
-La V29 ajoute le creux oblong visible sur les flancs des maillons, selon le manuel de pièces p. 50. Le parcours, les dimensions extérieures et les boyaux sont conservés. La profondeur non cotée reste estimée.
-
-La V28 détaille la bride Stauff 277747 selon les pages 51 et 55 du manuel de pièces. Les quatre blocs doubles, deux plaques et deux vis remplacent le bloc simplifié. Les dimensions non cotées et les portions cachées restent estimées.
-
-La V27 applique les cotes du manuel de pièces BM260024_PM10654_R0 aux deux vérins. Les tiges mesurent 38,1mm de diamètre. Les axes mesurent 31,75×76,2mm. Les rondelles de butée et retenues correspondent aux vues éclatées. Les positions non cotées restent estimées. Les proportions générales, boyaux et commandes sont conservés.
-
-La V26 ajoute le vérin latéral gauche et corrige les attaches des deux vérins. Chaque vérin porte deux retours de boyaux lisses. Les proportions générales et les interactions de formation sont conservées. Les petites dimensions et les extrémités cachées restent estimées.
-
-La V25 affine le côté gauche du mât : logo MEDATECH, capuchon rouge aplati, raccords satinés et porte-câbles détaillé. Les proportions, articulations et interactions sont conservées. Les petits reliefs et épaisseurs restent estimés.
-
-Le coffret utilise une petite icône de porte ancrée au modèle. Son libellé apparaît au survol ou au focus clavier. La cible tactile reste large. Un clic ouvre ou ferme la porte. L’icône et son libellé suivent aussi les commandes de l’exercice.
-
-La V24 arrondit les contours des mâchoires et détaille leurs fixations extérieures. Les rondelles sont remises en appui. Les pointes, portées, pivots et interactions restent conservés. L’assemblage central à lumière reste à reconstruire.
-
-La V23 remet le gyrophare et le tube violet en appui. Elle corrige la tête noire, les deux boyaux du rotateur et des détails de commande. Les proportions générales et les interactions sont conservées. Les limites restantes sont documentées.
-
-La V22 détaille le faisceau au pied du mât depuis la photo réelle : platine, longs sertissages, coudes, unions et connecteur à repères jaunes. Six retours suivent les articulations existantes. Les entrées cachées restent estimées.
-
-La V21 corrige la protection tubulaire côté IHM. Le montant est droit, avec deux petits coudes et des retours transversaux. La vidéo réelle fournit la référence visible ; les raccordements masqués restent estimés.
-
-La [réplique détaillée](3d/replique.html) accompagne l'atelier guidé de la [page 3D](3d/). Elle comprend la télécommande, le trépied, le logo Machines Roger et les détails mécaniques affinés avec la vidéo. Les vues rapprochées, la présentation à 360° et les six réglages d'articulation sont disponibles en français et en anglais.
-
-Le modèle, le moteur d'affichage et les décodeurs sont servis depuis ce dépôt. Aucun compte ChatGPT n'est requis. Le fichier 3D est chargé uniquement lors de l'ouverture de cette page. Les quiz, les fiches du scan et les attestations conservent leur fonctionnement.
-
-La V20 affine les protections, manchons et brides des boyaux. Les boyaux suivent les articulations existantes. Les raccordements masqués et leur déformation restent des approximations visuelles.
-
-[Application de formation](https://frankyray21.github.io/RodBot/) · [Réplique interactive](https://frankyray21.github.io/RodBot/3d/replique.html) · [Modèle GLB](3d/assets/rodbot-v40-bc6aeb52.glb) · [Sources et limites](3d/assets/audit-fidelite-v40.md)
+Liens : [application de formation](https://frankyray21.github.io/RodBot/) · [atelier 3D](https://frankyray21.github.io/RodBot/3d/) · [vue éclatée](https://frankyray21.github.io/RodBot/3d/eclate.html)
 
 ## Lancer en local
 
@@ -107,17 +57,6 @@ python3 -m http.server 8000
 
 Le moteur fait un rendu complet à chaque action (clic) et une mise à jour « douce »
 en place pendant la saisie continue (curseurs), pour un glissement fluide.
-
-## Exploration 3D v1.61.1
-
-- Scan réel conservé, cadrage adapté au téléphone et rendu détaillé ou fluide.
-- Zoom progressif, rotation avec inertie et déplacements de caméra adoucis.
-- Visite des composants et arrêts d'urgence avec pause, reprise et navigation.
-- Repères corrigés sur les écrans haute densité, plein écran et commandes clavier.
-- Animation interrompue pendant la manipulation et respect du mouvement réduit.
-- Les animations déplacent la caméra. Le scan ne contient pas de pièces articulées.
-- Modules de la visite disponibles hors ligne après installation.
-- Photos agrandissables même lorsque le scan ou le moteur 3D ne charge pas.
 
 Validation : `node --test tests/*.test.cjs`.
 
@@ -160,7 +99,7 @@ Le site est conçu pour la mine, sans réseau :
 
 - Le service worker (`sw.js`) télécharge tout le contenu en arrière-plan à la
   première visite : leçons, images du manuel FR et EN, figures, PDF **et le
-  modèle 3D articulé** (environ 122 Mo au total). Depuis la 1.95.0 il n'y a
+  éclairage du modèle 3D** (environ 95 Mo au total ; le modèle lui-même est du code). Depuis la 1.95.0 il n'y a
   plus rien à demander séparément : l'atelier 3D marche sous terre comme le
   reste.
 - La carte **« Hors ligne »** (accueil, section Documents) montre l'avancement
@@ -192,7 +131,7 @@ Rien à télécharger : l'adresse du site est le lien d'installation.
 ## Application Android (APK)
 
 Le dossier `apk/` contient une enveloppe [Capacitor](https://capacitorjs.com)
-qui embarque **tout le site et tout son contenu** (environ 125 Mo) dans une
+qui embarque **tout le site et tout son contenu** (environ 100 Mo) dans une
 application Android. Elle fonctionne à 100 % sans réseau dès l'installation.
 
 - **Téléchargement** : à chaque push sur `main`, GitHub Actions

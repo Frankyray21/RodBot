@@ -11,16 +11,16 @@ const BASE = 'https://example.github.io/RodBot/';
 const CURRENT = source.match(/const CACHE = '([^']+)'/)[1];
 const ASSETS = 'rodbot-assets-v1';
 
-// Les noms d'assets 3D viennent de 3d/js/model-assets.js et de scene3d.js, pas
-// d'un littéral recopié : un nom inventé a longtemps rendu ce test muet sur le
-// point le plus lourd du dépôt, les 26 Mo du modèle.
-const ASSETS_SRC = readFileSync(join(__dirname, '..', '3d', 'js', 'model-assets.js'), 'utf8');
+// Le modèle 3D est du code depuis la 1.133.0 (3d/eclate) : seul son éclairage reste
+// un fichier à télécharger. Son nom vient du moteur (3d/js/viewer-v6.js), pas d'un
+// littéral recopié : un nom inventé a longtemps rendu ce test muet.
+const VIEWER_SRC = readFileSync(join(__dirname, '..', '3d', 'js', 'viewer-v6.js'), 'utf8');
 const SCENE_SRC = readFileSync(join(__dirname, '..', 'scene3d.js'), 'utf8');
-const assetName = (nom) => {
-  const m = ASSETS_SRC.match(new RegExp(nom + "\\s*=\\s*new URL\\('\\.\\./assets/([^']+)'"));
-  assert.ok(m, nom + ' introuvable dans model-assets.js');
-  return m[1];
-};
+const ECLAIRAGE = (() => {
+  const m = VIEWER_SRC.match(/ENV_URL = new URL\('\.\.\/assets\/([^']+)'/);
+  assert.ok(m, 'éclairage introuvable dans viewer-v6.js');
+  return '3d/assets/' + m[1];
+})();
 
 function harness() {
   const handlers = {};
@@ -52,6 +52,8 @@ function harness() {
           return response?.clone();
         },
         async put(key, response) { store.set(keyOf(key), response.clone()); },
+        async keys() { return [...store.keys()].map((url) => ({ url })); },
+        async delete(key) { return store.delete(keyOf(key)); },
         async addAll(keys) {
           for (const key of keys) {
             precached.push(keyOf(key));
@@ -134,7 +136,7 @@ test('activation deletes only old RodBot caches', async () => {
 test('3d controls and animations load offline immediately after installation', async () => {
   const h = harness();
   await h.lifecycle('install');
-  for (const file of ['3d/css/viewer.css', '3d/css/training.css', '3d/js/viewer-v5.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots-v40.js', '3d/js/training-ui.js', '3d/js/simulation-state.js', '3d/js/hero-v6.js', '3d/js/model-assets.js', '3d/vendor/model-viewer-4.3.1.min.js', '3d/vendor/draco/draco_wasm_wrapper.js']) {
+  for (const file of ['3d/css/viewer.css', '3d/css/training.css', '3d/js/viewer-v6.js', '3d/js/motion.js', '3d/js/tour.js', '3d/js/hotspots-v41.js', '3d/js/training-ui.js', '3d/js/simulation-state.js', '3d/eclate/model.js', '3d/eclate/rig.js', '3d/eclate/kit.js', '3d/vendor/three/three.module.min.js', '3d/vendor/three/addons/controls/OrbitControls.js']) {
     assert.ok(h.precached.includes(BASE + file), `${file} must be precached`);
     const response = await h.request(`${file}?v=1.61.0`);
     assert.equal(await response.text(), `core:./${file}`);
@@ -248,7 +250,7 @@ test('3d entry and viewer scripts work offline immediately after core installati
   for (const path of ['3d/', '3d/index.html?embedded=1']) {
     assert.equal(await (await h.request(path, { mode: 'navigate' })).text(), 'core:./3d/index.html');
   }
-  assert.equal(await (await h.request('3d/js/viewer-v5.js?v=1.70.0')).text(), 'core:./3d/js/viewer-v5.js');
+  assert.equal(await (await h.request('3d/js/viewer-v6.js?v=1.70.0')).text(), 'core:./3d/js/viewer-v6.js');
   assert.equal((await h.request('3d/js/missing.js')).type, 'error');
 });
 
@@ -264,27 +266,36 @@ test('replica language URLs share their own visited document offline', async () 
   }
 });
 
-test('le modèle articulé et son éclairage sont gardés sur l\'appareil', async () => {
+test('le modèle neuf est du code précaché ; son éclairage est gardé sur l\'appareil', async () => {
   const h = harness();
-  const assets = ['3d/assets/' + assetName('MODEL_URL'), '3d/assets/' + assetName('ENVIRONMENT_URL')];
-  // L'accueil de l'app doit citer EXACTEMENT le même modèle que la page 3D,
-  // sinon le travailleur télécharge deux fois 26 Mo sans le savoir.
-  for (const f of assets) assert.ok(SCENE_SRC.includes('./' + f), 'scene3d.js doit citer ' + f);
-  for (const f of assets) h.network.set(BASE + f, new Response('asset:' + f));
+  // L'accueil et l'atelier utilisent le même éclairage : un seul téléchargement.
+  assert.ok(SCENE_SRC.includes('./' + ECLAIRAGE), 'scene3d.js doit citer ' + ECLAIRAGE);
+  // Chaque ensemble du modèle est dans la coquille : l'atelier marche sous terre dès l'installation.
+  const ensembles = readFileSync(join(__dirname, '..', '3d/eclate/asm/index.js'), 'utf8').match(/\[([^\]]+)\]/)[1].match(/'([^']+)'/g).map(x => x.slice(1, -1));
+  assert.ok(ensembles.length >= 7);
   await h.lifecycle('install');
+  for (const f of ['3d/eclate/asm/index.js', ...ensembles.map(e => `3d/eclate/asm/${e}.js`)]) assert.ok(h.precached.includes(BASE + f), f + ' doit être précaché');
+  h.network.set(BASE + ECLAIRAGE, new Response('asset:' + ECLAIRAGE));
   await h.lifecycle('activate');
-  // Téléchargés d'office : l'atelier 3D marche sous terre sans rien demander.
-  for (const file of assets) {
-    assert.equal(h.networkCalls.includes(BASE + file), true, file + ' doit être téléchargé');
-    assert.equal(h.stores.get(ASSETS).has(BASE + file), true, file + ' doit être gardé');
-  }
-  // Une nouvelle version du code ne les retélécharge pas : 27 Mo épargnés.
+  assert.equal(h.networkCalls.includes(BASE + ECLAIRAGE), true, 'éclairage téléchargé d\'office');
+  assert.equal(h.stores.get(ASSETS).has(BASE + ECLAIRAGE), true, 'éclairage gardé');
+  // Une nouvelle version du code ne le retélécharge pas.
   h.network.clear();
   await h.lifecycle('activate');
-  for (const file of assets) {
-    assert.equal(await (await h.request(file)).text(), 'asset:' + file);
-    assert.equal(h.networkCalls.filter((url) => url === BASE + file).length, 1);
-  }
+  assert.equal(await (await h.request(ECLAIRAGE)).text(), 'asset:' + ECLAIRAGE);
+  assert.equal(h.networkCalls.filter((url) => url === BASE + ECLAIRAGE).length, 1);
+});
+
+test("l'ancien modèle GLB, son affiche et son décodeur quittent l'appareil à l'activation", async () => {
+  const h = harness();
+  const vieux = ['3d/assets/rodbot-v40-bc6aeb52.glb', '3d/assets/rodbot-v40-poster.jpg', '3d/vendor/draco/draco_decoder.wasm'];
+  for (const f of vieux) h.seed(ASSETS, f, 'ancien');
+  h.seed(ASSETS, 'manuel-operateur.pdf', 'saved manual');
+  h.seed(ASSETS, ECLAIRAGE, 'hdr');
+  await h.lifecycle('activate');
+  for (const f of vieux) assert.equal(h.stores.get(ASSETS).has(BASE + f), false, f + ' doit être supprimé');
+  assert.equal(h.stores.get(ASSETS).has(BASE + 'manuel-operateur.pdf'), true, 'le contenu de formation reste');
+  assert.equal(h.stores.get(ASSETS).has(BASE + ECLAIRAGE), true, "l'éclairage reste");
 });
 
 test('stable assets survive activation and are not downloaded again', async () => {
@@ -309,12 +320,12 @@ test('complete precache continues after errors and PRECACHE messages retry missi
 
 test('offline video range requests use the complete stable cached resource', async () => {
   const h = harness();
-  h.seed(ASSETS, '3d/assets/' + assetName('MODEL_URL'), '0123456789', { headers: { 'Content-Type': 'model/gltf-binary' } });
-  const response = await h.request('3d/assets/' + assetName('MODEL_URL'), { headers: { Range: 'bytes=2-5' } });
+  h.seed(ASSETS, ECLAIRAGE, '0123456789', { headers: { 'Content-Type': 'application/octet-stream' } });
+  const response = await h.request(ECLAIRAGE, { headers: { Range: 'bytes=2-5' } });
   assert.equal(response.status, 206);
   assert.equal(await response.text(), '2345');
   assert.equal(response.headers.get('Content-Range'), 'bytes 2-5/10');
-  assert.equal(response.headers.get('Content-Type'), 'model/gltf-binary');
+  assert.equal(response.headers.get('Content-Type'), 'application/octet-stream');
   assert.equal(h.networkCalls.length, 0);
 });
 
@@ -339,12 +350,11 @@ test('les polices sont locales et précachées ; aucune origine externe n\'est i
 
 test('le téléchargement annonce son avancement aux pages et ETAT répond au demandeur', async () => {
   const h = harness();
-  const glb = '3d/assets/' + assetName('MODEL_URL');
-  const hdr = '3d/assets/' + assetName('ENVIRONMENT_URL');
+  const hdr = ECLAIRAGE;
   // Trois fichiers seulement sont joignables : le reste échoue, le compteur reste honnête.
   h.network.set(BASE + 'manuel-operateur.pdf', new Response('FR manual'));
   h.network.set(BASE + 'manual-en.pdf', new Response('EN manual'));
-  h.network.set(BASE + glb, new Response('glb'));
+  h.network.set(BASE + hdr, new Response('hdr'));
   await h.message({ type: 'PRECACHE' });
   const etats = h.messages.filter((m) => m.type === 'PRECACHE_ETAT');
   assert.ok(etats.length >= 2, 'au moins un message de début et un de fin');
@@ -360,56 +370,17 @@ test('le téléchargement annonce son avancement aux pages et ETAT répond au de
   assert.equal(recu.length, 1);
   assert.equal(recu[0].prets, 3);
   assert.equal(recu[0].total, dernier.total);
-  // Le modèle 3D est servi depuis le cache, sans nouvelle descente.
-  assert.equal(await (await h.request(glb)).text(), 'glb');
-  assert.equal(h.networkCalls.filter((u) => u === BASE + glb).length, 1);
-  assert.ok(h.networkCalls.includes(BASE + hdr), 'son éclairage est tenté aussi');
+  // L'éclairage 3D est servi depuis le cache, sans nouvelle descente.
+  assert.equal(await (await h.request(hdr)).text(), 'hdr');
+  assert.equal(h.networkCalls.filter((u) => u === BASE + hdr).length, 1);
 });
 
-test('le modèle actif GLB ou glTF et ses dépendances sont téléchargés par défaut', async () => {
+test('le téléchargement par défaut ne contient plus que l\'éclairage du modèle 3D', () => {
   // Sous terre, l'atelier 3D doit marcher comme le reste : rien à demander.
-  const modelFile = './3d/assets/' + assetName('MODEL_URL');
-  const hdr = './3d/assets/' + assetName('ENVIRONMENT_URL');
-  const bytes = readFileSync(join(__dirname, '..', modelFile));
-  let model;
-  if (bytes.readUInt32LE(0) === 0x46546c67) {
-    assert.equal(bytes.readUInt32LE(4), 2, 'version du conteneur GLB');
-    assert.equal(bytes.readUInt32LE(8), bytes.length, 'conteneur GLB complet');
-    for (let offset = 12; offset < bytes.length;) {
-      const length = bytes.readUInt32LE(offset), type = bytes.readUInt32LE(offset + 4);
-      assert.ok(offset + 8 + length <= bytes.length, 'bloc GLB complet');
-      if (type === 0x4e4f534a) model = JSON.parse(bytes.subarray(offset + 8, offset + 8 + length).toString('utf8').trim());
-      offset += 8 + length;
-    }
-  } else model = JSON.parse(bytes.toString('utf8'));
-  assert.ok(model, 'document glTF du modèle actif');
-  // Embedded GLB buffers and data URIs need no extra requests. External
-  // geometry or textures must resolve beside the model, under /RodBot/.
-  const dependencies = [...new Set([...(model.buffers || []), ...(model.images || [])]
-    .map(item => item.uri).filter(uri => uri && !uri.startsWith('data:'))
-    .map(uri => {
-      const url = new URL(uri, new URL(modelFile, BASE));
-      assert.ok(url.href.startsWith(BASE), 'dépendance locale au projet : ' + uri);
-      return './' + url.href.slice(BASE.length);
-    }))];
   const declared = source.match(/const MODELE_3D = \[([^\]]+)\]/)[1];
-  const activeFiles = [modelFile, hdr, ...dependencies];
-  for (const file of activeFiles) {
-    assert.ok(declared.includes("'" + file + "'"), 'ressource 3D déclarée : ' + file);
-  }
   const declaredFiles = [...declared.matchAll(/'([^']+)'/g)].map(match => match[1]);
-  assert.deepEqual(new Set(declaredFiles), new Set(activeFiles), 'aucune archive de modèle dans le téléchargement actif');
-  assert.ok(source.includes('.concat(POLICES).concat(MODELE_3D);'),
-    'et ajoutés à la liste téléchargée par défaut');
-  assert.ok(!/OPTIONNEL|listeContenu|toutDemande/.test(source),
-    'plus de contenu optionnel ni de demande séparée');
-  const h = harness();
-  h.network.set(BASE + modelFile.slice(2), new Response('model'));
-  h.network.set(BASE + hdr.slice(2), new Response('hdr'));
-  for (const file of dependencies) h.network.set(BASE + file.slice(2), new Response('dependency'));
-  await h.lifecycle('activate');
-  h.network.clear();
-  assert.equal(await (await h.request(modelFile.slice(2))).text(), 'model', 'servi hors ligne après activation');
-  assert.equal(await (await h.request(hdr.slice(2))).text(), 'hdr');
-  for (const file of dependencies) assert.equal(await (await h.request(file.slice(2))).text(), 'dependency');
+  assert.deepEqual(declaredFiles, ['./' + ECLAIRAGE], 'aucun modèle GLB dans le téléchargement actif');
+  assert.ok(require('node:fs').existsSync(join(__dirname, '..', ECLAIRAGE)), 'éclairage présent dans le dépôt');
+  assert.ok(source.includes('.concat(POLICES).concat(MODELE_3D);'), 'et ajouté à la liste téléchargée par défaut');
+  assert.ok(!/OPTIONNEL|listeContenu|toutDemande/.test(source), 'plus de contenu optionnel ni de demande séparée');
 });

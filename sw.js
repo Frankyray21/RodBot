@@ -1,10 +1,10 @@
 /* Service worker : permet l'installation et l'usage HORS-LIGNE (terrain, mine).
    Précache la coquille de l'app PUIS télécharge automatiquement TOUT le contenu
-   (images du manuel FR/EN et PDF) en arrière-plan. Le modèle 3D et son
-   éclairage sont conservés après leur premier chargement complet. */
+   (images du manuel FR/EN et PDF) en arrière-plan. Le modèle 3D est du code
+   (précaché) ; son éclairage est conservé après son premier chargement. */
 /* Nom du cache de coquille aligné sur APP_VERSION (app.js) : à incrémenter à
    chaque changement. Le changement de nom force le rafraîchissement du code. */
-const CACHE = 'rodbot-formation-v1.132.0';
+const CACHE = 'rodbot-formation-v1.133.0';
 /* Cache de CONTENU (images, PDF, vidéos, modèles 3D) : nom STABLE, il survit
    aux mises à jour du code. Les fichiers sont immuables : pas de re-téléchargement
    de ~150 Mo à chaque version. Incrémenter seulement si le contenu doit repartir à zéro. */
@@ -15,15 +15,14 @@ const CORE = [
   './', './index.html', './app.js', './pdf.js', './scene3d.js', './styles.css', './interface.css', './interface.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './3d/index.html', './3d/css/styles.css', './3d/css/viewer.css',
-  './3d/css/training.css', './3d/css/component-popup.css', './3d/js/viewer-v5.js', './3d/js/motion.js', './3d/js/tour.js',
-  './3d/js/hotspots-v40.js', './3d/js/hero-v6.js', './3d/js/model-assets.js', './3d/js/precision-zoom.js',
+  './3d/css/training.css', './3d/css/component-popup.css', './3d/js/motion.js', './3d/js/tour.js',
   './3d/js/training-ui.js', './3d/js/simulation-state.js',
-  './3d/replique.html', './3d/fidelite.html', './3d/js/replique.js', './3d/css/replique.css',
-  './3d/vendor/model-viewer-4.3.1.min.js', './3d/vendor/draco/draco_wasm_wrapper.js',
+  /* L'ancienne vue libre renvoie vers l'atelier (1.133.0). */
+  './3d/replique.html',
   './fonts/fonts.css',
-  /* Vue éclatée (1.132.0) : modèle construit par code, three.js servi depuis le dépôt. */
+  /* Vue éclatée (1.133.0) : modèle construit par code, three.js servi depuis le dépôt. */
   './3d/eclate/model.js', './3d/eclate/rig.js',
-  /* Nouvel atelier 3D (aperçu 1.132.0) : même modèle, articulé. */
+  /* Atelier 3D (1.133.0) : même modèle, articulé. atelier.html renvoie vers 3d/index.html. */
   './3d/atelier.html', './3d/js/viewer-v6.js', './3d/js/hotspots-v41.js', './3d/assets/rodbot-pm-poster.jpg',
   './3d/eclate.html',
   './3d/eclate/eclate.css',
@@ -96,10 +95,12 @@ const POLICES = [
   './fonts/heebo-900-latin.woff2'
 ];
 
-/* La réplique 3D articulée et son éclairage font partie du contenu
-   téléchargé par défaut depuis la 1.95.0 : l'atelier 3D doit marcher sous terre
-   comme le reste, sans que l'opérateur ait à demander quoi que ce soit. */
-const MODELE_3D = ['./3d/assets/rodbot-v40-bc6aeb52.glb', './3d/assets/warehouse-v5.hdr'];
+/* Le modèle 3D est construit par code depuis la 1.133.0 (3d/eclate, précaché dans CORE) :
+   il ne reste que son éclairage à télécharger. L'atelier marche sous terre comme le reste. */
+const MODELE_3D = ['./3d/assets/warehouse-v5.hdr'];
+/* Contenu retiré : l'ancienne réplique GLB (27 Mo), son affiche et son décodeur.
+   Supprimé du cache de contenu des appareils à l'activation. */
+const RETIRES = [/\/3d\/assets\/rodbot-v\d+[^/]*$/, /\/3d\/vendor\/draco\//, /\/3d\/vendor\/model-viewer/];
 
 /* Contenu de formation précaché (généré depuis l'arborescence du dépôt).
    La réplique articulée et son éclairage sont aussi conservés pour le terrain.
@@ -108,7 +109,7 @@ const MODELE_3D = ['./3d/assets/rodbot-v40-bc6aeb52.glb', './3d/assets/warehouse
 const PRECACHE = [
   './3d/assets/manuel/p12.jpg', './3d/assets/manuel/p13.jpg', './3d/assets/manuel/p14.jpg', './3d/assets/manuel/p21.jpg', './3d/assets/manuel/p47.jpg', './3d/assets/manuel/p51.jpg',
   './3d/assets/manuel/p52.jpg', './3d/assets/manuel/p55.jpg', './3d/assets/manuel/p65.jpg', './3d/assets/photos/manette.jpg',
-  './3d/vendor/draco/draco_decoder.wasm', './3d/vendor/draco/draco_decoder.js', './3d/assets/rodbot-v40-poster.jpg', './evaluation-risques.pdf',
+  './evaluation-risques.pdf',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './img/directions-manettes.webp', './img/eq-hmi.png', './img/eq-labeled.png',
   './img/eq-machine-real.png', './img/eq-machine.png', './img/eq-panel.png', './img/eq-track.png', './img/eq-transport.png', './img/fig-en/p07.jpg',
   './img/fig-en/p10.jpg', './img/fig-en/p11.jpg', './img/fig-en/p13.jpg', './img/fig-en/p14.jpg', './img/fig-en/p15.jpg', './img/fig-en/p16.jpg',
@@ -175,7 +176,7 @@ const PRECACHE = [
      donc un téléchargement interrompu reprend là où il était rendu ;
    - l'avancement (fichiers prêts / total) est envoyé aux pages ouvertes
      (message PRECACHE_ETAT) : l'opérateur voit quand il peut descendre sous terre.
-   Depuis la 1.95.0 la liste est complète : le modèle 3D en fait partie. */
+   Depuis la 1.95.0 la liste est complète : l'éclairage du modèle 3D en fait partie. */
 
 async function diffuser(message) {
   try {
@@ -208,7 +209,6 @@ function precacherTout() {
       return;
     }
     await diffuser({ type: 'PRECACHE_ETAT', prets, total, enCours: true });
-    // Le modèle 3D est conservé avec les autres ressources de formation.
     const LOT = 5;
     for (let i = 0; i < manquants.length; i += LOT) {
       const resultats = await Promise.allSettled(manquants.slice(i, i + LOT).map(async (url) => {
@@ -223,6 +223,18 @@ function precacherTout() {
   return precacheEnCours;
 }
 
+/* Libère la place de l'ancien modèle 3D sur l'appareil. Jamais bloquant. */
+async function purgerRetires() {
+  try {
+    const c = await caches.open(ASSETS);
+    if (typeof c.keys !== 'function' || typeof c.delete !== 'function') return;
+    for (const req of await c.keys()) {
+      const url = typeof req === 'string' ? req : req.url;
+      if (RETIRES.some((motif) => motif.test(new URL(url, self.location.href).pathname))) await c.delete(req);
+    }
+  } catch (e) {}
+}
+
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
@@ -232,6 +244,7 @@ self.addEventListener('activate', (e) => {
     // Ne purger que les anciennes coquilles RodBot. Conserver le contenu stable
     // et tous les caches des autres sites hébergés sur la même origine.
     caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
+      .then(purgerRetires)
       .then(() => self.clients.claim())
   );
   // Téléchargement complet du contenu dès la première installation

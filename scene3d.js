@@ -1,38 +1,42 @@
 /* ===========================================================================
    scene3d.js  |  La machine qui tourne sur la page d'accueil.
 
-   Reprend la replique articulee du dossier 3d/ et lui fait faire, tout seul,
-   un tour complet : on fait le tour de la machine, la camera se rapproche,
-   puis elle recule. Aucune manipulation demandee au travailleur.
+   Reprend le modele neuf de l'atelier (3d/js/viewer-v6.js, construit d'apres
+   le manuel de pieces) et lui fait faire, tout seul, un tour complet : on fait
+   le tour de la machine, la camera se rapproche, puis elle recule. Aucune
+   manipulation demandee au travailleur.
 
    Deux contraintes ont dicte le code.
 
    1. Le moteur de gabarits reconstruit TOUT le DOM a chaque rendu
-      (fullRender vide ROOT). Un <model-viewer> pose dans le gabarit serait
-      donc detruit et le modele recharge a chaque clic. La scene vit donc
+      (fullRender vide ROOT). Un canevas 3D pose dans le gabarit serait
+      donc detruit et le modele reconstruit a chaque clic. La scene vit donc
       dans un noeud a elle, cree UNE fois, que l'on redepose dans son
       emplacement apres chaque rendu.
 
-   2. Le modele pese 27 Mo et l'app sert des mineurs sous terre. Rien ne se
-      telecharge tant que la scene n'est pas a l'ecran, et rien du tout si
-      le telephone demande d'economiser les donnees ou si le reseau rampe :
-      dans ce cas l'affiche fixe reste, avec un bouton pour charger.
+   2. Le modele est construit par le telephone (quelques secondes de calcul)
+      et l'app sert des mineurs sous terre. Rien ne se construit tant que la
+      scene n'est pas a l'ecran, et rien du tout si le telephone demande
+      d'economiser les donnees ou si le reseau rampe : dans ce cas l'affiche
+      fixe reste, avec un bouton pour charger.
    =========================================================================== */
 (function (global) {
   'use strict';
 
-  var MV = './3d/vendor/model-viewer-4.3.1.min.js';
-  var GLB = './3d/assets/rodbot-v40-bc6aeb52.glb';
+  /* Le moteur est un module : la carte d'import de index.html lui donne three.js. */
+  var MOTEUR = './3d/js/viewer-v6.js';
   var HDR = './3d/assets/warehouse-v5.hdr';
-  var DRACO = './3d/vendor/draco/';
-  var AFFICHE = './3d/assets/rodbot-v40-poster.jpg';
+  var AFFICHE = './3d/assets/rodbot-pm-poster.jpg';
+  /* Point vise et recul de reference (metres) : la machine, le trepied et l'ombilical. */
+  var CIBLE = [-0.75, 1.0, 0.45];
+  var RECUL = 8.2;
 
   /* Un tour complet dure 30 s ; la camera respire sur 20 s, donc les deux
      mouvements ne retombent jamais en phase et la scene ne se repete pas. */
   var TOUR_S = 30;
   var RESPIRE_S = 20;
 
-  var hote = null, cadre = null, vue = null, affiche = null, btn = null, lien = null, etat = null;
+  var hote = null, cadre = null, vue = null, viewer = null, affiche = null, btn = null, lien = null, etat = null;
   var pret = false, pause = false, visible = false, demande = false, casse = false;
   var raf = 0, t0 = 0, phase = 0, obs = null;
 
@@ -80,7 +84,8 @@
     var theta = -180 + (phase % TOUR_S) / TOUR_S * 360;     // le tour complet
     var phi = 72 - 9 * Math.sin(tour);                      // un peu plus haut, un peu plus bas
     var dist = 96 - 26 * (0.5 - 0.5 * Math.cos(respire));   // de 96 % a 70 %
-    return theta.toFixed(2) + 'deg ' + phi.toFixed(2) + 'deg ' + dist.toFixed(1) + '%';
+    // phi : angle depuis la verticale ; la camera du moteur prend la hauteur (90 - phi).
+    return { yaw: +theta.toFixed(2), pitch: +(90 - phi).toFixed(2), dist: +(RECUL * dist / 100).toFixed(3), pct: +dist.toFixed(1), target: CIBLE };
   }
   function pas(temps) {
     raf = 0;
@@ -88,7 +93,7 @@
     var dt = t0 ? Math.min(0.06, (temps - t0) / 1000) : 0;
     t0 = temps;
     phase += dt;
-    try { vue.cameraOrbit = orbite(phase); } catch (e) {}
+    try { viewer.setView(orbite(phase)); } catch (e) {}
     raf = requestAnimationFrame(pas);
   }
 
@@ -104,10 +109,16 @@
     if (demande || casse) return;
     demande = true;
     libelles();
-    import(MV).then(function (m) {
-      try { m.ModelViewerElement.dracoDecoderLocation = DRACO; } catch (e) {}
-      vue.environmentImage = HDR;
-      vue.src = GLB;
+    import(MOTEUR).then(function (m) {
+      return m.RodbotViewer.create({ canvas: vue, controls: false, environment: HDR, home: orbite(phase) });
+    }).then(function (v) {
+      viewer = v;
+      v.on('error', function () { casse = true; pret = false; libelles(); });
+      return v.ready;
+    }).then(function () {
+      pret = true;
+      cadre.classList.add('est-charge');
+      relance();
     }).catch(function () { casse = true; pret = false; libelles(); });
   }
 
@@ -121,25 +132,14 @@
     affiche = document.createElement('img');
     affiche.className = 'rb-scene3d-affiche';
     affiche.src = AFFICHE;
-    affiche.alt = tr('Réplique 3D du RodBot LP', '3D replica of the RodBot LP');
-    affiche.width = 1280; affiche.height = 720;
+    affiche.alt = tr('Le RodBot LP en 3D', 'The RodBot LP in 3D');
+    affiche.width = 1280; affiche.height = 960;
     cadre.appendChild(affiche);
 
-    vue = document.createElement('model-viewer');
+    vue = document.createElement('canvas');
     vue.className = 'rb-scene3d-vue';
-    vue.setAttribute('alt', tr('Présentation animée de la réplique du RodBot',
-                               'Animated presentation of the RodBot replica'));
-    vue.setAttribute('camera-orbit', '-180deg 72deg 96%');
-    vue.setAttribute('field-of-view', '30deg');
-    vue.setAttribute('shadow-intensity', '1');
-    vue.setAttribute('shadow-softness', '0.8');
-    vue.setAttribute('exposure', '1');
-    vue.setAttribute('tone-mapping', 'agx');
-    vue.setAttribute('interaction-prompt', 'none');
-    vue.setAttribute('loading', 'lazy');
     vue.setAttribute('tabindex', '-1');
     vue.setAttribute('aria-hidden', 'true');
-    vue.appendChild(document.createElement('span')).setAttribute('slot', 'progress-bar');
     cadre.appendChild(vue);
 
     // Le bouton reste sur l'image, en bas a droite. Le lien vers la page 3D
@@ -162,13 +162,6 @@
     lien.className = 'rb-scene3d-lien';
     pied.appendChild(etat); pied.appendChild(lien);
     hote.appendChild(pied);
-
-    vue.addEventListener('load', function () {
-      pret = true;
-      cadre.classList.add('est-charge');
-      relance();
-    });
-    vue.addEventListener('error', function () { casse = true; pret = false; libelles(); });
 
     btn.addEventListener('click', function () {
       if (casse) return;

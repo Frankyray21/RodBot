@@ -1,5 +1,5 @@
 /* RodBot 3D : la réplique articulée occupe l'écran, les commandes restent
-   à part. Moteur : model-viewer (3d/js/viewer-v5.js). */
+   à part. Moteur : three.js (3d/js/viewer-v6.js, modèle de 3d/eclate). */
 :root{--bg:#101214;--bg-2:#171a1d;--card:#1c2024;--card-2:#23282d;--border:#32383e;--muted:#b3bbc4;--dim:#969fa9}
 [hidden]{display:none!important}
 body::before{display:none}

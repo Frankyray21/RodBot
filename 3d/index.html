@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RodBot 3D : exploration et simulations | Machines Roger International</title>
+  <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
   <meta name="description" content="Explore la réplique du RodBot. Repère les commandes et pratique les gestes dans les simulations.">
   <meta name="theme-color" content="#0a0e17">
   <meta name="color-scheme" content="dark">
@@ -11,17 +12,17 @@
   <meta property="og:locale" content="fr_CA">
   <meta property="og:title" content="RodBot 3D : Manipulateur de tiges robotisé | Machines Roger International">
   <meta property="og:description" content="Explore la réplique du RodBot. Repère les commandes et pratique les gestes dans les simulations.">
-  <meta property="og:image" content="./assets/rodbot-v40-poster.jpg">
+  <meta property="og:image" content="./assets/rodbot-pm-poster.jpg">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="960">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="./assets/rodbot-v40-poster.jpg">
+  <meta name="twitter:image" content="./assets/rodbot-pm-poster.jpg">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0e17'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23d22325' stroke='%23ffffff' stroke-width='4'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="../fonts/fonts.css?v=1.132.0">
-  <link rel="stylesheet" href="./css/styles.css?v=1.132.0">
-  <link rel="stylesheet" href="./css/viewer.css?v=1.132.0">
-  <link rel="stylesheet" href="./css/training.css?v=1.132.0">
-  <link rel="stylesheet" href="./css/component-popup.css?v=1.132.0">
+  <link rel="stylesheet" href="../fonts/fonts.css?v=1.133.0">
+  <link rel="stylesheet" href="./css/styles.css?v=1.133.0">
+  <link rel="stylesheet" href="./css/viewer.css?v=1.133.0">
+  <link rel="stylesheet" href="./css/training.css?v=1.133.0">
+  <link rel="stylesheet" href="./css/component-popup.css?v=1.133.0">
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
@@ -31,7 +32,6 @@
       <span class="brand-sub">Machines Roger International</span></a>
     <span class="header-tag">Exploration 3D</span>
     <nav class="header-nav" aria-label="Navigation principale">
-      <a class="nav-link" href="./replique.html">Vue libre</a>
       <a class="nav-link" href="./eclate.html">Vue éclatée</a>
       <a class="nav-link" href="../">Formation</a>
     </nav>
@@ -42,13 +42,7 @@
     <!-- ============ HÉROS ============ -->
     <section class="hero" id="accueil">
       <div class="hero-video" aria-hidden="true">
-        <model-viewer id="heroClip" class="hero-model" tabindex="-1"
-          poster="./assets/rodbot-v40-poster.jpg" alt="Présentation animée de la réplique du RodBot"
-          camera-orbit="-50deg 70deg 100%" field-of-view="30deg"
-          shadow-intensity="1" shadow-softness="0.8" exposure="1" tone-mapping="agx"
-          animation-name="Presentation_360" interaction-prompt="none" loading="lazy">
-          <span slot="progress-bar"></span>
-        </model-viewer>
+        <img class="hero-model" src="./assets/rodbot-pm-poster.jpg" alt="" decoding="async" fetchpriority="high">
         <div class="hero-scrim"></div>
       </div>
       <div class="wrap hero-content">
@@ -57,7 +51,7 @@
         <p>Repère les commandes. Observe les articulations. Essaie les gestes sur la réplique de formation.</p>
         <div class="hero-actions">
           <a class="btn lg ghost" id="heroExplore" href="#explorer">Explorer les composants</a>
-          <button id="heroPause" class="vbtn" type="button" aria-pressed="false">Pause animation</button>
+          
         </div>
       </div>
       <button class="scroll-cue" id="scrollCue" type="button">Défiler<span aria-hidden="true">&darr;</span></button>
@@ -80,9 +74,7 @@
 
         <div class="training-workbench">
         <div class="viewer-wrap" id="viewerStage" aria-busy="true">
-          <model-viewer id="canvas3d" tabindex="0" alt="Réplique articulée du LP RodBot" aria-describedby="viewerInstructions" poster="./assets/rodbot-v40-poster.jpg"><span slot="progress-bar"></span>
-            <span id="cabinetAnchor" slot="hotspot-cabinet-action" aria-hidden="true" style="width:0;height:0;opacity:0;pointer-events:none"></span>
-          </model-viewer>
+          <canvas id="canvas3d" tabindex="0" role="img" aria-label="Réplique articulée du LP RodBot" aria-describedby="viewerInstructions"></canvas>
           <button class="vbtn viewer-cabinet" id="btnCabinet" type="button" aria-label="Ouvrir le coffret" aria-pressed="false" hidden disabled>
             <span class="cabinet-action-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false">
@@ -124,7 +116,7 @@
           <div class="tour-info"><span class="tour-etat" id="tourEtat" role="status" aria-live="polite">7 composants à découvrir</span><div class="tour-track" aria-hidden="true"><span id="tourProgress"></span></div></div>
           <button class="vbtn" id="tourStop" type="button" hidden>Terminer</button>
         </div>
-        <p class="viewer-hint" id="viewerInstructions">Glisse pour tourner. Clique sur un détail pour le centrer. Maj + molette pour affiner le zoom.</p>
+        <p class="viewer-hint" id="viewerInstructions">Glisse pour tourner. Pince ou molette pour zoomer. Touche un repère pour voir sa fiche.</p>
         <div class="view-bar" id="viewBar" role="group" aria-label="Vues rapides"></div>
       </div>
     </section>
@@ -197,7 +189,7 @@
       </div>
       <div class="foot-bar">
         <span>Machines Roger International : RodBot · Val-d'Or, Québec</span>
-        <span id="rbSiteVer">Version 1.132.0</span>
+        <span id="rbSiteVer">Version 1.133.0</span>
         <span>Réplique de formation. © 2026 Machines Roger International.</span>
       </div>
     </div>
@@ -222,8 +214,8 @@
   <script type="module">
     /* ============================================================
        Page RodBot : viewer 3D + fiches composants
-       Dépendances : ./js/viewer-v5.js, ./js/hotspots-v40.js, ./js/tour.js,
-       ./js/hero-v6.js et ./js/training-ui.js
+       Dépendances : ./js/viewer-v6.js (modèle neuf, eclate/), ./js/hotspots-v41.js,
+       ./js/tour.js et ./js/training-ui.js
        ============================================================ */
 
     /* ---------- Données des fiches composants ----------
@@ -339,14 +331,9 @@
     const FLY = REDUIT ? 1 : 1100;
     const FLY_HOME = REDUIT ? 1 : 900;
 
-    // Le héros et l'atelier partagent le MÊME GLB de 27 Mo. Le héros attend donc
-    // que l'atelier l'ait chargé : sinon les deux le téléchargent en parallèle.
-    let heroPresentation = null;
-    let atelierCharge;
-    const atelierPret = new Promise((resoudre) => { atelierCharge = resoudre; });
-    import('./js/hero-v6.js?v=1.132.0').then(({createHero}) => {
-      heroPresentation = createHero(document.getElementById('heroClip'), document.getElementById('heroPause'), atelierPret);
-    }).catch(() => { document.getElementById('heroPause').hidden = true; });
+    // Le héros est une image fixe du modèle neuf : rien à charger en double.
+    const heroPresentation = null;
+    const atelierCharge = () => {};
     const scrollCue = document.getElementById('scrollCue');
     if (scrollCue) scrollCue.addEventListener('click', () => {
       const cible = document.getElementById('explorer');
@@ -737,11 +724,11 @@
 
     try {
       /* version des modules : force le rafraîchissement du cache navigateur à chaque déploiement */
-      const VER = '1.132.0';
+      const VER = '1.133.0';
       try { var _sv=document.getElementById('rbSiteVer'); if(_sv) _sv.textContent='Version '+VER; } catch(e){}
       const [{ default: RodbotViewer }, { HOTSPOTS, URGENCES, CONTROLS, VUES, hotspotById }, { createTour }] = await Promise.all([
-        import('./js/viewer-v5.js?v=' + VER),
-        import('./js/hotspots-v40.js?v=' + VER),
+        import('./js/viewer-v6.js?v=' + VER),
+        import('./js/hotspots-v41.js?v=' + VER),
         import('./js/tour.js?v=' + VER)
       ]);
       const TOUS_POINTS = HOTSPOTS.concat(URGENCES);
@@ -791,7 +778,7 @@
       try { atelierCharge(); } catch (e) {}
       afficherChargement(false);
       qualitySelect.value = v.quality;
-      renderStatus.textContent = v.quality === 'hq' ? 'Réplique articulée · Détails' : 'Réplique articulée · Fluide';
+      renderStatus.textContent = v.quality === 'hq' ? 'Modèle neuf · Détails' : 'Modèle neuf · Fluide';
       document.querySelectorAll('.viewer-controls button, .tour-player button').forEach(button => { button.disabled = false; });
       if (loaderFill) loaderFill.style.width = '100%';
       if (loaderPct) loaderPct.textContent = '100 %';
@@ -821,7 +808,7 @@
       });
       qualitySelect.addEventListener('change', async () => {
         arreterVisite(); reglerRotation(false);
-        try { await v.setQuality(qualitySelect.value); renderStatus.textContent = v.quality === 'hq' ? 'Réplique articulée · Détails' : 'Réplique articulée · Fluide'; }
+        try { await v.setQuality(qualitySelect.value); renderStatus.textContent = v.quality === 'hq' ? 'Modèle neuf · Détails' : 'Modèle neuf · Fluide'; }
         catch (_) { /* La dernière qualité chargée reste affichée. */ }
         finally { qualitySelect.value = v.quality; afficherChargement(false); }
       });
@@ -1039,14 +1026,11 @@
       // Project beside the door like the other markers, above their overlay so
       // a nearby component marker cannot intercept an open/close click.
       const cabinetButton = document.getElementById('btnCabinet');
-      const cabinetAnchor = document.getElementById('cabinetAnchor');
       const cabinetDoor = hotspotById('panel-door');
       if (cabinetDoor && v.availableAccessKeys.includes('panel')) {
-        v.model.updateHotspot({name:cabinetAnchor.slot, surface:cabinetDoor.surface,
-          position:cabinetDoor.pos.map(x=>x+'m').join(' '), normal:cabinetDoor.normal.join(' ')});
         const placeCabinetButton = () => {
-          const point = v.model.queryHotspot(cabinetAnchor.slot)?.canvasPosition;
-          const box = v.model.getBoundingClientRect(), stageBox = stage.getBoundingClientRect();
+          const point = v.project(cabinetDoor);
+          const box = v.canvas.getBoundingClientRect(), stageBox = stage.getBoundingClientRect();
           const x = point?.x + box.left - stageBox.left - stage.clientLeft;
           const y = point?.y + box.top - stageBox.top - stage.clientTop;
           cabinetButton.hidden = !point || !Number.isFinite(x+y+point.z) || point.z < -1 || point.z > 1 ||
